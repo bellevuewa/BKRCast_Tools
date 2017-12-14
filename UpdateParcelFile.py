@@ -12,10 +12,9 @@ Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
 Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
 #Parcel_FileName_newjobs = r"2014KCParcel_Jobs.csv"
 Conversion_Factors_File_Name = r"BKRCast_Conversion_rate.csv"
-Subarea_Conversion_Schedule_File_Name = r"subarea_conversion_schedule2.csv"
-Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
+Subarea_Conversion_Schedule_File_Name = r"subarea_conversion_schedule3.csv"
+Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\LUTest4"
 Parcels_Sqft_File_Name = r"2014KCparcel_sqft_to_Jobs.csv"
-#Parcels_Sqft_File_Name = r"parcel_Sqft_test.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
 
@@ -35,7 +34,7 @@ taz_subarea = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, TAZ_Sub
 
 parcels_sqft = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Parcels_Sqft_File_Name), sep = ",")   
 parcels_sqft = parcels_sqft.join(parcels['TAZ_P'], on = "PSRCID")
-parcels_sqft = parcels_sqft.join(taz_subarea['Subarea'], on = 'TAZ_P')
+parcels_sqft = parcels_sqft.join(taz_subarea[['Subarea', 'SubareaName']], on = 'TAZ_P')
 parcels_sqft = parcels_sqft.join(conversion_schedule['Conversion'], on = "Subarea")
 parcels_sqft = parcels_sqft[~parcels_sqft["Conversion"].isnull()]
 
@@ -163,7 +162,15 @@ outputlist = JOB_CATEGORY + newESDLabels
 summary_by_jurisdiction = parcels_sqft.groupby('JURISDICTION')[outputlist].sum()
 summary_by_jurisdiction.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_jurisdiction.csv"))
 summary_by_taz = parcels_sqft.groupby('TAZ_P')[outputlist].sum()
-summary_by_taz.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_TAZ.csv"))
+summary_by_taz.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_TAZ.csv")) 
+
+#"SUBRAREA" is the index
+summary_by_subarea = parcels_sqft.groupby('SUBAREA')[outputlist].sum()
+subarea_def = parcels_sqft[["SUBAREA", "SUBAREANAME"]]
+subarea_def = subarea_def.drop_duplicates(keep = 'first')  
+subarea_def.set_index("SUBAREA", inplace = True)     
+summary_by_subarea = summary_by_subarea.join(subarea_def["SUBAREANAME"])
+summary_by_subarea.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_subarea.csv"))
 
 parcels.drop_duplicates(keep = 'first', inplace = True) 
 parcels_sqft.drop_duplicates(subset = 'PSRCID', keep = 'first', inplace = True)
