@@ -44,7 +44,7 @@ parcels.columns = [i.upper() for i in parcels.columns]
 conversion_rates.columns = [i.upper() for i in conversion_rates.columns]
 parcels_sqft.columns = [i.upper() for i in parcels_sqft.columns]
 
-
+# demonstrate how to merge 
 #parcels.loc[parcels.index.isin(parcels_newjobs.index), JOB_CATEGORY] = parcels_newjobs[JOB_CATEGORY]
 #parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), index = False, sep = ' ')
 
