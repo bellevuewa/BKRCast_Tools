@@ -11,10 +11,9 @@ from shutil import copyfile
 
 Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
 Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
-#Parcel_FileName_newjobs = r"2014KCParcel_Jobs.csv"
-Conversion_Factors_File_Name = r"BKRCast_Conversion_rate.csv"
-Subarea_Conversion_Schedule_File_Name = r"subarea_conversion_schedule3.csv"
-Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\LUTest4"
+Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_test.csv"
+Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor.csv"
+Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test2"
 Parcels_Sqft_File_Name = r"2014KCparcel_sqft_to_Jobs.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
@@ -28,30 +27,23 @@ JOB_CATEGORY = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMP
 
 if not os.path.exists(Output_Parcel_Folder):
     os.makedirs(Output_Parcel_Folder)
+
 print "Loading input files ..."
-
 parcels = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = " ", index_col = "PARCELID")
-
-#parcels_newjobs = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Parcel_FileName_newjobs), sep = ",", index_col = "PARCELID")
 conversion_rates = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Conversion_Factors_File_Name), sep = ",")
-conversion_schedule = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Subarea_Conversion_Schedule_File_Name), sep = ",", index_col = "Subarea_ID")
+adjustment_factors = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Subarea_Adjustment_Factor_File_Name), sep = ",", index_col = "Subarea_ID")
 taz_subarea = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
 
 parcels_sqft = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Parcels_Sqft_File_Name), sep = ",")   
 parcels_sqft = parcels_sqft.join(parcels['TAZ_P'], on = "PSRCID")
 parcels_sqft = parcels_sqft.join(taz_subarea[['Subarea', 'SubareaName']], on = 'TAZ_P')
-parcels_sqft = parcels_sqft.join(conversion_schedule['Conversion'], on = "Subarea")
-parcels_sqft = parcels_sqft[~parcels_sqft["Conversion"].isnull()]
+parcels_sqft = parcels_sqft.join(adjustment_factors['Factor'], on = "Subarea")
+parcels_sqft = parcels_sqft[~parcels_sqft["Factor"].isnull()]
 
 #capitalize all column names to avoid unexpected errors
 parcels.columns = [i.upper() for i in parcels.columns]
-#parcels_newjobs.columns = [i.upper() for i in parcels_newjobs.columns]
 conversion_rates.columns = [i.upper() for i in conversion_rates.columns]
 parcels_sqft.columns = [i.upper() for i in parcels_sqft.columns]
-
-# demonstrate how to merge 
-#parcels.loc[parcels.index.isin(parcels_newjobs.index), JOB_CATEGORY] = parcels_newjobs[JOB_CATEGORY]
-#parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), index = False, sep = ' ')
 
 #
 # Pull conversion rate by level.
@@ -87,7 +79,7 @@ def Sqft_to_Jobs(empType, convertLevel):
                 jobrate = conversion_rates.loc['Sqft_to_Job_Rate', type_level]
                 occrate = conversion_rates.loc['Occupied_Rate', type_level]
                 type_level_Job = type_level + "_J"
-                parcels_sqft[type_level_Job] = parcels_sqft[type_level] * occrate / jobrate
+                parcels_sqft[type_level_Job] = parcels_sqft[type_level] * occrate / jobrate * parcels_sqft['FACTOR']
             else:
                 parcels_sqft[type_level_Job] = 0
             parcels_sqft[totJobType] = parcels_sqft[totJobType] + parcels_sqft[type_level_Job]
@@ -96,55 +88,26 @@ def Sqft_to_Jobs(empType, convertLevel):
     return
 
 
-def CalculateJobs(row, type, totTypeSqft, conversion_verylow, conversion_low, conversion_med, conversion_high, conversion_veryhigh):
-    conversion = None
-    conversiontype = row['CONVERSION']
-    if conversiontype == "verylow":
-        conversion = conversion_verylow
-    elif conversiontype == "low":
-        conversion = conversion_low
-    elif conversiontype == "med":
-        conversion = conversion_med
-    elif conversiontype == "high":
-        conversion = conversion_high
-    else:
-        conversion = conversion_veryhigh
+#def CalculateJobs(row, type, totTypeSqft, conversion_verylow, conversion_low, conversion_med, conversion_high, conversion_veryhigh):
+#    conversion = None
+#    conversiontype = row['CONVERSION']
+#    if conversiontype == "verylow":
+#        conversion = conversion_verylow
+#    elif conversiontype == "low":
+#        conversion = conversion_low
+#    elif conversiontype == "med":
+#        conversion = conversion_med
+#    elif conversiontype == "high":
+#        conversion = conversion_high
+#    else:
+#        conversion = conversion_veryhigh
 
-    type_level = type.upper() + "_" + conversiontype.upper()
-    jobrate = conversion.loc['Sqft_to_Job_Rate', type_level]
-    occrate = conversion.loc['Occupied_Rate', type_level]
-    totjobs = row[totTypeSqft] * occrate / jobrate
-    return totjobs        
-#
-# Convert sqft to number of jobs by job category. The conversion rates are controlled by subarea
-# empType: EDU, FOO, GOV, IND, NOEMP, MED, OFC, OTH, RET, SVC
-def Sqft_to_Jobs_by_Subarea(empType):
-    conversion_verylow = GetConversionRates('verylow')
-    conversion_low = GetConversionRates('low')
-    conversion_med = GetConversionRates('med')
-    conversion_high = GetConversionRates('high')
-    conversion_veryhigh = GetConversionRates('veryhigh')
-    conversion = None    
+#    type_level = type.upper() + "_" + conversiontype.upper()
+#    jobrate = conversion.loc['Sqft_to_Job_Rate', type_level]
+#    occrate = conversion.loc['Occupied_Rate', type_level]
+#    totjobs = row[totTypeSqft] * occrate / jobrate
+#    return totjobs        
 
-    list = []
-    parcels_sqft['EMPTOT_P'] = 0
-   
-    for type in empType:
-        if type == 'NoEMP':
-            continue
-        totJobType = "EMP" + type + "_P"  
-        totTypeSqft = "SQFT_" + type
-        parcels_sqft[totJobType] = 0
-        parcels_sqft[totTypeSqft] = 0
-        type_ = type + "_"
-        for col in parcels_sqft.columns:
-            if col.find(type_.upper()) == 0:
-                parcels_sqft[totTypeSqft] = parcels_sqft[totTypeSqft] + parcels_sqft[col]
-
-        parcels_sqft[totJobType] = parcels_sqft.apply(lambda row: CalculateJobs(row, type, totTypeSqft, conversion_verylow, conversion_low, conversion_med, conversion_high, conversion_veryhigh), axis = 1)
-        parcels_sqft['EMPTOT_P'] = parcels_sqft['EMPTOT_P'] + parcels_sqft[totJobType]
-    #parcels_sqft['NOEMP_J'] = parcels_sqft['NOEMP'] * conversion.loc['Occupied_Rate', 'NOEMP'] / conversion.loc['Sqft_to_Job_Rate', 'NOEMP']
-    return
   
 def Print_DF_Columns(df):
     if type(df) is pd.DataFrame:
@@ -154,11 +117,11 @@ def Print_DF_Columns(df):
         print "Input is not a pandas dataframe"
 
 
-Sqft_to_Jobs_by_Subarea(EMPLOYMENT_TYPE)
-#Sqft_to_Jobs(EMPLOYMENT_TYPE, CONVERSION_LEVEL)  
+Sqft_to_Jobs(EMPLOYMENT_TYPE, CONVERSION_LEVEL)  
 ESD_jobs = parcels[JOB_CATEGORY]
 ESD_jobs = ESD_jobs.rename(columns = lambda x: x.replace('_P', '_ESD'))
 parcels_sqft = parcels_sqft.join(ESD_jobs, on = "PSRCID")
+
 print "Exporting \"Converted_jobs_in_BKRarea.csv\""
 parcels_sqft.to_csv(os.path.join(Output_Parcel_Folder, "Converted_jobs_in_BKRarea.csv"))
 
@@ -189,13 +152,14 @@ parcels.loc[parcels.index.isin(parcels_sqft.index), JOB_CATEGORY] = parcels_sqft
 print "Exporting updated urbansim parcel file ..."
 parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), index = True, sep = ' ')
 
+# backup input files inside input folder
 print "Backup input files ..."
 input_backup_folder = os.path.join(Output_Parcel_Folder, 'inputs')
 if not os.path.exists(input_backup_folder):
     os.makedirs(input_backup_folder) 
 copyfile(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), os.path.join(input_backup_folder, Original_ESD_Parcel_File_Name))
 copyfile(os.path.join(Original_Parcel_Folder, Conversion_Factors_File_Name), os.path.join(input_backup_folder, Conversion_Factors_File_Name))
-copyfile(os.path.join(Original_Parcel_Folder, Subarea_Conversion_Schedule_File_Name), os.path.join(input_backup_folder, Subarea_Adjustment_Factor_File_Name))
+copyfile(os.path.join(Original_Parcel_Folder, Subarea_Adjustment_Factor_File_Name), os.path.join(input_backup_folder, Subarea_Adjustment_Factor_File_Name))
 copyfile(os.path.join(Original_Parcel_Folder, Parcels_Sqft_File_Name), os.path.join(input_backup_folder, Parcels_Sqft_File_Name))
 
 print "Finished"  
