@@ -14,8 +14,9 @@ class BKRCastExportNetwork(_modeller.Tool()):
     input files in EMME punch file format.
     Files will be produced:
       base network file, link shape file, turn file, and transit lines for AM, MD, PM and NI.
+    1.1.0: populate vdf functions for four TOD.
     '''
-    version = "1.0.0" # this is the version
+    version = "1.1.0" # this is the version
     default_path = ""
     tool_run_message = ""
     outputFolder = _modeller.Attribute(_modeller.InstanceType)
@@ -87,6 +88,10 @@ class BKRCastExportNetwork(_modeller.Tool()):
         md_transit_name = os.path.join(self.outputFolder, "md_transit.in")
         pm_transit_name = os.path.join(self.outputFolder, "pm_transit.in")
         ni_transit_name = os.path.join(self.outputFolder, "ni_transit.in")
+        am_vdf_name = os.path.join(self.outputFolder, "vdfs6to9.txt")
+        md_vdf_name = os.path.join(self.outputFolder, "vdfs9to1530.txt")
+        pm_vdf_name = os.path.join(self.outputFolder, "vdfs1530to1830.txt")
+        ni_vdf_name = os.path.join(self.outputFolder, "vdfs1830to6.txt")
 
         with _modeller.logbook_trace(name = "Export temporary transit network", value = ""):
             self.tLineNetCalculator("hdw", "ut1")
@@ -170,6 +175,13 @@ class BKRCastExportNetwork(_modeller.Tool()):
             self.exportTransit(pm_transit_name, pmScen, "not hdw = 999")
             self.exportTransit(ni_transit_name, niScen, "not hdw = 999")
 
+        #export vdf functions (all functions, overwrite if file exists)
+        with _modeller.logbook_trace(name = "Export vdfs", value = ""):
+            self.exportVDF(am_vdf_name)
+            self.exportVDF(md_vdf_name)
+            self.exportVDF(pm_vdf_name)
+            self.exportVDF(ni_vdf_name)    
+
     def exportTransit(self, tempFileName, scen, selection):
         NAMESPACE = "inro.emme.data.network.transit.export_transit_lines"
         export_transitlines = _modeller.Modeller().tool(NAMESPACE)
@@ -238,4 +250,9 @@ class BKRCastExportNetwork(_modeller.Tool()):
         delete_tline = _modeller.Modeller().tool(NAMESPACE)
         tot = delete_tline(scenario = scen, selection = selector)
         return tot
+
+    def exportVDF(self, exportfile):
+        NAMESPACE = "inro.emme.data.function.export_functions"
+        export_function = _modeller.Modeller().tool(NAMESPACE)
+        export_function(export_file = exportfile, append_to_file = False)
 
