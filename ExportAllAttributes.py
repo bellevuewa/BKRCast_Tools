@@ -12,7 +12,7 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
     '''
     this tool is to export all extra attributes from current scenario.
     '''
-    version = "1.0.0" # this is the version
+    version = "1.0.1" # this is the version
     default_path = ""
     tool_run_message = ""
     outputFolder = _modeller.Attribute(_modeller.InstanceType)
@@ -95,7 +95,7 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
         print attr + " exported"
     
     def exportExtraAttributeDefinition(self, path, scen):
-        filename = "extra_attribute_definition_s" + scen.id + ".txt"
+        filename = "extra_attribute_definitions.txt"
         outputfile = os.path.join(path, filename)
         file = open(outputfile, 'w')
         for extra_attr in scen.extra_attributes():

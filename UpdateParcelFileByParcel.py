@@ -8,15 +8,32 @@ from pyproj import Proj, transform
 import copy
 from shutil import copyfile
 
-
 Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
 Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
-Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_test.csv"
-Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor.csv"
-Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test3"
-Parcels_Sqft_File_Name = r"2014KCparcel_sqft_to_Jobs.csv"
+Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_01252018.csv"
+Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor_all_1.csv"
+Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test5"
+Parcels_Sqft_File_Name = r"Parcel_Summary - Only PSRC IDs Modified_4_01252018.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
+
+#Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
+#Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
+#Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_test.csv"
+#Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor_all_1.csv"
+#Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test3_noSubareaAdj"
+#Parcels_Sqft_File_Name = r"2014KCparcel_sqft_to_Jobs.csv"
+#TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
+#Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
+
+#Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
+#Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
+#Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_01172018.csv"
+#Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor_all_1.csv"
+#Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test4"
+#Parcels_Sqft_File_Name = r"ParcelSummary_Revised_OnlyPSRCIDs.csv"
+#TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
+#Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
 
 CONVERSION_LEVEL = ['verylow', 'low', 'med', 'high', 'veryhigh']
 EMPLOYMENT_TYPE = ['EDU', 'FOO', 'GOV', 'IND', 'MED', 'OFC', 'OTH', 'RET', 'SVC', 'NoEMP']
@@ -87,27 +104,6 @@ def Sqft_to_Jobs(empType, convertLevel):
     parcels_sqft['NOEMP_J'] = parcels_sqft['NOEMP'] * conversion_rates.loc['Occupied_Rate', 'NOEMP'] / conversion_rates.loc['Sqft_to_Job_Rate', 'NOEMP']
     return
 
-
-#def CalculateJobs(row, type, totTypeSqft, conversion_verylow, conversion_low, conversion_med, conversion_high, conversion_veryhigh):
-#    conversion = None
-#    conversiontype = row['CONVERSION']
-#    if conversiontype == "verylow":
-#        conversion = conversion_verylow
-#    elif conversiontype == "low":
-#        conversion = conversion_low
-#    elif conversiontype == "med":
-#        conversion = conversion_med
-#    elif conversiontype == "high":
-#        conversion = conversion_high
-#    else:
-#        conversion = conversion_veryhigh
-
-#    type_level = type.upper() + "_" + conversiontype.upper()
-#    jobrate = conversion.loc['Sqft_to_Job_Rate', type_level]
-#    occrate = conversion.loc['Occupied_Rate', type_level]
-#    totjobs = row[totTypeSqft] * occrate / jobrate
-#    return totjobs        
-
   
 def Print_DF_Columns(df):
     if type(df) is pd.DataFrame:
@@ -124,6 +120,15 @@ parcels_sqft = parcels_sqft.join(ESD_jobs, on = "PSRCID")
 
 print "Exporting \"Converted_jobs_in_BKRarea.csv\""
 parcels_sqft.to_csv(os.path.join(Output_Parcel_Folder, "Converted_jobs_in_BKRarea.csv"))
+
+# if there are ESD jobs in a parcel without commercial sqft, they are home based jobs. 
+homeoffice_detailedparcels = parcels_sqft.loc[(parcels_sqft['EMPTOT_P'] == 0) & (parcels_sqft['EMPTOT_ESD'] > 0) ]
+# export parcels only with home based jobs, and sqft related data
+homeoffice_detailedparcels.to_csv(os.path.join(Output_Parcel_Folder, "HomeOfficeParcels_detailed.csv"))  
+# export ESD parcel data with only home based jobs      
+homeoffice_parcels = parcels.loc[homeoffice_detailedparcels['PSRCID']]
+homeoffice_parcels.to_csv(os.path.join(Output_Parcel_Folder, "HomeOfficeParcels.csv"))
+print("total home based jobs are %d ", homeoffice_parcels['EMPTOT_P'].sum())
 
 newESDLabels = [x.replace('_P', '_ESD') for x in JOB_CATEGORY]
 outputlist = JOB_CATEGORY + newESDLabels
@@ -149,6 +154,10 @@ parcels_sqft.drop_duplicates(subset = 'PSRCID', keep = 'first', inplace = True)
 parcels_sqft = parcels_sqft.set_index('PSRCID') 
 
 parcels.loc[parcels.index.isin(parcels_sqft.index), JOB_CATEGORY] = parcels_sqft[JOB_CATEGORY]
+print("Before home office update, total jobs are ", parcels['EMPTOT_P'].sum())
+# for parcels with only home based jobs, put them back after sqft conversion. Otherwise, all home based jobs will be missing.
+parcels.loc[parcels.index.isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
+print("After home office update, total jobs are ", parcels['EMPTOT_P'].sum())
 print "Exporting updated urbansim parcel file ..."
 parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), index = True, sep = ' ')
 
