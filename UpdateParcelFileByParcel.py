@@ -47,6 +47,8 @@ if not os.path.exists(Output_Parcel_Folder):
 
 print "Loading input files ..."
 parcels = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = " ", index_col = "PARCELID")
+original_ESD_tot_jobs = parcels['EMPTOT_P'].sum()
+print 'Original ESD jobs {0:.0f}'.format(original_ESD_tot_jobs)
 conversion_rates = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Conversion_Factors_File_Name), sep = ",")
 adjustment_factors = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Subarea_Adjustment_Factor_File_Name), sep = ",", index_col = "Subarea_ID")
 taz_subarea = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
@@ -120,6 +122,7 @@ parcels_sqft = parcels_sqft.join(ESD_jobs, on = "PSRCID")
 
 print "Exporting \"Converted_jobs_in_BKRarea.csv\""
 parcels_sqft.to_csv(os.path.join(Output_Parcel_Folder, "Converted_jobs_in_BKRarea.csv"))
+print 'Total converted jobs (in BKR) from sqft are {0:.0f}'.format(parcels_sqft['EMPTOT_P'].sum())
 
 # if there are ESD jobs in a parcel without commercial sqft, they are home based jobs. 
 homeoffice_detailedparcels = parcels_sqft.loc[(parcels_sqft['EMPTOT_P'] == 0) & (parcels_sqft['EMPTOT_ESD'] > 0) ]
@@ -128,7 +131,19 @@ homeoffice_detailedparcels.to_csv(os.path.join(Output_Parcel_Folder, "HomeOffice
 # export ESD parcel data with only home based jobs      
 homeoffice_parcels = parcels.loc[homeoffice_detailedparcels['PSRCID']]
 homeoffice_parcels.to_csv(os.path.join(Output_Parcel_Folder, "HomeOfficeParcels.csv"))
-print("total home based jobs are %d ", homeoffice_parcels['EMPTOT_P'].sum())
+
+# Because the limitation of sqft method, need to put the home office back to the parcel data.
+# for home based jobs, put them back to the converted job list. It is now a hybrid of ESD data and converted jobs.
+oldindex = parcels_sqft.index.name
+parcels_sqft.reset_index(inplace = True)
+parcels_sqft = parcels_sqft.set_index('PSRCID') 
+parcels_sqft.loc[parcels_sqft.index.isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
+print 'total home based jobs (in BKR) are {0:.0f}'.format(homeoffice_parcels['EMPTOT_P'].sum())
+print 'Total converted jobs in BKR (with home based jobs back) are {0:.0f}'.format(parcels_sqft['EMPTOT_P'].sum())
+
+# restore the index to the previous one.
+parcels_sqft.reset_index(inplace = True)
+parcels_sqft.set_index(oldindex, inplace = True)
 
 newESDLabels = [x.replace('_P', '_ESD') for x in JOB_CATEGORY]
 outputlist = JOB_CATEGORY + newESDLabels
@@ -151,15 +166,16 @@ summary_by_subarea.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_subarea
 
 parcels.drop_duplicates(keep = 'first', inplace = True) 
 parcels_sqft.drop_duplicates(subset = 'PSRCID', keep = 'first', inplace = True)
-parcels_sqft = parcels_sqft.set_index('PSRCID') 
+parcels_sqft.set_index('PSRCID', inplace = True) 
 
 parcels.loc[parcels.index.isin(parcels_sqft.index), JOB_CATEGORY] = parcels_sqft[JOB_CATEGORY]
-print("Before home office update, total jobs are ", parcels['EMPTOT_P'].sum())
-# for parcels with only home based jobs, put them back after sqft conversion. Otherwise, all home based jobs will be missing.
-parcels.loc[parcels.index.isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
-print("After home office update, total jobs are ", parcels['EMPTOT_P'].sum())
+#print("Before home office update, total jobs are ", parcels['EMPTOT_P'].sum())
+## for parcels with only home based jobs, put them back after sqft conversion. Otherwise, all home based jobs will be missing.
+#parcels.loc[parcels.index.isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
+#print("After home office update, total jobs are ", parcels['EMPTOT_P'].sum())
 print "Exporting updated urbansim parcel file ..."
 parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), index = True, sep = ' ')
+print 'Total jobs in updated parcel file are {0:.0f}'.format(parcels['EMPTOT_P'].sum())
 
 # backup input files inside input folder
 print "Backup input files ..."
