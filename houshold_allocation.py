@@ -1,31 +1,50 @@
 import pandas as pd
-import h5py                        
-import numpy as np                  
-import random           
+import h5py
+import numpy as np
+import random 
+import os
 
 # move or add? If false, houeholds will be added to specified parcels, but not removed from existing locations. 
-move_households = True     
+move_households = True
+# move from Bellevue. Other keys can be: KIRKLAND, REDMOND, BellevueFringe, KirklandFringe, RedmondFringe, Rest of KC, External   
+move_from = "BELLEVUE"
 
-# new files go here           
-output_dir = 'R:/Stefan/test/'      
 
-# input hh and persons file:             
-hdf_file = h5py.File(r'R:\SoundCast\Inputs\2014\landuse\hh_and_persons.h5', "r")
-                                      
-# output hh and persons file- don't overwrite existing one! 
-out_h5_file = h5py.File(output_dir + 'hh_and_persons.h5', 'w')
-                                                                  
-# parcels:                                                        
-parcel_df = pd.read_csv(r'R:\SoundCast\Inputs\2014\landuse\parcels_urbansim.txt', sep = ' ')
-                                                               
-# data about where housholds are going and how many. Each dictionary in the list is seperate move or addition.
-allocation_list= [{'taz_id' : 8, 'parcel_ids':[1077182], 'number_of_households' : 200},
+# new files go here
+output_dir = r'D:\Hu\tests'   
+# input hh and persons file:
+hdf_file = h5py.File(r'D:\BKRCast_KirklandTest\BKRCast_Kirkland_Test3\inputs\hh_and_persons.h5', "r")
+TAZ_Subarea_File_Name = r"Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv"
+
+households_selected_file_name = 'households_selected.csv'
+try:
+    fn = os.path.join(output_dir, households_selected_file_name)
+    if os.path.isfile(fn):
+        os.remove(fn) 
+except IOError:
+    print "file " + fn + " cannot not be deleted."
+    print "aborted"
+    exit(-1)
+else:
+    print fn + " deleted."
+      
+# output hh and persons file- don't overwrite existing one!
+out_h5_file = h5py.File(os.path.join(output_dir, 'hh_and_persons.h5'), 'w')
+
+# parcels:
+parcel_df = pd.read_csv(r'Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test9\parcels_urbansim.txt', sep = ' ')
+
+# data about where housholds are going and how many. Each dictionary in the list is seperate move or addition. 
+allocation_list= [{'taz_id' : 8, 'parcel_ids':[1077182], 'number_of_households' : 200}, 
                   {'taz_id' : 4, 'parcel_ids' : [719138], 'number_of_households' : 200},
                   {'taz_id' : 29, 'parcel_ids' : [909899], 'number_of_households' : 200},
                   {'taz_id' : 34, 'parcel_ids' : [717498], 'number_of_households' : 200},
-                  {'taz_id' : 15, 'parcel_ids' : [789545], 'number_of_households' : 200}]                 
+                  {'taz_id' : 15, 'parcel_ids' : [789545], 'number_of_households' : 200}]
 # a list of TAZs that households will NOT be drawn from 
 taz_list = [i['taz_id'] for i in allocation_list]
+
+taz_subarea = pd.DataFrame.from_csv(TAZ_Subarea_File_Name, sep = ",", index_col = "TAZNUM")
+
 
 def h5_to_df(h5_file, group_name):
     """
@@ -44,18 +63,17 @@ def df_to_h5(df, h5_store, group_name):
     Stores DataFrame series as indivdual to arrays in an h5 container. 
     """
     # delete store store if exists   
-
     if group_name in h5_store:
         del h5_store[group_name]
         my_group = h5_store.create_group(group_name)
-        print "Group Skims Exists. Group deleSted then created"
+        print "Group " + group_name + " Exists. Group deleted then created"
         #If not there, create the group
     else:
         my_group = h5_store.create_group(group_name)
-        print "Group Skims Created"
+        print "Group " + group_name + " Created"
     for col in df.columns:
         h5_store[group_name].create_dataset(col, data=df[col].values.astype('int32'))
-
+      
 def bootstrap(data, freq):
     """
     Generates a weighted reandom sample from data (DataFrame) using freq (DataFrame), which is 
@@ -69,7 +87,6 @@ def bootstrap(data, freq):
     freq = freq.set_index('class')
     # This function will be applied on each group of instances of the same
     # class in `data`.
-
     def sampleClass(classgroup):
         cls = classgroup['class'].iloc[0]
         nDesired = freq.nostoextract[cls]
@@ -100,7 +117,6 @@ def get_sample_frequencies(number_of_samples, data, field, taz_id_list = None):
     taz_id_list: A list of TAZ's that for which frequencies will be based on. 
     """
     if taz_id_list:
-        print 'here'
         data = data[data['hhtaz'].isin(taz_id_list)]
     df = pd.DataFrame(data[field].value_counts())
     df['nostoextract'] = df[field]/df[field].sum() * number_of_samples
@@ -112,6 +128,7 @@ def get_sample_frequencies(number_of_samples, data, field, taz_id_list = None):
 
 person_df = h5_to_df(hdf_file, 'Person')
 hh_df = h5_to_df(hdf_file, 'Household')
+hh_df = hh_df.join(taz_subarea['Jurisdiction'], on = 'hhtaz')
 
 # Creating a cross classification of income and household size, which is used as a sampling weight. 
 income_bins = [-1, 15000, 30000, 60000, 100000, 9999999999] 
@@ -123,54 +140,58 @@ hh_df['class'] = hh_df['cross_class']
 
 for hh_dict in allocation_list:
     # get thr frequency of the cross classifiation column used to weight the sample
-
     freq = get_sample_frequencies(hh_dict['number_of_households'], hh_df, 'cross_class', [hh_dict['taz_id']])
+    
     # possible that the TAZ does not have all possible cross class combinations:
     hh_df2 = hh_df[hh_df['class'].isin(freq['class'])]
+    # remove HHs that are in the TAZs we are moving to
     if move_households:
         # HHs should not be drawn from TAZs that are target destination. 
         hh_df2 = hh_df2[~hh_df2['hhtaz'].isin(taz_list)]
+        hh_df2 = hh_df2[hh_df2['Jurisdiction'] == move_from]
+        
     sample2 = bootstrap(hh_df2, freq)
+    ## export sample2 for verification. Households drawn before relocation or new households
+    sample2.to_csv(os.path.join(output_dir, "households_selected.csv"), index = False, sep = ',',  mode = 'a')
+
     # randomly assign new parcel ids from the given list of ids
     sample2['hhparcel'] = np.random.choice(hh_dict['parcel_ids'], sample2.shape[0])
     # assign correct taz id
     sample2['hhtaz'] = hh_dict['taz_id']
     # update original hh_df
-
     if move_households:
         hh_df.loc[hh_df.index.isin(sample2.index), ['hhparcel', 'hhtaz']] = sample2[['hhparcel', 'hhtaz']]
         # nummber of households should be the same
-        assert len(hh_df) == parcel_df.hh_p.sum()
+        assert len(hh_df) == parcel_df['HH_P'].sum()
         parcel = hh_dict['parcel_ids'][0]
         # hh_df should have more households at the parcel because they were moved there
-        assert len(hh_df[hh_df.hhparcel==parcel]) > int(parcel_df[parcel_df.parcelid == parcel].hh_p) 
-        print len(hh_df)
+        assert len(hh_df[hh_df['hhparcel']==parcel]) > int(parcel_df[parcel_df['PARCELID'] == parcel]['HH_P']) 
     else:
         print len(hh_df)
         hh_df = hh_df.append(sample2)
-        # nummber of households should be the same
-        assert len(hh_df) > parcel_df.hh_p.sum()
+        # number of households should be the same
+        assert len(hh_df) > parcel_df['HH_P'].sum()
         parcel = hh_dict['parcel_ids'][0]
         # hh_df should have more households at the parcel because they were moved there
-        assert len(hh_df[hh_df.hhparcel==parcel]) > int(parcel_df[parcel_df.parcelid == parcel].hh_p) 
+        assert len(hh_df[hh_df['hhparcel'] == parcel]) > int(parcel_df[parcel_df.PARCELID == parcel].HH_P)
         print len(hh_df)
 
-hh_df.drop(['income_cat', 'class', 'cross_class'], axis=1, inplace=True)
+hh_df.drop(['income_cat', 'class', 'cross_class', 'Jurisdiction'], axis=1, inplace=True)
 hh_count = pd.DataFrame(hh_df['hhparcel'].value_counts())
 hh_count = hh_count.rename(columns={'hhparcel' : 'count'})
 hh_count['count'] = hh_count[['count']].astype('float64')
 hh_count.index.name = 'hhparcel'
 hh_count.reset_index(level = 0, inplace = True)
-parcel_df['hh_p'] = 0
-parcel_df = parcel_df.merge(hh_count, how = 'left', left_on='parcelid', right_on = 'hhparcel')
+parcel_df['HH_P'] = 0
+parcel_df = parcel_df.merge(hh_count, how = 'left', left_on='PARCELID', right_on = 'hhparcel')
 #parcel_df.loc[parcel_df.parcelid.isin(hh_count['hhparcel']), ['hh_p']] = hh_count[['count']]
-parcel_df['hh_p'] = parcel_df['count']
-parcel_df['hh_p'] = parcel_df['hh_p'].fillna(0)
+parcel_df['HH_P'] = parcel_df['count']
+parcel_df['HH_P'] = parcel_df['HH_P'].fillna(0)
 
 # write out files:
-parcel_df.drop(['count', 'hhparcel'], axis=1, inplace=True)
-parcel_df.to_csv(output_dir + 'parcels_urbansim.txt', sep = ' ', index = False)
+parcel_df.drop(['count', 'hhparcel'], axis = 1, inplace = True)
+parcel_df.to_csv(os.path.join(output_dir, 'parcels_urbansim.txt'), index = False,  sep = ' ')
 df_to_h5(hh_df, out_h5_file, 'Household')
 df_to_h5(person_df, out_h5_file, 'Person')
 out_h5_file.close()
-print 'Done!'
+print 'Done'
