@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>hh_and_person_summary.py</StartupFile>
+    <StartupFile>HH_Person_ajustment_by_TAZ.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -25,6 +25,9 @@
     <Compile Include="ExportAllAttributes.py" />
     <Compile Include="hh_and_person_summary.py" />
     <Compile Include="hh_and_person_survey_summary.py" />
+    <Compile Include="HH_Person_ajustment_by_TAZ.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="houshold_allocation.py" />
     <Compile Include="ImportAllAttributes.py" />
     <Compile Include="PopulateNetwork.py" />
