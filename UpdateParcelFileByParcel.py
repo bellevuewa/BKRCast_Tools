@@ -1,3 +1,7 @@
+### This tool is used to produce parcel files for BKRCast.
+### It takes sqft by land use category and conversion rate as input files, and converts sqft to number of
+### jobs. Additional adjustment based on subarea factors is available to further fine tune the converted jobs.
+
 import pandana as pdna
 import os, sys
 sys.path.append(os.getcwd())
@@ -16,42 +20,6 @@ Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_le
 Parcels_Sqft_File_Name = r"ParcelSummary_Revised_GrpPSRCIDs-modified_Final.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
-
-#Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
-#Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
-#Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_020818.csv"
-#Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor_all_1.csv"
-#Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test6"
-#Parcels_Sqft_File_Name = r"ParcelSummary_Revised_GrpPSRCIDs-modified_Final.csv"
-#TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
-#Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
-
-#Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
-#Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
-#Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_01252018.csv"
-#Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor_all_1.csv"
-#Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test5-all"
-#Parcels_Sqft_File_Name = r"Parcel_Summary - Only PSRC IDs Modified_4_01252018.csv"
-#TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
-#Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
-
-#Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
-#Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
-#Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_test.csv"
-#Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor_all_1.csv"
-#Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test3_noSubareaAdj"
-#Parcels_Sqft_File_Name = r"2014KCparcel_sqft_to_Jobs.csv"
-#TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
-#Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
-
-#Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
-#Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
-#Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_01172018.csv"
-#Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor_all_1.csv"
-#Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test4"
-#Parcels_Sqft_File_Name = r"ParcelSummary_Revised_OnlyPSRCIDs.csv"
-#TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
-#Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
 
 CONVERSION_LEVEL = ['verylow', 'low', 'med', 'high', 'veryhigh']
 EMPLOYMENT_TYPE = ['EDU', 'FOO', 'GOV', 'IND', 'MED', 'OFC', 'OTH', 'RET', 'SVC', 'NoEMP']

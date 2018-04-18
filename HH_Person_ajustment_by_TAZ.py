@@ -14,10 +14,10 @@ output_dir = r'D:\Hu\tests'
 # input hh and persons file:
 hdf_file = h5py.File(r'D:\BKRCast_KirklandTest\BKRCast_Kirkland_Test3\inputs\hh_and_persons.h5', "r")
 TAZ_Subarea_File_Name = r"Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv"
-control_total_file_name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\backcast\1990Pop_BKRCastTAZ.csv"
+control_total_file_name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\backcast\1990HH_persons\1990censusPop_BKRCastTAZ.csv"
 
 # output hh and persons file- don't overwrite existing one!
-out_h5_file = h5py.File(os.path.join(output_dir, 'hh_and_persons.h5'), 'w')
+out_h5_file = h5py.File(os.path.join(output_dir, 'hh_and_persons2.h5'), 'w')
 
 def h5_to_df(h5_file, group_name):
     """
@@ -116,6 +116,7 @@ for taz in taz_list_1:
         #hh_df.loc[hh_df['hhno'] == hhno, 'hhtaz'] = taz
         hh_df = hh_df.append(pool_for_selection[pool_for_selection['hhno'] == hhno])
         target_pop = target_pop + number_persons.item()
+        pool_for_selection = pool_for_selection[pool_for_selection['hhno'] != hhno]
     print 'taz {0:5f} control {1:5f} before {2:5f}  after {3:5f}'.format(taz, control_total_taz, total_person_taz[taz], hh_df[hh_df['hhtaz'] == taz]['hhsize'].sum())
      
 person_df = person_df[person_df['hhno'].isin(hh_df['hhno'])]

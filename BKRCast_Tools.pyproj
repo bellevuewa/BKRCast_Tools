@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>HH_Person_ajustment_by_TAZ.py</StartupFile>
+    <StartupFile>hh_and_person_summary.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -20,6 +20,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="adjacent_nodes.py" />
+    <Compile Include="Adjust_Employment_by_tract_contral_total.py" />
     <Compile Include="BKRNGM_Tools.py" />
     <Compile Include="CreateNoGovParcelFile.py" />
     <Compile Include="ExportAllAttributes.py" />
