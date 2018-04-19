@@ -31,6 +31,9 @@
     </Compile>
     <Compile Include="houshold_allocation.py" />
     <Compile Include="ImportAllAttributes.py" />
+    <Compile Include="parcel_file_summary.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PopulateNetwork.py" />
     <Compile Include="SynthPopAdjustment.py" />
     <Compile Include="UpdateDatabaseLink.py" />
