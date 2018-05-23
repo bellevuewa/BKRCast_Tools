@@ -1,6 +1,11 @@
 ###
 ###  Adjust HH and persons proportionally by control total of persons in TAZ level and export a new set of HH and 
 ###  persons. This is originally used in backcast.
+###  It seperates TAZs into two lists, one with number of hhs higher than control total and the other lower than control
+###  total. For the former list, remove randomly picked households from a TAZ and keep the removed hhs in the 
+###  pool_for_selection until its total households is lower than control total.
+###  for the latter list, add households randomly selected from pool_for_selection to a TAZ until its total households 
+###  is higher than control total.
 ###  4/9/2018.
 
 import pandas as pd
@@ -14,7 +19,7 @@ output_dir = r'D:\Hu\tests'
 # input hh and persons file:
 hdf_file = h5py.File(r'D:\BKRCast_KirklandTest\BKRCast_Kirkland_Test3\inputs\hh_and_persons.h5', "r")
 TAZ_Subarea_File_Name = r"Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv"
-control_total_file_name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\backcast\1990HH_persons\1990censusPop_BKRCastTAZ.csv"
+control_total_file_name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\backcast\1995HH_persons\1995censusPop_BKRCastTAZ.csv"
 
 # output hh and persons file- don't overwrite existing one!
 out_h5_file = h5py.File(os.path.join(output_dir, 'hh_and_persons2.h5'), 'w')
@@ -83,24 +88,24 @@ for taz in taz_list:
 
 pool_for_selection = pd.DataFrame()
 
-hh_df = pd.read_csv(os.path.join(output_dir, 'hh_df.csv'), sep = ',')
-pool_for_selection = pd.read_csv(os.path.join(output_dir, 'pool_for_selection.csv'), sep = ',')
-## reduce population for taz_list_2
-#cnt = 0
-#for taz in taz_list_2:
-#    control_total_taz = control_total_df['Sum_Population'].loc[taz]       
-#    target_pop = total_person_taz[taz]
-#    #randomly select hh and remove it from hhs and persons
-#    while (control_total_taz < target_pop):
-#        hhs_taz = hh_df[hh_df['hhtaz'] == taz]
-#        hhno = np.random.choice(hhs_taz['hhno'], 1)[0]
-#        number_persons = hh_df[hh_df['hhno'] == hhno]['hhsize']
-#        pool_for_selection = pool_for_selection.append(hh_df[hh_df['hhno'] == hhno])
-#        hh_df = hh_df[(hh_df['hhno'] != hhno)]
-#        target_pop = target_pop - number_persons.item()
+#hh_df = pd.read_csv(os.path.join(output_dir, 'hh_df.csv'), sep = ',')
+#pool_for_selection = pd.read_csv(os.path.join(output_dir, 'pool_for_selection.csv'), sep = ',')
+# reduce population for taz_list_2
+cnt = 0
+for taz in taz_list_2:
+    control_total_taz = control_total_df['Sum_Population'].loc[taz]       
+    target_pop = total_person_taz[taz]
+    #randomly select hh and remove it from hhs and persons
+    while (control_total_taz < target_pop):
+        hhs_taz = hh_df[hh_df['hhtaz'] == taz]
+        hhno = np.random.choice(hhs_taz['hhno'], 1)[0]
+        number_persons = hh_df[hh_df['hhno'] == hhno]['hhsize']
+        pool_for_selection = pool_for_selection.append(hh_df[hh_df['hhno'] == hhno])
+        hh_df = hh_df[(hh_df['hhno'] != hhno)]
+        target_pop = target_pop - number_persons.item()
     
-#    cnt = cnt + 1
-#    print "taz {0:5.0f} {1:d} to be processed".format(taz, len(taz_list_2) - cnt)
+    cnt = cnt + 1
+    print "taz {0:5.0f} {1:d} to be processed".format(taz, len(taz_list_2) - cnt)
     
     #assert target_pop == hh_df[hh_df['hhtaz'] == taz]['hhsize'].sum()
 

@@ -6,9 +6,11 @@ import pandas as pd
 import h5py
 import sys
 import numpy as np
+sys.path.append(os.getcwd())
+#from utility import *
 
 ### inputs
-hh_person_folder = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\backcast\1990HH_persons'
+hh_person_folder = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\backcast\1995HH_persons'
 hh_person_file = "hh_and_persons.h5"
 TAZ_Subarea_File_Name = r'Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv'
 
