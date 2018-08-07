@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())
 #from utility import *
 
 ### inputs
-hh_person_folder = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\backcast\1995HH_persons'
+hh_person_folder = r'D:\CoefficientTest\BKRCast2014R1-test11a3-test3\inputs'
 hh_person_file = "hh_and_persons.h5"
 TAZ_Subarea_File_Name = r'Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv'
 
@@ -64,10 +64,10 @@ summary_by_mma = summary_by_mma.join(subarea_def)
 summary_by_taz = hh_taz.groupby('hhtaz')['total_hhs', 'total_persons'].sum()
 
 print 'exporting summary by Jurisdiction ... '
-summary_by_jurisdiction.to_csv(os.path.join(hh_person_folder, "summary_by_jurisdiction.csv"), header = True)
+summary_by_jurisdiction.to_csv(os.path.join(hh_person_folder, "hh_summary_by_jurisdiction.csv"), header = True)
 print 'exporting summary by mma... '
-summary_by_mma.to_csv(os.path.join(hh_person_folder, "summary_by_mma.csv"), header = True)
+summary_by_mma.to_csv(os.path.join(hh_person_folder, "hh_summary_by_mma.csv"), header = True)
 print 'exporting summary by taz... '
-summary_by_taz.to_csv(os.path.join(hh_person_folder, "summary_by_taz.csv"), header = True)
+summary_by_taz.to_csv(os.path.join(hh_person_folder, "hh_summary_by_taz.csv"), header = True)
 print 'done.'
 

@@ -3,8 +3,8 @@ sys.path.append(os.getcwd())
 import pandas as pd
 import numpy as np
 
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test9"
-Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
+Original_Parcel_Folder = r"I:\Modeling and Analysis Group\03_Data\PSRC\LUV2_2035SCinputs\LUV2_Refined_2035_SCInputs"
+Original_ESD_Parcel_File_Name = r"parcels_bkr.txt"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 
 Output_Field = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P', 'EMPTOT_P', 'HH_P']

@@ -24,6 +24,9 @@
     <Compile Include="BKRNGM_Tools.py" />
     <Compile Include="CreateNoGovParcelFile.py" />
     <Compile Include="ExportAllAttributes.py" />
+    <Compile Include="future_land_use_adjustment.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="hh_and_person_summary.py" />
     <Compile Include="hh_and_person_survey_summary.py" />
     <Compile Include="HH_Person_ajustment_by_TAZ.py">
@@ -31,9 +34,13 @@
     </Compile>
     <Compile Include="houshold_allocation.py" />
     <Compile Include="ImportAllAttributes.py" />
-    <Compile Include="parcel_file_summary.py">
+    <Compile Include="Create_parcel_TAZ_crosstable.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="mode_share_calculator.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="parcel_file_summary.py" />
     <Compile Include="PopulateNetwork.py" />
     <Compile Include="SynthPopAdjustment.py" />
     <Compile Include="UpdateDatabaseLink.py" />
