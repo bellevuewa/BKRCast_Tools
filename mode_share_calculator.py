@@ -5,12 +5,12 @@ import os
 # If so, the mode share will be calculated for that subarea. Otherwise it will be for the whole region.
 # The TAZ file contains only one column named TAZ. The column name cannot be changed to other names.
 
-trips_file = r'D:\Soundcast\SC2014\soundcast-2.1\outputs\daysim\_trip.tsv'
+trips_file = r'D:\2ndStAnalysis\BRK0V1-2nSt\outputs\_trip.tsv'
 
 # enter a TAZ list if mode share for a specific subarea is desired. 
 # if the list is empty (with the header 'TAZ only), the mode share for the whole region will be calculated.
-subarea_taz_file = r'D:\Soundcast\SC2014\EastgateTAZ.txt'
-Output_file = r'D:\Soundcast\SC2014\Eastgate_Mode_share_2014.txt'
+subarea_taz_file = r'D:\2ndStAnalysis\BRK0V1-2nSt\Bellevue_TAZ.txt'
+Output_file = r'D:\2ndStAnalysis\BRK0V1-2nSt\Bellevue_mode_share_2014.txt'
 
 pd.options.display.float_format = '{:,.1%}'.format
 trips_df = pd.DataFrame.from_csv(trips_file, sep = '\t')
@@ -26,12 +26,22 @@ else:
     print 'No subarea is defined. Use the whole trip table.'
     subarea_trips_df = trips_df
 
-model_df = subarea_trips_df[['mode', 'trexpfac']].groupby('mode').sum()[['trexpfac']]/subarea_trips_df[['trexpfac']].sum()
+print 'Calculating mode share (all trip purpose)...'
+model_df = subarea_trips_df[['mode', 'trexpfac']].groupby('mode').sum()
+model_df['share'] = model_df['trexpfac'] / model_df['trexpfac'].sum()
 model_df.reset_index(inplace = True)
 mode_dict = {0:'Other',1:'Walk',2:'Bike',3:'SOV',4:'HOV2',5:'HOV3+',6:'Transit',8:'School Bus'}
 model_df.replace({'mode': mode_dict}, inplace = True)
-model_df.columns = ['mode', 'share']
+model_df.columns = ['mode', 'trips', 'share']
 model_df.to_csv(Output_file, float_format = '%.3f')
+
+print 'Calculating mode share (HBW only)...'
+hbw_df = subarea_trips_df.loc[(subarea_trips_df['dpurp']==1) | (subarea_trips_df['dpurp']==0)][['mode', 'trexpfac']].groupby('mode').sum()
+hbw_df['share'] = hbw_df['trexpfac'] / hbw_df['trexpfac'].sum()
+hbw_df.reset_index(inplace = True)
+hbw_df.replace({'mode': mode_dict}, inplace = True)
+hbw_df.columns = ['mode', 'trips', 'share']
+hbw_df.to_csv(Output_file, float_format = '%.3f', mode = 'a')
 
 print 'Mode share calculation is finished.'
 

@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())
 #from utility import *
 
 ### inputs
-hh_person_folder = r'D:\CoefficientTest\BKRCast2014R1-test11a3-test3\inputs'
+hh_person_folder = r'D:\BRK0V1\inputs'
 hh_person_file = "hh_and_persons.h5"
 TAZ_Subarea_File_Name = r'Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv'
 
@@ -55,6 +55,7 @@ hh_taz['total_persons'] = hh_taz['hhexpfac'] * hh_taz['hhsize']
 hh_taz['total_hhs'] = hh_taz['hhexpfac']
 summary_by_jurisdiction = hh_taz.groupby('Jurisdiction')['total_hhs', 'total_persons'].sum()   
 summary_by_mma = hh_taz.groupby('Subarea')['total_hhs', 'total_persons'].sum()
+summary_by_parcels = hh_taz.groupby('hhparcel')['total_hhs', 'total_persons'].sum()
 
 taz_subarea.reset_index()
 subarea_def = taz_subarea[['Subarea', 'SubareaName']]
@@ -63,11 +64,17 @@ subarea_def.set_index('Subarea', inplace = True)
 summary_by_mma = summary_by_mma.join(subarea_def)
 summary_by_taz = hh_taz.groupby('hhtaz')['total_hhs', 'total_persons'].sum()
 
+
 print 'exporting summary by Jurisdiction ... '
 summary_by_jurisdiction.to_csv(os.path.join(hh_person_folder, "hh_summary_by_jurisdiction.csv"), header = True)
 print 'exporting summary by mma... '
 summary_by_mma.to_csv(os.path.join(hh_person_folder, "hh_summary_by_mma.csv"), header = True)
 print 'exporting summary by taz... '
 summary_by_taz.to_csv(os.path.join(hh_person_folder, "hh_summary_by_taz.csv"), header = True)
+print 'exporting summary by parcel...'
+summary_by_parcels.to_csv(os.path.join(hh_person_folder, 'hh_summary_by_parcel.csv'), header = True)
+
+hh_df.to_csv(os.path.join(hh_person_folder, 'households.csv'), header = True)
+person_df.to_csv(os.path.join(hh_person_folder, 'persons.csv'), header = True)
 print 'done.'
 

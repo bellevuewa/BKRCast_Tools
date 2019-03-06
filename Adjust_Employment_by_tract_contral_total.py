@@ -14,7 +14,7 @@ import h5py
 input_Parcel_Folder = r"Z:\Modeling Group\BKRCast\1995DerivedEmploymentData"
 input_Parcel_File_Name = r"BKRCast_Parcel_1995data.csv"
 input_hh_person_file_name = r"hh_and_persons.h5"
-Output_Parcel_File_Name = "parcels_urbansim_1995.txt"
+Output_Parcel_File_Name = "parcels_urbansim_1995-3.txt"
 
 universal_factor_for_uncovered_ESD_data = 1.075   # can b
 
@@ -34,7 +34,7 @@ print "Loading input files ..."
 parcels = pd.DataFrame.from_csv(os.path.join(input_Parcel_Folder, input_Parcel_File_Name), sep = ",")
 
 columns_drop = ['OBJECTID', 'TAZ', 'PSRC_ID', 'parcel_id', 'Jurisdiction', 'BKRCastTAZ', 'Total', 'Sum_EMPTOT_P', 'Sum_HH_P', 'TRACTID']
-ratio = parcels['Total'] / parcels['Sum_EMPTOT_P']
+ratio = parcels['Total'] / parcels['Sum_EMPTOT_P'] 
 JOB_CATEGORY = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P']
 parcels['EMPTOT_P'] = 0
 
@@ -47,13 +47,27 @@ hh_df = h5_to_df(hdf_file, 'Household')
 hhs_by_parcel = hh_df.groupby('hhparcel')['hhno'].count()
 
 parcels = parcels.join(hhs_by_parcel, on = 'PARCELID') 
-parcels['HH_P'] = parcels['hhno']
+parcels.loc[~parcels['hhno'].isnull(), 'HH_P'] =parcels['hhno']
 parcels = parcels.reset_index()
 parcels.drop(columns_drop, inplace = True, axis = 1)
 parcels.drop('hhno', inplace = True, axis = 1)
 parcels.sort_values('PARCELID', inplace = True)
 
+# increase the Bellevue downtown jobs by 17%, because downtown jobs by our sqft based method is 17% higher than original ESD
+TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
+taz_subarea = pd.DataFrame.from_csv(os.path.join(input_Parcel_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
+parcels = parcels.join(taz_subarea['Subarea'], on = 'TAZ_P')
+parcels[parcels['Subarea'] == 3]
+
+for job_cat in JOB_CATEGORY:
+    parcels.loc[parcels['Subarea'] == 3, job_cat] = parcels.loc[parcels['Subarea'] == 3, job_cat] * 1.17
+
+parcels.loc[parcels['Subarea'] == 3, 'EMPTOT_P'] = parcels.loc[parcels['Subarea'] == 3, 'EMPTOT_P'] * 1.17
+parcels.drop('Subarea', inplace = True, axis = 1)
+parcels.fillna(0, inplace = True)
+
 parcels.to_csv(os.path.join(input_Parcel_Folder, Output_Parcel_File_Name), index = False, sep = ' ')
+
 print 'done'
 
 

@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>hh_and_person_summary.py</StartupFile>
+    <StartupFile>mode_share_calculator.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -22,11 +22,21 @@
     <Compile Include="adjacent_nodes.py" />
     <Compile Include="Adjust_Employment_by_tract_contral_total.py" />
     <Compile Include="BKRNGM_Tools.py" />
-    <Compile Include="CreateNoGovParcelFile.py" />
-    <Compile Include="ExportAllAttributes.py" />
-    <Compile Include="future_land_use_adjustment.py">
+    <Compile Include="commercial_parcels.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CreateNoGovParcelFile.py" />
+    <Compile Include="ExportAllAttributes.py" />
+    <Compile Include="Extract_hh_person.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="extract_subset_of_parcel_file.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="future_land_use_adjustment_by_factors.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="future_land_use_creation.py" />
     <Compile Include="hh_and_person_summary.py" />
     <Compile Include="hh_and_person_survey_summary.py" />
     <Compile Include="HH_Person_ajustment_by_TAZ.py">
@@ -40,10 +50,36 @@
     <Compile Include="mode_share_calculator.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="mode_share_calculatorV2.py" />
+    <Compile Include="tour_mode_share_calculator.py" />
     <Compile Include="parcel_file_summary.py" />
+    <Compile Include="park_and_ride_usage.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="PopulateNetwork.py" />
+    <Compile Include="remove_hhs.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="replace_parcel_fields.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="restore_parking_cost.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SynthPopAdjustment.py" />
+    <Compile Include="test.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="tour_analysis.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="transfer_parcel_attributes.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="UpdateDatabaseLink.py" />
+    <Compile Include="UpdateHHs_in_Parcels.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="UpdateParcelFileByParcel.py" />
     <Compile Include="UpdateParcelFileBySubarea.py" />
     <Compile Include="utility.py" />
