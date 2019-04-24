@@ -3,9 +3,9 @@ sys.path.append(os.getcwd())
 import pandas as pd
 import numpy as np
 
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\1995DerivedEmploymentData"
-Original_ESD_Parcel_File_Name = r"parcels_urbansim_1995-3.txt"
-TAZ_Subarea_File_Name = r"Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\2018LU\Test1"
+Original_ESD_Parcel_File_Name = r"parcels_urbansim_Updated.txt"
+TAZ_Subarea_File_Name = r"Z:\Modeling Group\BKRCast\2018LU\TAZ_subarea.csv"
 
 Output_Field = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P', 'EMPTOT_P', 'HH_P']
 

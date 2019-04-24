@@ -12,12 +12,21 @@ from pyproj import Proj, transform
 import copy
 from shutil import copyfile
 
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
+#Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
+#Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
+#Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_02132018.csv"
+#Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-06192018-2.csv"
+#Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11"
+#Parcels_Sqft_File_Name = r"ParcelSummary_Revised_GrpPSRCIDs-modified_Final.csv"
+#TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
+#Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
+
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\2018LU"
 Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
 Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_02132018.csv"
 Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-06192018-2.csv"
-Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11"
-Parcels_Sqft_File_Name = r"ParcelSummary_Revised_GrpPSRCIDs-modified_Final.csv"
+Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\2018LU\Test2"
+Parcels_Sqft_File_Name = r"BKRCast_2018_Sqft.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
 

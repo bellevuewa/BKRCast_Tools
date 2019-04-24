@@ -11,20 +11,20 @@ import os
 # 2/6/2019
 # New feature: allows to select trips starting from subarea_taz_file or ending at subarea_taz_file or both
 
-trips_file = r'D:\BKRCast_Calibration\BKRCast_v1-2_Calibration\BKRCast_Run21-S42-neg_coef6-nopopsampler\outputs\_trip.tsv'
+trips_file = r'D:\BRK0V1\outputs\_trip.tsv'
 
 # enter a TAZ list if mode share for a specific subarea is desired. 
 # if the list is empty (with the header 'TAZ only), the mode share for the whole region will be calculated.
-subarea_taz_file = r'D:\BRK0V1\BellevueDTTAZ.txt'
-Output_file = r'D:\BKRCast_Calibration\BKRCast_v1-2_Calibration\BKRCast_Run21-S42-neg_coef6-nopopsampler\from_BelCBD_mode_share_2014.txt'
+subarea_taz_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\Bellevue_MMA_3.txt'
+Output_file = r'D:\BRK0V1\MMA3_trip_mode_share_2014_daily.txt'
 
 # Below is the start and end time you want to query from daysim output. It is number of minutes after 12am. 
 # if you want 24hr data, set all to 0.
-start_time = 0  # minutes starting from 12am, 1530
-end_time = 0   # minutes starting from 12am, 1830
+start_time = 0  # minutes starting from 12am
+end_time = 0   # minutes starting from 12am
 
 trips_from_only = True  # if true, trips only from the TAZ list
-trips_end_only = False    # if true, trips only to the TAZ list
+trips_end_only = True    # if true, trips only to the TAZ list
 
 pd.options.display.float_format = '{:,.1%}'.format
 total_trips_df = pd.DataFrame.from_csv(trips_file, sep = '\t')

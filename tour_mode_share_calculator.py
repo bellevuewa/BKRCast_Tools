@@ -9,12 +9,12 @@ import os
 # 2/6/2019
 # New feature: allows to select trips starting from subarea_taz_file or ending at subarea_taz_file or both
 
-tours_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\outputs\_tour.tsv'
+tours_file = r'D:\2ndStAnalysis\BRK0V1-2nSt-Test2\outputs\_tour.tsv'
 
 # enter a TAZ list if mode share for a specific subarea is desired. 
 # if the list is empty (with the header 'TAZ only), the mode share for the whole region will be calculated.
-subarea_taz_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\BellevueDTTAZ.txt'
-Output_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\from_BelCBD_tour_mode_share_2035_PM.txt'
+subarea_taz_file = r'D:\2ndStAnalysis\BRK0V1-2nSt-Test2\BellevueDTTAZ.txt'
+Output_file = r'D:\2ndStAnalysis\BRK0V1-2nSt-Test2\BKR0V1-2ndst_BelCBD_mode_share_tour.txt'
 
 # Below is the start and end time you want to query from daysim output. It is number of minutes after 12am. 
 # if you want 24hr data, set all to 0.

@@ -51,6 +51,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="mode_share_calculatorV2.py" />
+    <Compile Include="TemoraryCode.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="tour_mode_share_calculator.py" />
     <Compile Include="parcel_file_summary.py" />
     <Compile Include="park_and_ride_usage.py">
@@ -80,6 +83,7 @@
     <Compile Include="UpdateHHs_in_Parcels.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="replace_subset_of_parcel_file.py" />
     <Compile Include="UpdateParcelFileByParcel.py" />
     <Compile Include="UpdateParcelFileBySubarea.py" />
     <Compile Include="utility.py" />

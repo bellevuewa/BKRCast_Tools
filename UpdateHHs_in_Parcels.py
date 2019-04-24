@@ -4,9 +4,13 @@ import numpy as np
 import random 
 import os
 
+###
+# This program is used to assign number of households retrieved from hh_and_persons.h5 to parcel file.
+# After running this script, number of households in parcel file match hh_and_persons.h5.
+###
 BKRCast_Parcel_File = r'Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11\parcels_urbansim.txt'
-Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2014Jobs_2035HH_parcels'
-Hh_and_person_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\inputs\hh_and_persons.h5'
+Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2014jobs_PopSimHH'
+Hh_and_person_file = r'I:\psrcpopsim\Hu\parcelize\outputparcel\H5andpphhfiles\0416popsim_hh_and_persons.h5'
 
 def h5_to_df(h5_file, group_name):
     """
@@ -38,7 +42,7 @@ BKRCast_Parcel_DF.drop(['hhexpfac', 'hhsize'], axis = 1, inplace = True)
 
 
 print 'Exporting parcel file...'
-BKRCast_Parcel_DF.to_csv(os.path.join(Output_Parcel_Folder, 'parcels_urbansim_14jobs_35hh.txt'), sep = ' ')
+BKRCast_Parcel_DF.to_csv(os.path.join(Output_Parcel_Folder, 'parcels_urbansim.txt'), sep = ' ')
 
 
 
