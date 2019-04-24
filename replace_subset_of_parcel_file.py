@@ -40,7 +40,7 @@ updated_tot_jobs = updated_parcels['EMPTOT_P'].sum()
 print 'Updated total jobs {0:.0f}'.format(updated_tot_jobs)
 
 print "Exporting updated urbansim parcel file ..."
-parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), index = True, sep = ' ')
+updated_parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), index = True, sep = ' ')
 
 
 # backup input files inside input folder
