@@ -9,20 +9,64 @@ import os
 # 2/6/2019
 # New feature: allows to select trips starting from subarea_taz_file or ending at subarea_taz_file or both
 
-tours_file = r'D:\2ndStAnalysis\BRK0V1-2nSt-Test2\outputs\_tour.tsv'
+tours_file = r'D:\BRK0V1\outputs\_tour.tsv'
 
 # enter a TAZ list if mode share for a specific subarea is desired. 
 # if the list is empty (with the header 'TAZ only), the mode share for the whole region will be calculated.
-subarea_taz_file = r'D:\2ndStAnalysis\BRK0V1-2nSt-Test2\BellevueDTTAZ.txt'
-Output_file = r'D:\2ndStAnalysis\BRK0V1-2nSt-Test2\BKR0V1-2ndst_BelCBD_mode_share_tour.txt'
+subarea_taz_file = r'D:\BRK0V1\Kirkland_TAZ.txt'
+Output_file = r'D:\BRK0V1\2014_Kirkland_tour_PMPK_mode_share.txt'
 
 # Below is the start and end time you want to query from daysim output. It is number of minutes after 12am. 
 # if you want 24hr data, set all to 0.
 start_time = 1020  # minutes starting from 12am, 1530
 end_time = 1080   # minutes starting from 12am, 1830
 
-tours_from_only = True  # if true, trips only from the TAZ list
-tours_end_only = False    # if true, trips only to the TAZ list
+# if both of them are true, it will pull trips from the lists and trips to the lists. But they are not internal trips!!!
+tours_from_only = True  # if true, trips from the TAZ list
+tours_end_only = True    # if true, trips to the TAZ list
+
+tour_purpose = {0: 'all',
+                1: 'work',
+                2: 'school',
+                3: 'escort',
+                4: 'personal business',
+                5: 'shopping',
+                6: 'meal',
+                7: 'social'}
+mode_dict = {0:'Other',1:'Walk',2:'Bike',3:'SOV',4:'HOV2',5:'HOV3+',6:'Transit', 7: 'Park n Ride', 8:'School Bus'}
+
+#purpose: 0: all purpose, 1: work, 2:school,3:escort, 4: personal buz, 5: shopping, 6: meal, 7: social/recreational, 8: not defined, 9: not defined
+def CalModeSharebyPurpose(purpose, tour_df, Output_file, overwritten=False):
+    purpose_df = None
+    if (purpose > 0 and purpose <= 7): 
+        print 'Calculating mode share for purpose ', purpose, ':', tour_purpose[purpose];
+        purpose_df = tour_df.loc[tour_df['pdpurp']==purpose][['tmodetp', 'toexpfac']].groupby('tmodetp').sum()
+    elif purpose == 0:
+        print 'Calculating mode share for all purpose...'
+        purpose_df = tour_df[['tmodetp', 'toexpfac']].groupby('tmodetp').sum()
+    else:
+        print 'invalid purpose ', purpose
+        return
+
+    purpose_df['share'] = purpose_df['toexpfac'] / purpose_df['toexpfac'].sum()
+    purpose_df.reset_index(inplace = True)
+    purpose_df.replace({'tmodetp': mode_dict}, inplace = True)
+    purpose_df.columns = ['mode', 'trips', 'share']
+    if overwritten:
+        with open(Output_file, 'w') as output:
+            if purpose == 0:
+                output.write('All purposes\n')
+            else: 
+                output.write(tour_purpose[purpose] + '\n')
+    else:
+        with open(Output_file, 'a') as output:
+            if purpose == 0:
+                output.write('All purpose\n')
+            else:
+                output.write(tour_purpose[purpose] + '\n')
+    purpose_df.to_csv(Output_file, float_format = '%.3f', mode = 'a')
+
+
 
 pd.options.display.float_format = '{:,.1%}'.format
 total_tours_df = pd.DataFrame.from_csv(tours_file, sep = '\t')
@@ -51,22 +95,10 @@ else:
     print 'No subarea is defined. Use the whole trip table.'
     subarea_tours_df = tours_df
 
-print 'Calculating mode share (all tour purpose)...'
-model_df = subarea_tours_df[['tmodetp', 'toexpfac']].groupby('tmodetp').sum()
-model_df['share'] = model_df['toexpfac'] / model_df['toexpfac'].sum()
-model_df.reset_index(inplace = True)
-mode_dict = {0:'Other',1:'Walk',2:'Bike',3:'SOV',4:'HOV2',5:'HOV3+',6:'Transit', 7: 'Park n Ride', 8:'School Bus'}
-model_df.replace({'tmodetp': mode_dict}, inplace = True)
-model_df.columns = ['mode', 'trips', 'share']
-model_df.to_csv(Output_file, float_format = '%.3f')
 
-print 'Calculating mode share (HBW only)...'
-hbw_df = subarea_tours_df.loc[subarea_tours_df['pdpurp']==1][['tmodetp', 'toexpfac']].groupby('tmodetp').sum()
-hbw_df['share'] = hbw_df['toexpfac'] / hbw_df['toexpfac'].sum()
-hbw_df.reset_index(inplace = True)
-hbw_df.replace({'tmodetp': mode_dict}, inplace = True)
-hbw_df.columns = ['mode', 'trips', 'share']
-hbw_df.to_csv(Output_file, float_format = '%.3f', mode = 'a')
+CalModeSharebyPurpose(0, subarea_tours_df, Output_file, True)        
+for purpose in [1,2,3,4,5,6,7]:
+    CalModeSharebyPurpose(purpose, subarea_tours_df, Output_file)        
 
 print 'Tour mode share calculation is finished.'
 
