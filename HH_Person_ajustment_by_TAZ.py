@@ -1,5 +1,5 @@
 ###
-###  Adjust HH and persons proportionally by control total of persons in TAZ level and export a new set of HH and 
+###  Adjust HH and persons proportionally by control total of ***PERSONS*** in TAZ level and export a new set of HH and 
 ###  persons. This is originally used in backcast.
 ###  It seperates TAZs into two lists, one with number of hhs higher than control total and the other lower than control
 ###  total. For the former list, remove randomly picked households from a TAZ and keep the removed hhs in the 
