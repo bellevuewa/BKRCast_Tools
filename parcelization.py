@@ -5,6 +5,16 @@ import math
 import h5py
 import utility
 
+'''
+This program takes output files, synthetic households and synthetic persons, from PopulationSim,
+and allocate them to parcels. It also reformat household and person data columns to match
+BKRCast input requirement. The output, h5_file_name, can be directly loaded into BKRCast.
+
+Number of households per parcel should be consistent with parcel file. It can be done by calling 
+sync_population_parcel.py. 
+
+Date: 7/1/2019
+'''
 
 #configuration
 working_folder = r'D:\PopulationSim\PSRCrun0423\output'
@@ -38,7 +48,6 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
         sfparcels = sfparcelids.sample(n = int(hhs_control))
         for i in range(int(hhs_control)):
             sfHhs['hhparcel'].iat[i] = sfparcels['PSRC_ID'].iat[i]
-            #sfHhs['hhtaz'].iat[i] = sfparcels['BKRCastTAZ'].iat[i]
         updatedHHs = updatedHHs.append(sfHhs)
         return updatedHHs
     
@@ -46,10 +55,8 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
     sfHhs = hhs_blkgrp_df.sample(n = int(numSFparcels))
     for i in range(int(numSFparcels)):
         sfHhs['hhparcel'].iat[i] = sfparcelids['PSRC_ID'].iat[i]
-        #sfHhs['hhtaz'].iat[i] = sfparcelids['BKRCastTAZ'].iat[i]
     remainHhs_df = hhs_blkgrp_df[~hhs_blkgrp_df['household_id'].isin(sfHhs['household_id'])]
     remainHhs = remainHhs_df['hhexpfac'].sum()
-    #remainHhs = hhs_control - numSFparcels
 
     sum = parcels.loc[parcels['HousingUnits2014'] >= 2, 'HousingUnits2014'].sum()
     if sum > 0: 
@@ -75,7 +82,6 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
         mfhhs = remainHhs_df.sample(n = int(row.forecastedHhs))
         remainHhs_df = remainHhs_df[~remainHhs_df['household_id'].isin(mfhhs['household_id'])]   
         mfhhs.loc[:, 'hhparcel'] = row.PSRC_ID
-        #mfhhs.loc[:, 'hhtaz'] = row.BKRCastTAZ
         updatedHHs = updatedHHs.append(mfhhs)
         if remainHhs_df.shape[0] == 0:
             break
@@ -86,7 +92,6 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
 parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
 hhs_df = pd.read_csv(os.path.join(working_folder, synthetic_households_file_name))
 hhs_df['hhparcel'] = 0
-#hhs_df['hhtaz'] = 0
 # remove any blockgroup ID is Nan.
 all_blcgrp_ids = hhs_df['block_group_id'].unique()
 mask = np.isnan(all_blcgrp_ids)
@@ -138,7 +143,8 @@ hhsize_df = pop_df.groupby('hhno')['psexpfac'].sum()
 hhsize_df = hhsize_df.reset_index()
 final_hhs_df = final_hhs_df.merge(hhsize_df, how = 'inner', left_on = 'hhno', right_on = 'hhno')
 final_hhs_df['hhsize'] = final_hhs_df['psexpfac']
-del final_hhs_df['psexpfac']
+final_hhs_df.drop(['psexpfac'], axis = 1, inplace = True)
+#del final_hhs_df['psexpfac']
 
 #=========================================
 pwtype=pop_df.WKW.fillna(-1)
@@ -214,13 +220,15 @@ for i in range(lenpersons):
     elif tmps in pp8:
         pop_df['pptyp'].iat[i] = 8
 
-del pop_df['block_group_id']
-del pop_df['hh_id']
-del pop_df['PUMA']
-del pop_df['WKW']
+#del pop_df['block_group_id']
+#del pop_df['hh_id']
+#del pop_df['PUMA']
+#del pop_df['WKW']
+pop_df.drop(['block_group_id', 'hh_id', 'PUMA', 'WKW'], axis = 1, inplace = True)
 
 morecols=pd.DataFrame({'hownrent': [-1]*final_hhs_df.shape[0]})
-del final_hhs_df[u'hownrent']
+#del final_hhs_df[u'hownrent']
+final_hhs_df.drop([u'hownrent'], axis = 1, inplace = True)
 final_hhs_df=final_hhs_df.join(morecols) 
 
 output_h5_file = h5py.File(os.path.join(working_folder, h5_file_name), 'w')
