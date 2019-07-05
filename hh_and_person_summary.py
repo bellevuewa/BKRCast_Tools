@@ -1,5 +1,7 @@
 ### purpose:
 ### to summarize households and persons of input file by jurisdiction, mma and taz level.
+### 7/5/19 added summary by block groups
+
 
 import os
 import pandas as pd
@@ -7,48 +9,22 @@ import h5py
 import sys
 import numpy as np
 sys.path.append(os.getcwd())
-#from utility import *
+import utility
 
 ### inputs
-hh_person_folder = r'D:\BRK0V1\inputs'
-hh_person_file = "hh_and_persons.h5"
+hh_person_folder = r'D:\BKR0V1-1\inputs'
+hh_person_file = 'hh_and_persons.h5'
 TAZ_Subarea_File_Name = r'Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv'
+parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 
-def h5_to_df(h5_file, group_name):
-    """
-    Converts the arrays in a H5 store to a Pandas DataFrame. 
-    """
-    col_dict = {}
-    h5_set = hdf_file[group_name]
-    for col in h5_set.keys():
-        my_array = np.asarray(h5_set[col])
-        col_dict[col] = my_array
-    df = pd.DataFrame(col_dict)
-    return df
-
-def df_to_h5(df, h5_store, group_name):
-    """
-    Stores DataFrame series as indivdual to arrays in an h5 container. 
-    """
-    # delete store store if exists   
-    if group_name in h5_store:
-        del h5_store[group_name]
-        my_group = h5_store.create_group(group_name)
-        print "Group Skims Exists. Group deleSted then created"
-        #If not there, create the group
-    else:
-        my_group = h5_store.create_group(group_name)
-        print "Group Skims Created"
-    for col in df.columns:
-        h5_store[group_name].create_dataset(col, data=df[col].values.astype('int32'))
 
 print 'Loading hh and person file...'
 hdf_file = h5py.File(os.path.join(hh_person_folder, hh_person_file), "r")
 taz_subarea = pd.DataFrame.from_csv(TAZ_Subarea_File_Name, sep = ",", index_col = "TAZNUM")
 
 
-person_df = h5_to_df(hdf_file, 'Person')
-hh_df = h5_to_df(hdf_file, 'Household')
+person_df = utility.h5_to_df(hdf_file, 'Person')
+hh_df = utility.h5_to_df(hdf_file, 'Household')
 
 hh_taz = hh_df.join(taz_subarea, on = 'hhtaz')
 hh_taz['total_persons'] = hh_taz['hhexpfac'] * hh_taz['hhsize']
@@ -73,6 +49,12 @@ print 'exporting summary by taz... '
 summary_by_taz.to_csv(os.path.join(hh_person_folder, "hh_summary_by_taz.csv"), header = True)
 print 'exporting summary by parcel...'
 summary_by_parcels.to_csv(os.path.join(hh_person_folder, 'hh_summary_by_parcel.csv'), header = True)
+
+parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
+hh_taz = hh_taz.merge(parcel_df, how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
+summary_by_geoid10 = hh_taz.groupby('GEOID10')['total_hhs', 'total_persons'].sum()
+print 'exporting summary by block groups...'
+summary_by_geoid10.to_csv(os.path.join(hh_person_folder, 'hh_summary_by_geoid10.csv'), header = True)
 
 hh_df.to_csv(os.path.join(hh_person_folder, 'households.csv'), header = True)
 person_df.to_csv(os.path.join(hh_person_folder, 'persons.csv'), header = True)
