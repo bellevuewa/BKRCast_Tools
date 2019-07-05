@@ -107,8 +107,6 @@ for blcgrpid in all_blcgrp_ids:
     print 'Blockgroup ', blcgrpid , ' ', '  new hhs: ', hhs_new
     if hhs_new > 0:
         hhs_blkgrp_df = hhs_df.loc[hhs_df['block_group_id'] == blcgrpid] 
-        if blcgrpid == 530330229025:
-            a = 0
         updatedHhs = assign_hhs_to_parcels_by_blkgrp(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid)            
         final_hhs_df = final_hhs_df.append(updatedHhs)   
         if len(final_hhs_df.loc[final_hhs_df['household_id'].duplicated()]) > 0:
@@ -144,7 +142,6 @@ hhsize_df = hhsize_df.reset_index()
 final_hhs_df = final_hhs_df.merge(hhsize_df, how = 'inner', left_on = 'hhno', right_on = 'hhno')
 final_hhs_df['hhsize'] = final_hhs_df['psexpfac']
 final_hhs_df.drop(['psexpfac'], axis = 1, inplace = True)
-#del final_hhs_df['psexpfac']
 
 #=========================================
 pwtype=pop_df.WKW.fillna(-1)
@@ -228,7 +225,7 @@ pop_df.drop(['block_group_id', 'hh_id', 'PUMA', 'WKW'], axis = 1, inplace = True
 
 morecols=pd.DataFrame({'hownrent': [-1]*final_hhs_df.shape[0]})
 #del final_hhs_df[u'hownrent']
-final_hhs_df.drop([u'hownrent'], axis = 1, inplace = True)
+final_hhs_df.drop([u'hownrent', 'block_group_id'], axis = 1, inplace = True)
 final_hhs_df=final_hhs_df.join(morecols) 
 
 output_h5_file = h5py.File(os.path.join(working_folder, h5_file_name), 'w')
