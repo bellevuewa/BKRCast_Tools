@@ -3,6 +3,11 @@ import h5py
 import os
 import utility
 
+'''
+This program is used to pass number of households by parcel from synthetic population to parcel file. After the program,
+the households in parcel file is consistent with synthetic population file.
+'''
+
 Hh_and_person_file = r'D:\BKR0V1-1-PopsimTest\inputs\hh_and_persons.h5'
 parcel_folder = r'Z:\Modeling Group\BKRCast\2014_ParkingCost\Half_parking_Cost_Bellevue'
 input_parcel_file = 'parcels_urbansim.txt'
