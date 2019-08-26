@@ -2,6 +2,10 @@
 ### It takes sqft by land use category and conversion rate as input files, and converts sqft to number of
 ### jobs. Additional adjustment based on subarea factors is available to further fine tune the converted jobs.
 
+## Two extra features added 8/26/2019
+## 1. add one switch remove home based jobs (BKR area, as long as sqft data are provided) from parcel file. 
+## 2. add a parking cost adjustment factor for Bellevue only. Set it to one if no adjustment is needed.
+
 import pandana as pdna
 import os, sys
 sys.path.append(os.getcwd())
@@ -21,14 +25,20 @@ from shutil import copyfile
 #TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 #Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
 
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\2018LU"
-Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
+Original_ESD_Parcel_File_Name = r"original_parcels_urbansim.txt"
 Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_02132018.csv"
 Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-06192018-2.csv"
-Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\2018LU\Test2"
-Parcels_Sqft_File_Name = r"BKRCast_2018_Sqft.csv"
+Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-no-homejobs"
+Parcels_Sqft_File_Name = r"ParcelSummary_Revised_GrpPSRCIDs-modified_Final.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
+
+# set False if want to drop home based jobs
+KEEP_HOME_BASED_JOBS = False
+
+# further adjust parking cost in Bellevue. Set it to 1 if no adjustment is made.
+BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR = 0.5
 
 CONVERSION_LEVEL = ['verylow', 'low', 'med', 'high', 'veryhigh']
 EMPLOYMENT_TYPE = ['EDU', 'FOO', 'GOV', 'IND', 'MED', 'OFC', 'OTH', 'RET', 'SVC', 'NoEMP']
@@ -132,7 +142,12 @@ homeoffice_parcels.to_csv(os.path.join(Output_Parcel_Folder, "HomeOfficeParcels.
 oldindex = parcels_sqft.index.name
 parcels_sqft.reset_index(inplace = True)
 parcels_sqft = parcels_sqft.set_index('PSRCID') 
-parcels_sqft.loc[parcels_sqft.index.isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
+if KEEP_HOME_BASED_JOBS:
+    parcels_sqft.loc[parcels_sqft.index.isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
+    print 'Home based jobs are put back. '
+else: 
+    print 'Home based jobs are NOT put back'
+
 print 'total home based jobs (in BKR) are {0:.0f}'.format(homeoffice_parcels['EMPTOT_P'].sum())
 print 'Total converted jobs in BKR (with home based jobs back) are {0:.0f}'.format(parcels_sqft['EMPTOT_P'].sum())
 
@@ -168,6 +183,13 @@ parcels.loc[parcels.index.isin(parcels_sqft.index), JOB_CATEGORY] = parcels_sqft
 ## for parcels with only home based jobs, put them back after sqft conversion. Otherwise, all home based jobs will be missing.
 #parcels.loc[parcels.index.isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
 #print("After home office update, total jobs are ", parcels['EMPTOT_P'].sum())
+
+# BEllevue CBD Parking Cost process
+parcels =  parcels.join(taz_subarea['Jurisdiction'], on = 'TAZ_P')
+parcels.loc[parcels['Jurisdiction'] == 'BELLEVUE', 'PPRICDYP']  = parcels['PPRICDYP'] * BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR
+parcels.loc[parcels['Jurisdiction'] == 'BELLEVUE', 'PPRICHRP']  = parcels['PPRICHRP'] * BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR
+parcels = parcels.drop(['Jurisdiction'], axis = 1)  
+
 print "Exporting updated urbansim parcel file ..."
 parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), index = True, sep = ' ')
 print 'Total jobs in updated parcel file are {0:.0f}'.format(parcels['EMPTOT_P'].sum())
