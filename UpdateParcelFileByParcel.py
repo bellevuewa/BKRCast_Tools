@@ -15,6 +15,8 @@ import re
 from pyproj import Proj, transform
 import copy
 from shutil import copyfile
+import h5py
+import utility
 
 #Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
 #Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
@@ -33,6 +35,8 @@ Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_le
 Parcels_Sqft_File_Name = r"ParcelSummary_Revised_GrpPSRCIDs-modified_Final.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
+Hh_and_person_file = r'D:\BKR0V1-1-PopsimTest\inputs\hh_and_persons.h5'
+
 
 # set False if want to drop home based jobs
 KEEP_HOME_BASED_JOBS = False
@@ -190,6 +194,21 @@ parcels.loc[parcels['Jurisdiction'] == 'BELLEVUE', 'PPRICDYP']  = parcels['PPRIC
 parcels.loc[parcels['Jurisdiction'] == 'BELLEVUE', 'PPRICHRP']  = parcels['PPRICHRP'] * BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR
 parcels = parcels.drop(['Jurisdiction'], axis = 1)  
 
+# synchronizing synthetic population and parcel file
+print 'Synchronizing synthetic population'
+print 'Loading hh_and_persons.h5...'
+hdf_file = h5py.File(Hh_and_person_file, "r")
+hh_df = utility.h5_to_df(hdf_file, 'Household')
+hh_df.set_index('hhparcel', inplace = True)
+
+print 'Updating number of households...'
+hhs = hh_df.groupby('hhparcel')['hhexpfac', 'hhsize'].sum()
+parcels = parcels.join(hhs, how = 'left')
+
+parcels['HH_P']  = parcels['hhexpfac']
+parcels.fillna(0, inplace = True)
+parcels.drop(['hhexpfac', 'hhsize'], axis = 1, inplace = True)
+
 print "Exporting updated urbansim parcel file ..."
 parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), index = True, sep = ' ')
 print 'Total jobs in updated parcel file are {0:.0f}'.format(parcels['EMPTOT_P'].sum())
@@ -203,5 +222,6 @@ copyfile(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), os
 copyfile(os.path.join(Original_Parcel_Folder, Conversion_Factors_File_Name), os.path.join(input_backup_folder, Conversion_Factors_File_Name))
 copyfile(os.path.join(Original_Parcel_Folder, Subarea_Adjustment_Factor_File_Name), os.path.join(input_backup_folder, Subarea_Adjustment_Factor_File_Name))
 copyfile(os.path.join(Original_Parcel_Folder, Parcels_Sqft_File_Name), os.path.join(input_backup_folder, Parcels_Sqft_File_Name))
+copyfile(Hh_and_person_file, os.path.join(input_backup_folder, os.path.basename(Hh_and_person_file)))
 
 print "Finished"  
