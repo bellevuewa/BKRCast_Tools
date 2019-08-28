@@ -81,13 +81,14 @@ class AdjacentNodes(_m.Tool()):
         network = scenario.get_network()
         classify = ClassifyAdjacentNodes(north_angle, network)
         with open(export_file, 'w') as f:
-            f.write("Node   N      S      E      W\n")
+            f.write("ui3    Node   N      S      E      W\n")
             for node in network.nodes():
                 if (node.data3 > 0):
                     #if node.number == 2458:
                     #    break
                     adj = classify(node)
                     adj["I"] = node.number
+                    f.write('%d ' % node.data3)
                     f.write(" ".join(["%6s" % adj.get(d, "") for d in "INSEW"]))
                     f.write("\n")   
                     print(" ".join(["%6s" % adj.get(d, "") for d in "INSEW"]))
