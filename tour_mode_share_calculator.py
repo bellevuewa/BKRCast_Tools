@@ -9,17 +9,20 @@ import os
 # 2/6/2019
 # New feature: allows to select trips starting from subarea_taz_file or ending at subarea_taz_file or both
 
-tours_file = r'D:\BRK0V1\outputs\_tour.tsv'
+# 8/29/2019
+# fixed a bug in trip filtering.
+
+tours_file = r'D:\2ndStAnalysis\2035\2035BelDTAccess-AltB\outputs\_tour.tsv'
 
 # enter a TAZ list if mode share for a specific subarea is desired. 
 # if the list is empty (with the header 'TAZ only), the mode share for the whole region will be calculated.
-subarea_taz_file = r'D:\BRK0V1\Kirkland_TAZ.txt'
-Output_file = r'D:\BRK0V1\2014_Kirkland_tour_PMPK_mode_share.txt'
+subarea_taz_file = r'D:\2ndStAnalysis\2035\2035BelDTAccess-AltB\Bellevue_TAZ.txt'
+Output_file = r'D:\2ndStAnalysis\2035\2035BelDTAccess-AltB\2035AltB_Bellevue_tour_PM_mode_share.txt'
 
 # Below is the start and end time you want to query from daysim output. It is number of minutes after 12am. 
 # if you want 24hr data, set all to 0.
-start_time = 1020  # minutes starting from 12am, 1530
-end_time = 1080   # minutes starting from 12am, 1830
+start_time = 930  # minutes starting from 12am, 1530
+end_time = 1110   # minutes starting from 12am, 1830
 
 # if both of them are true, it will pull trips from the lists and trips to the lists. But they are not internal trips!!!
 tours_from_only = True  # if true, trips from the TAZ list
@@ -80,13 +83,11 @@ subarea_taz_df.reset_index(inplace = True)
 
 if subarea_taz_df.empty == False:
     if tours_from_only == True:
-        #tours_df.set_index('totaz', inplace = True)
         from_subarea_tours_df = tours_df.join(subarea_taz_df.set_index('TAZ'), on = 'totaz', how = 'right')
     if tours_end_only == True:
-        #tours_df.set_index('tdtaz', inplace = True)
         to_subarea_tours_df = tours_df.join(subarea_taz_df.set_index('TAZ'), on = 'tdtaz', how = 'right')
     if ((tours_from_only == True) and (tours_end_only == True)):
-        subarea_tours_df = pd.concat([from_subarea_tours_df, to_subarea_tours_df])
+        subarea_tours_df = from_subarea_tours_df.merge(subarea_taz_df, left_on = 'tdtaz', right_on = 'TAZ')
     elif tours_from_only == True:
         subarea_tours_df = pd.concat([from_subarea_tours_df])
     else:
