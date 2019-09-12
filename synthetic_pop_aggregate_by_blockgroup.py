@@ -87,9 +87,16 @@ print 'Total persons: %d' % updated_parcel_hhs['total_persons'].sum()
 
 hhs_by_bkgp = updated_parcel_hhs.groupby('GEOID10')['total_persons', 'total_hhs'].sum()
 hhs_by_bkgp = hhs_by_bkgp.fillna(0)
+#blockgroup 530619900020 and 530619901000 have no hhs and pop in 2016 ACS, but they have in 2035 PSRC's estimate
+#move these hhs and pops to blockgroup 530610521042.
+hhs_by_bkgp.loc[530610521042] = hhs_by_bkgp.loc[530610521042] + hhs_by_bkgp.loc[530619900020] + hhs_by_bkgp.loc[530619901000]
+hhs_by_bkgp.loc[530619900020] = 0
+hhs_by_bkgp.loc[530619901000] = 0
+
+hhs_by_bkgp.reset_index(inplace = True)
 hhs_by_bkgp['total_hhs'] = hhs_by_bkgp['total_hhs'].astype(int)
 hhs_by_bkgp['total_persons'] = hhs_by_bkgp['total_persons'].astype(int)
-hhs_by_bkgp.reset_index(inplace = True)
+
 
 # update ACS control files with new estimate of households and population.
 acs_control_df = pd.read_csv(acs_existing_control_file_name, sep = ',')
@@ -98,6 +105,8 @@ updated_acs_control_df['hh_bg_weight'] = updated_acs_control_df['total_hhs']
 updated_acs_control_df['hh_tract_weight'] = updated_acs_control_df['total_hhs']
 updated_acs_control_df['pers_bg_weight'] = updated_acs_control_df['total_persons']
 updated_acs_control_df['pers_tract_weight'] = updated_acs_control_df['total_persons']
+
+
 updated_acs_control_df.drop(hhs_by_bkgp.columns, axis = 1, inplace = True)
 
 # if data is missing, export them to error file for further investigation.
