@@ -6,7 +6,7 @@ import numpy as np
 sys.path.append(os.getcwd())
 import utility
 
-### to remove a list of households and their people.
+### to remove a list of households and their people from synthetic population.
 ### 7/5/2019
 
 # swith can only be HHNO or PARCEL
