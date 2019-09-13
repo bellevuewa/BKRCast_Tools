@@ -27,9 +27,9 @@ acs_existing_control_file_name = r'D:\PopulationSim\PSRCrun0423\data\acecon0403.
 acs_future_control_file_name = 'acecon0403-2035PSRC_control_total.csv'
 new_local_estimated_file_name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\2035SyntheticPop_from_PopSim\2035BellevueHHsEstimates.csv'
 sf_occupancy_rate = 0.952  # from Gwen
-mf_occupancy_rate = 0.895  # from G
-avg_persons_per_sfhh =  2.82 # from 2016 ACS estimate
-avg_persons_per_mfhh =  2.03 # from 2016 ACS estimate
+mf_occupancy_rate = 0.895  # from Gwen
+avg_persons_per_sfhh =  2.82 # from Gwen
+avg_persons_per_mfhh =  2.03 # from Gwen
 # output hh and persons file- don't overwrite existing one!
 future_control_file = '2035PSRC_hhs_by_bg.csv'
 ################### End of configuration

@@ -14,14 +14,22 @@ Number of households per parcel should be consistent with parcel file. It can be
 sync_population_parcel.py. 
 
 Date: 7/1/2019
+
+9/12/2019
+fixed a minor bug that could drop some households under certain occasions. 
+Will export a list of blockgroups if their new generated number of households do not match control totals.
+Always check the error file to make sure all households are allocated.
 '''
 
 #configuration
 working_folder = r'D:\PopulationSim\PSRCrun0423\output'
-synthetic_households_file_name = 'synthetic_households.csv'
-synthetic_population_file_name = 'synthetic_persons.csv'
+synthetic_households_file_name = '2035_synthetic_households.csv'
+synthetic_population_file_name = '2035_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
-h5_file_name = 'popsim_hh_and_persons.h5'
+h5_file_name = '2035_popsim_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2035_synthetic_households.csv'
+updated_persons_file_name = 'updated_2035_synthetic_persons.csv'
+error_file_name = 'error.txt'
 
 def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgrpid):
     '''
@@ -55,6 +63,8 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
     sfHhs = hhs_blkgrp_df.sample(n = int(numSFparcels))
     for i in range(int(numSFparcels)):
         sfHhs['hhparcel'].iat[i] = sfparcelids['PSRC_ID'].iat[i]
+    updatedHHs = updatedHHs.append(sfHhs)  
+      
     remainHhs_df = hhs_blkgrp_df[~hhs_blkgrp_df['household_id'].isin(sfHhs['household_id'])]
     remainHhs = remainHhs_df['hhexpfac'].sum()
 
@@ -62,31 +72,46 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
     if sum > 0: 
         mfparcels = parcels.loc[parcels['HousingUnits2014'] >= 2] 
         mfparcels.loc[:, 'forecastedHhs'] = remainHhs * 1.0 * mfparcels['HousingUnits2014'] / sum
-        updatedHHs = updatedHHs.append(sfHhs)        
     else:
         mfparcels = parcels.loc[(parcels['LUTYPE_P'] == 26) | (parcels['LUTYPE_P'] == 30)]
         if mfparcels.shape[0] > 0:
-            mfparcels.loc[:, 'forecastedHhs'] = (hhs_control - numSFparcels) * 1.0 / mfparcels.shape[0]
-            updatedHHs = updatedHHs.append(sfHhs)        
+            mfparcels.loc[:, 'forecastedHhs'] = remainHhs * 1.0 / mfparcels.shape[0]
         else:
             mfparcels = sfparcelids
-            mfparcels.loc[:, 'forecastedHhs'] = hhs_control * 1.0 / numSFparcels
+            mfparcels.loc[:, 'forecastedHhs'] = remainHhs * 1.0 / numSFparcels
 
     # decide in each mf parcel, how many hhs should be allocated
-    mfparcels.loc[:, 'forecastedHhs'] = mfparcels['forecastedHhs'].apply(np.floor)
-    diff = remainHhs - mfparcels['forecastedHhs'].sum()
-    mfparcels.loc[:, 'forecastedHhs'].iat[0] = mfparcels['forecastedHhs'].iat[0] + diff    
+    if (remainHhs >= mfparcels['forecastedHhs'].apply(np.floor).sum()):
+        mfparcels.loc[:, 'forecastedHhs'] = mfparcels['forecastedHhs'].apply(np.floor)
+        diff = remainHhs - mfparcels['forecastedHhs'].sum()
+        mfparcels.loc[:, 'forecastedHhs'].iat[0] = mfparcels['forecastedHhs'].iat[0] + diff  
+    else:
+        tot_mfparcels = mfparcels.shape[0]
+        iat = 0
+        while (remainHhs > 0):
+            index = iat % tot_mfparcels
+            mfparcels.loc[:, 'forecastedHhs'].iat[index] = mfparcels['forecastedHhs'].iat[index] + 1 
+            remainHhs = remainHhs - 1
+            iat = iat + 1
     
     mfhhs = pd.DataFrame()    
     for row in mfparcels.itertuples():
-        mfhhs = remainHhs_df.sample(n = int(row.forecastedHhs))
+        if remainHhs_df.shape[0] == 0:
+            break
+        if row.forecastedHhs <= remainHhs_df.shape[0]:
+            mfhhs = remainHhs_df.sample(n = int(row.forecastedHhs))
+        else:
+            mfhhs = remainHhs_df.sample(n = remainHhs_df.shape[0])
         remainHhs_df = remainHhs_df[~remainHhs_df['household_id'].isin(mfhhs['household_id'])]   
         mfhhs.loc[:, 'hhparcel'] = row.PSRC_ID
         updatedHHs = updatedHHs.append(mfhhs)
-        if remainHhs_df.shape[0] == 0:
-            break
     return updatedHHs   
 
+try:
+    error_f = open(os.path.join(working_folder, error_file_name), 'w')
+except:
+    print 'Error open cannot be opened. Close it and try it again.'
+    exit(-1)
 
 ###
 parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
@@ -102,12 +127,18 @@ hhs_by_blkgrp = hhs_df.groupby('block_group_id')['hhexpfac', 'hhsize'].sum()
 final_hhs_df = pd.DataFrame()
 updatedHhs = pd.DataFrame()
 
+
 for blcgrpid in all_blcgrp_ids:
     hhs_new = hhs_by_blkgrp.loc[hhs_by_blkgrp.index == blcgrpid].iloc[0]['hhexpfac']
-    print 'Blockgroup ', blcgrpid , ' ', '  new hhs: ', hhs_new
     if hhs_new > 0:
         hhs_blkgrp_df = hhs_df.loc[hhs_df['block_group_id'] == blcgrpid] 
-        updatedHhs = assign_hhs_to_parcels_by_blkgrp(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid)            
+        updatedHhs = assign_hhs_to_parcels_by_blkgrp(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid)
+        msg = 'blocgroup {0:d}: control total: {1:.0f},  generated: {2:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum()) 
+        #print 'Blockgroup ', blcgrpid , ' ', '  control total: ', hhs_new, '  generated: ', updatedHhs['hhexpfac'].sum()
+        print msg
+        if (hhs_new != updatedHhs['hhexpfac'].sum()):
+            print '******************** blockgroup ', blcgrpid, ': total hhs does not match control total.'           
+            error_f.write(msg+'\n')
         final_hhs_df = final_hhs_df.append(updatedHhs)   
         if len(final_hhs_df.loc[final_hhs_df['household_id'].duplicated()]) > 0:
             print 'duplicated households found in block group ', blcgrpid
@@ -168,8 +199,8 @@ lenpersons=pop_df.shape[0] #3726050
 lastHhno = -1
 personid = 0
 for i in range(lenpersons):
-    if i % 10000 == 0:
-        print i
+    if i % 100000 == 0:
+        print i, ' persons processed.'
 
     # assign pno
     curHhno = pop_df['hhno'].iat[i]
@@ -234,8 +265,9 @@ utility.df_to_h5(pop_df, output_h5_file, 'Person')
 output_h5_file.close()
 print 'H5 exported.'
 
-pop_df.to_csv(os.path.join(working_folder, 'updated_persons.csv'))  
-final_hhs_df.to_csv(os.path.join(working_folder, 'updated_synthetic_households.csv'))
+pop_df.to_csv(os.path.join(working_folder, updated_persons_file_name), sep = ',')  
+final_hhs_df.to_csv(os.path.join(working_folder, updated_hhs_file_name), sep = ',')
+error_f.close()
 
 print 'Total census block groups: ', len(all_blcgrp_ids)
 print 'Final number of households: ', final_hhs_df.shape[0]
