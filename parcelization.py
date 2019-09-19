@@ -21,7 +21,7 @@ Will export a list of blockgroups if their new generated number of households do
 Always check the error file to make sure all households are allocated.
 '''
 
-#configuration
+###############Start of configuration
 working_folder = r'D:\PopulationSim\PSRCrun0423\output'
 synthetic_households_file_name = '2035_synthetic_households.csv'
 synthetic_population_file_name = '2035_synthetic_persons.csv'
@@ -29,7 +29,18 @@ parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.
 h5_file_name = '2035_popsim_hh_and_persons.h5'
 updated_hhs_file_name = 'updated_2035_synthetic_households.csv'
 updated_persons_file_name = 'updated_2035_synthetic_persons.csv'
+new_local_estimated_file_name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\2035SyntheticPop_from_PopSim\2035\2035BellevueHHsEstimates.csv'
+block_group_list_for_local_estimate_name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\2035SyntheticPop_from_PopSim\2035\blockgroups_list_for_local_estimate.csv' 
 error_file_name = 'error.txt'
+parcels_for_allocation_filename = r'D:\PopulationSim\PSRCrun0423\output\2035_parcels_for_allocation.csv'
+
+
+sf_occupancy_rate = 0.952  # from Gwen
+mf_occupancy_rate = 0.895  # from Gwen
+avg_persons_per_sfhh =  2.82 # from Gwen
+avg_persons_per_mfhh =  2.03 # from Gwen
+
+############## End of configuration
 
 def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgrpid):
     '''
@@ -107,6 +118,71 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
         updatedHHs = updatedHHs.append(mfhhs)
     return updatedHHs   
 
+def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, blcgrpid, new_local_estimate_df):
+    '''
+        allocate households to match local estimate.
+    '''
+    parcels = parcel_df.loc[parcel_df['GEOID10'] == blcgrpid]
+    
+    # assign SF first
+    sfparcels_df = new_local_estimate_df.loc[new_local_estimate_df['SFUnits'] == 1]
+    numSFparcels = sfparcels_df.shape[0]
+    mfparcels_df = new_local_estimate_df.loc[~new_local_estimate_df['PSRC_ID'].isin(sfparcels_df['PSRC_ID'])]    
+    
+    updatedHHs = pd.DataFrame()
+    sfHhs = pd.DataFrame()
+    mfparcels = pd.DataFrame()
+    sfhhs_blkgrp_df = hhs_blkgrp_df.loc[(hhs_blkgrp_df['hrestype'] == 2) | (hhs_blkgrp_df['hrestype'] == 3)]
+    sfhhs_sum = sfhhs_blkgrp_df['hhexpfac'].sum()
+    mfhhs_blkgrp_df = hhs_blkgrp_df.loc[~((hhs_blkgrp_df['hrestype'] == 2) | (hhs_blkgrp_df['hrestype'] == 3))]
+    mfhhs_sum = mfhhs_blkgrp_df['hhexpfac'].sum()
+
+    #always to fill SF parcels first
+    if sfhhs_sum >= numSFparcels:        
+        sfHhs = sfhhs_blkgrp_df.sample(n = int(numSFparcels))
+        for i in range(int(numSFparcels)):
+            sfHhs['hhparcel'].iat[i] = sfparcels_df['PSRC_ID'].iat[i]
+        updatedHHs = updatedHHs.append(sfHhs)
+        sfhhs_blkgrp_df = sfhhs_blkgrp_df.loc[~sfhhs_blkgrp_df['household_id'].isin(sfHhs['household_id'])]
+        mfhhs_blkgrp_df = mfhhs_blkgrp_df.append(sfhhs_blkgrp_df)
+    else:
+        # sfHhs_sum < numSFparcels
+        diff = numSFparcels - sfhhs_sum
+        if (mfhhs_sum >= diff):
+            mfhhs = mfhhs_blkgrp_df.sample(n = int(diff))
+            combined = pd.concat([sfhhs_blkgrp_df, mfhhs])
+            for i in range(int(numSFparcels)):
+                combined['hhparcel'].iat[i] = sfparcels_df['PSRC_ID'].iat[i]
+        else:
+            mfhhs = mfhhs_blkgrp_df.sample(n = mfhhs_sum)
+            combined = pd.concat([sfhhs_blkgrp_df, mfhhs])
+            for i in range(int(mfhhs_sum)):
+                combined['hhparcel'].iat[i] = sfparcels_df['PSRC_ID'].iat[i]
+        updatedHHs = updatedHHs.append(combined)
+        mfhhs_blkgrp_df = mfhhs_blkgrp_df[~mfhhs_blkgrp_df['household_id'].isin(mfhhs['household_id'])]
+    mfhhs_sum = mfhhs_blkgrp_df['hhexpfac'].sum() 
+
+    if mfhhs_sum == 0:
+        return updatedHHs
+
+    mfhhs = pd.DataFrame()
+    for parcel in mfparcels_df.itertuples():
+        total_mfhhs = mfhhs_blkgrp_df.shape[0]
+        if total_mfhhs <= 0:
+            break
+        numHhs = parcel.MFUnits + parcel.SFUnits
+        if numHhs == 0:
+            continue
+        pid = parcel.PSRC_ID
+        if numHhs <= total_mfhhs:
+            mfhhs = mfhhs_blkgrp_df.sample(n = int(numHhs))
+        else:
+            mfhhs = mfhhs_blkgrp_df.sample(n = int(total_mfhhs))
+        mfhhs_blkgrp_df = mfhhs_blkgrp_df[~mfhhs_blkgrp_df['household_id'].isin(mfhhs['household_id'])]
+        mfhhs.loc[:, 'hhparcel'] = pid
+        updatedHHs = updatedHHs.append(mfhhs)       
+    return updatedHHs
+    
 try:
     error_f = open(os.path.join(working_folder, error_file_name), 'w')
 except:
@@ -115,8 +191,23 @@ except:
 
 ###
 parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
+GEOID10_with_local_estimate = pd.read_csv(block_group_list_for_local_estimate_name, low_memory = False)['GEOID10'].tolist()
 hhs_df = pd.read_csv(os.path.join(working_folder, synthetic_households_file_name))
 hhs_df['hhparcel'] = 0
+
+# read local estimate 
+new_local_estimate_df = pd.read_csv(new_local_estimated_file_name, sep = ',')
+new_local_estimate_df['SF'] = new_local_estimate_df['SFUnits'] * sf_occupancy_rate
+new_local_estimate_df['MF'] = new_local_estimate_df['MFUnits'] * mf_occupancy_rate
+new_local_estimate_df['Tot_New_hhs'] = new_local_estimate_df['SF'] + new_local_estimate_df['MF']
+new_local_estimate_df['Tot_New_Persons'] =  new_local_estimate_df['SF'] * avg_persons_per_sfhh + new_local_estimate_df['MF'] * avg_persons_per_mfhh
+# Some parcels may have same PSRC_ID but different PINs. Stacked parcels. So need to groupby PSRC_ID first.
+new_local_estimate_df = new_local_estimate_df.groupby('PSRC_ID')['SF', 'MF', 'SFUnits', 'MFUnits', 'Tot_New_hhs', 'Tot_New_Persons'].sum()
+new_local_estimate_df.reset_index(inplace = True)
+new_local_estimate_df = new_local_estimate_df.merge(parcel_df[['PSRC_ID', 'GEOID10']], how = 'left', left_on = 'PSRC_ID', right_on = 'PSRC_ID')
+
+parcels_for_allocation = pd.read_csv(parcels_for_allocation_filename, sep = ',')
+
 # remove any blockgroup ID is Nan.
 all_blcgrp_ids = hhs_df['block_group_id'].unique()
 mask = np.isnan(all_blcgrp_ids)
@@ -127,22 +218,31 @@ hhs_by_blkgrp = hhs_df.groupby('block_group_id')['hhexpfac', 'hhsize'].sum()
 final_hhs_df = pd.DataFrame()
 updatedHhs = pd.DataFrame()
 
-
+id = 0
 for blcgrpid in all_blcgrp_ids:
     hhs_new = hhs_by_blkgrp.loc[hhs_by_blkgrp.index == blcgrpid].iloc[0]['hhexpfac']
     if hhs_new > 0:
+        #if blcgrpid != 530330248003:
+        #    a = 0
+        #    continue
+            
         hhs_blkgrp_df = hhs_df.loc[hhs_df['block_group_id'] == blcgrpid] 
-        updatedHhs = assign_hhs_to_parcels_by_blkgrp(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid)
-        msg = 'blocgroup {0:d}: control total: {1:.0f},  generated: {2:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum()) 
-        #print 'Blockgroup ', blcgrpid , ' ', '  control total: ', hhs_new, '  generated: ', updatedHhs['hhexpfac'].sum()
+        if blcgrpid in GEOID10_with_local_estimate:
+            local_estimate_df = new_local_estimate_df.loc[new_local_estimate_df['GEOID10'] == blcgrpid]
+            #parcels_tot_hhs_for_alloc_df = parcels_for_allocation.loc[parcels_for_allocation['GEOID10'] == blcgrpid, ['PSRC_ID', 'GEOID10', 'total_hhs']]
+            updatedHhs = assign_hhs_parcels_by_local_estimate(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid, local_estimate_df)
+            msg = '{4:d}: blocgroup {0:d}: allocated by local estimate. total hhs: {1:.0f},  allocated: {2:d}, local estimate: {3:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum(), int(local_estimate_df['SF'].sum() + local_estimate_df['MF'].sum()), id) 
+        else:
+            updatedHhs = assign_hhs_to_parcels_by_blkgrp(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid)
+            msg = '{3:d}: blocgroup {0:d}: total hhs: {1:.0f},  allocated: {2:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum(), id) 
         print msg
         if (hhs_new != updatedHhs['hhexpfac'].sum()):
             print '******************** blockgroup ', blcgrpid, ': total hhs does not match control total.'           
             error_f.write(msg+'\n')
-        final_hhs_df = final_hhs_df.append(updatedHhs)   
+        final_hhs_df = final_hhs_df.append(updatedHhs) 
+        id = id + 1  
         if len(final_hhs_df.loc[final_hhs_df['household_id'].duplicated()]) > 0:
             print 'duplicated households found in block group ', blcgrpid
-            break
     else:
         print 'no household in block_group ', blcgrpid 
     
@@ -259,6 +359,7 @@ morecols=pd.DataFrame({'hownrent': [-1]*final_hhs_df.shape[0]})
 final_hhs_df.drop([u'hownrent', 'block_group_id'], axis = 1, inplace = True)
 final_hhs_df=final_hhs_df.join(morecols) 
 
+pop_df = pop_df.loc[~pop_df['hhno'].isin(final_hhs_df['hhno'])]
 output_h5_file = h5py.File(os.path.join(working_folder, h5_file_name), 'w')
 utility.df_to_h5(final_hhs_df, output_h5_file, 'Household')
 utility.df_to_h5(pop_df, output_h5_file, 'Person')
