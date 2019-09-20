@@ -10,7 +10,7 @@ import os
 ###
 BKRCast_Parcel_File = r'Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11\parcels_urbansim.txt'
 Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2014jobs_PopSimHH'
-Hh_and_person_file = r'I:\psrcpopsim\Hu\parcelize\outputparcel\H5andpphhfiles\0416popsim_hh_and_persons.h5'
+Hh_and_person_file = r'I:\psrcpopsim\Hu\parcelize\outputparcel\0430popsim_hh_and_persons.h5'
 
 def h5_to_df(h5_file, group_name):
     """

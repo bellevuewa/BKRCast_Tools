@@ -6,10 +6,10 @@ import os
 
 ###
 ### This program is used to adjust number of jobs in a parcel file with a subarea level adjustment factors.
-Input_parcel_file = r'Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based\BKRCastFuture_parcels_urbansim.txt'
+Input_parcel_file = r'Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based\BKRCastFuture_parcels_urbansim_test.txt'
 Subarea_adjustment_factor_file = r'Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based\2035COBJobAdjustment.csv'
 Subarea_taz_file = r'Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11\TAZ_subarea.csv'
-Output_parcel_file = r'Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based\BKRCastFuture_adjusted_parcels_urbansim.txt'
+Output_parcel_file = r'Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based\BKRCastFuture_adjusted_parcels_urbansim_test.txt'
 
 print 'Loading ... '     
 Input_parcel_df = pd.DataFrame.from_csv(Input_parcel_file, sep = ' ')

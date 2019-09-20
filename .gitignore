@@ -6,3 +6,6 @@
 *.pyc
 *.suo
 /.vs/slnx.sqlite-journal
+/output_synthetic_pop_point_name
+/Performance.pyperf
+*.py
