@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>mode_share_calculator.py</StartupFile>
+    <StartupFile>synthetic_pop_aggregate_by_blockgroup.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -30,6 +30,7 @@
     <Compile Include="Extract_hh_person.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Extract_hh_person0430.py" />
     <Compile Include="extract_subset_of_parcel_file.py">
       <SubType>Code</SubType>
     </Compile>
@@ -39,18 +40,32 @@
     <Compile Include="future_land_use_creation.py" />
     <Compile Include="hh_and_person_summary.py" />
     <Compile Include="hh_and_person_survey_summary.py" />
-    <Compile Include="HH_Person_ajustment_by_TAZ.py">
+    <Compile Include="HH_ajustment_by_TAZ.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="HH_Person_ajustment_by_TAZ.py" />
     <Compile Include="houshold_allocation.py" />
     <Compile Include="ImportAllAttributes.py" />
     <Compile Include="Create_parcel_TAZ_crosstable.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="mode_share_calculator.py">
+    <Compile Include="mode_share_calculatorV2.py" />
+    <Compile Include="parcelization.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="mode_share_calculatorV2.py" />
+    <Compile Include="parcelizebyratio0430.py" />
+    <Compile Include="sync_population_to_parcel.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="synthetic_population_error_checking.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="synthetic_population_to_shapefile.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="synthetic_pop_aggregate_by_blockgroup.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="TemoraryCode.py">
       <SubType>Code</SubType>
     </Compile>
@@ -88,6 +103,9 @@
     <Compile Include="UpdateParcelFileBySubarea.py" />
     <Compile Include="utility.py" />
     <Compile Include="workers_taz.py" />
+    <Compile Include="work_trips.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
