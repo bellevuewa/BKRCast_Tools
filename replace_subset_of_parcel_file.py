@@ -13,10 +13,10 @@ from shutil import copyfile
 import ntpath
 
 ### configuration
-Original_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-no-homejobs\parcels_urbansim.txt"
-Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-no-homejobs"
-Subset_Parcels_File_Name = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-no-homejobs\2014_BellevueCBD.csv"
-Output_Parcel_File_Name = "parcels_urbansim_updated.txt"
+Original_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11\parcels_urbansim.txt"
+Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\test"
+Subset_Parcels_File_Name = r"Z:\Modeling Group\BKRCast\test\2014_BelCBD_Parcels_test.csv"
+Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
 ###
 
 if not os.path.exists(Output_Parcel_Folder):

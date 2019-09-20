@@ -12,8 +12,8 @@ sys.path.append(os.getcwd())
 import utility
 
 ### inputs
-hh_person_folder = r'D:\PopulationSim\PSRCrun0423\output'
-hh_person_file = '2035_popsim_hh_and_persons.h5'
+hh_person_folder = r'D:\BKR0V1-1\inputs'
+hh_person_file = 'hh_and_persons.h5'
 TAZ_Subarea_File_Name = r'Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 

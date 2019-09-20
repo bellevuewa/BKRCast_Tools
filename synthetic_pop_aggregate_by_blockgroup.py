@@ -17,7 +17,7 @@ PSRC's control total, merged control file, and an error file with missing values
 '''
 
 ########### configuration #########################
-output_dir = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\2035SyntheticPopulation_S_DT_Access_Study'   
+output_dir = r'D:\PopulationSim\PSRCrun0423\output'   
 # synthetic population from PSRC
 synthetic_pop_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\inputs\hh_and_persons.h5'
 # parcel file, parcelid and blockgroup id must be included
@@ -25,14 +25,13 @@ parcel_bg_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgra
 # base year control file, from census_getter.
 acs_existing_control_file_name = r'D:\PopulationSim\PSRCrun0423\data\acecon0403.csv'
 acs_future_control_file_name = 'acecon0403-2035PSRC_control_total.csv'
-new_local_estimated_file_name = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\2035SyntheticPopulation_S_DT_Access_Study\2035BellevueHHsEstimates.csv'
+new_local_estimated_file_name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\2035SyntheticPop_from_PopSim\2035BellevueHHsEstimates.csv'
 sf_occupancy_rate = 0.952  # from Gwen
 mf_occupancy_rate = 0.895  # from Gwen
 avg_persons_per_sfhh =  2.82 # from Gwen
 avg_persons_per_mfhh =  2.03 # from Gwen
 # output hh and persons file- don't overwrite existing one!
 future_control_file = '2035PSRC_hhs_by_bg.csv'
-parcels_for_allocation_filename = '2035_parcels_for_allocation.csv'
 ################### End of configuration
 
 print 'Loading hh and person file...'
@@ -73,13 +72,12 @@ print 'Total persons: %d' % selected_parcels_df['total_persons'].sum()
 selected_parcels_df['total_hhs'] = selected_parcels_df['Tot_New_hhs']
 selected_parcels_df['total_persons'] = selected_parcels_df['Tot_New_Persons']
 selected_parcels_df.drop(new_local_estimate_df.columns, axis = 1, inplace = True)
-selected_parcels_df.rename(columns = {'hhparcel' : 'PSRC_ID'}, inplace = True)
 
 print '2035 local estimate by blockgroups in City of Bellevue: '
 print 'Total households: %d' % selected_parcels_df['total_hhs'].sum()
 print 'Total persons: %d' % selected_parcels_df['total_persons'].sum()
 
-updated_parcel_hhs = hhs_by_parcels_df.loc[~hhs_by_parcels_df['PSRC_ID'].isin(selected_parcels_df['PSRC_ID'])]
+updated_parcel_hhs = hhs_by_parcels_df.loc[~hhs_by_parcels_df['PSRC_ID'].isin(selected_parcels_df['hhparcel'])]
 updated_parcel_hhs = updated_parcel_hhs.append(selected_parcels_df)
 
 print '2035 final control total: '
@@ -120,7 +118,6 @@ if at_issues_df.shape[0] > 0:
 updated_acs_control_df.fillna(0, inplace = True)
 updated_acs_control_df.to_csv(os.path.join(output_dir, acs_future_control_file_name), sep = ',')
 hhs_by_bkgp.to_csv(os.path.join(output_dir, future_control_file), sep = ',')
-updated_parcel_hhs.to_csv(os.path.join(output_dir, parcels_for_allocation_filename), sep = ',')
 
 print 'Done.'
 

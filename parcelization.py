@@ -22,17 +22,17 @@ Always check the error file to make sure all households are allocated.
 '''
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\2035SyntheticPopulation_S_DT_Access_Study'
+working_folder = r'D:\PopulationSim\PSRCrun0423\output'
 synthetic_households_file_name = '2035_synthetic_households.csv'
 synthetic_population_file_name = '2035_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 h5_file_name = '2035_popsim_hh_and_persons.h5'
 updated_hhs_file_name = 'updated_2035_synthetic_households.csv'
 updated_persons_file_name = 'updated_2035_synthetic_persons.csv'
-new_local_estimated_file_name = r'2035BellevueHHsEstimates.csv'
-block_group_list_for_local_estimate_name = r'blockgroups_list_for_local_estimate.csv' 
+new_local_estimated_file_name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\2035SyntheticPop_from_PopSim\2035\2035BellevueHHsEstimates.csv'
+block_group_list_for_local_estimate_name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\2035SyntheticPop_from_PopSim\2035\blockgroups_list_for_local_estimate.csv' 
 error_file_name = 'error.txt'
-parcels_for_allocation_filename = r'2035_parcels_for_allocation.csv'
+parcels_for_allocation_filename = r'D:\PopulationSim\PSRCrun0423\output\2035_parcels_for_allocation.csv'
 
 
 sf_occupancy_rate = 0.952  # from Gwen
@@ -118,7 +118,7 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
         updatedHHs = updatedHHs.append(mfhhs)
     return updatedHHs   
 
-def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, blcgrpid, new_local_estimate_df, parcels_available_for_alloc):
+def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, blcgrpid, new_local_estimate_df):
     '''
         allocate households to match local estimate.
     '''
@@ -127,10 +127,11 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
     # assign SF first
     sfparcels_df = new_local_estimate_df.loc[new_local_estimate_df['SFUnits'] == 1]
     numSFparcels = sfparcels_df.shape[0]
-    mfparcels_df = parcels_available_for_alloc.loc[~parcels_available_for_alloc['PSRC_ID'].isin(sfparcels_df['PSRC_ID'])]    
+    mfparcels_df = new_local_estimate_df.loc[~new_local_estimate_df['PSRC_ID'].isin(sfparcels_df['PSRC_ID'])]    
     
     updatedHHs = pd.DataFrame()
     sfHhs = pd.DataFrame()
+    mfparcels = pd.DataFrame()
     sfhhs_blkgrp_df = hhs_blkgrp_df.loc[(hhs_blkgrp_df['hrestype'] == 2) | (hhs_blkgrp_df['hrestype'] == 3)]
     sfhhs_sum = sfhhs_blkgrp_df['hhexpfac'].sum()
     mfhhs_blkgrp_df = hhs_blkgrp_df.loc[~((hhs_blkgrp_df['hrestype'] == 2) | (hhs_blkgrp_df['hrestype'] == 3))]
@@ -169,7 +170,7 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
         total_mfhhs = mfhhs_blkgrp_df.shape[0]
         if total_mfhhs <= 0:
             break
-        numHhs = parcel.total_hhs
+        numHhs = parcel.MFUnits + parcel.SFUnits
         if numHhs == 0:
             continue
         pid = parcel.PSRC_ID
@@ -190,12 +191,12 @@ except:
 
 ###
 parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
-GEOID10_with_local_estimate = pd.read_csv(os.path.join(working_folder, block_group_list_for_local_estimate_name), low_memory = False)['GEOID10'].tolist()
+GEOID10_with_local_estimate = pd.read_csv(block_group_list_for_local_estimate_name, low_memory = False)['GEOID10'].tolist()
 hhs_df = pd.read_csv(os.path.join(working_folder, synthetic_households_file_name))
 hhs_df['hhparcel'] = 0
 
 # read local estimate 
-new_local_estimate_df = pd.read_csv(os.path.join(working_folder, new_local_estimated_file_name), sep = ',')
+new_local_estimate_df = pd.read_csv(new_local_estimated_file_name, sep = ',')
 new_local_estimate_df['SF'] = new_local_estimate_df['SFUnits'] * sf_occupancy_rate
 new_local_estimate_df['MF'] = new_local_estimate_df['MFUnits'] * mf_occupancy_rate
 new_local_estimate_df['Tot_New_hhs'] = new_local_estimate_df['SF'] + new_local_estimate_df['MF']
@@ -205,7 +206,7 @@ new_local_estimate_df = new_local_estimate_df.groupby('PSRC_ID')['SF', 'MF', 'SF
 new_local_estimate_df.reset_index(inplace = True)
 new_local_estimate_df = new_local_estimate_df.merge(parcel_df[['PSRC_ID', 'GEOID10']], how = 'left', left_on = 'PSRC_ID', right_on = 'PSRC_ID')
 
-parcels_for_allocation = pd.read_csv(os.path.join(working_folder, parcels_for_allocation_filename), sep = ',')
+parcels_for_allocation = pd.read_csv(parcels_for_allocation_filename, sep = ',')
 
 # remove any blockgroup ID is Nan.
 all_blcgrp_ids = hhs_df['block_group_id'].unique()
@@ -228,8 +229,8 @@ for blcgrpid in all_blcgrp_ids:
         hhs_blkgrp_df = hhs_df.loc[hhs_df['block_group_id'] == blcgrpid] 
         if blcgrpid in GEOID10_with_local_estimate:
             local_estimate_df = new_local_estimate_df.loc[new_local_estimate_df['GEOID10'] == blcgrpid]
-            parcels_available_for_alloc_df = parcels_for_allocation.loc[parcels_for_allocation['GEOID10'] == blcgrpid, ['PSRC_ID', 'GEOID10', 'total_hhs']]
-            updatedHhs = assign_hhs_parcels_by_local_estimate(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid, local_estimate_df, parcels_available_for_alloc_df)
+            #parcels_tot_hhs_for_alloc_df = parcels_for_allocation.loc[parcels_for_allocation['GEOID10'] == blcgrpid, ['PSRC_ID', 'GEOID10', 'total_hhs']]
+            updatedHhs = assign_hhs_parcels_by_local_estimate(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid, local_estimate_df)
             msg = '{4:d}: blocgroup {0:d}: allocated by local estimate. total hhs: {1:.0f},  allocated: {2:d}, local estimate: {3:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum(), int(local_estimate_df['SF'].sum() + local_estimate_df['MF'].sum()), id) 
         else:
             updatedHhs = assign_hhs_to_parcels_by_blkgrp(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid)
@@ -358,7 +359,7 @@ morecols=pd.DataFrame({'hownrent': [-1]*final_hhs_df.shape[0]})
 final_hhs_df.drop([u'hownrent', 'block_group_id'], axis = 1, inplace = True)
 final_hhs_df=final_hhs_df.join(morecols) 
 
-pop_df = pop_df.loc[pop_df['hhno'].isin(final_hhs_df['hhno'])]
+pop_df = pop_df.loc[~pop_df['hhno'].isin(final_hhs_df['hhno'])]
 output_h5_file = h5py.File(os.path.join(working_folder, h5_file_name), 'w')
 utility.df_to_h5(final_hhs_df, output_h5_file, 'Household')
 utility.df_to_h5(pop_df, output_h5_file, 'Person')

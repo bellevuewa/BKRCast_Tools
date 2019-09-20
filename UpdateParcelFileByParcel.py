@@ -29,9 +29,9 @@ import utility
 
 Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
 Original_ESD_Parcel_File_Name = r"original_parcels_urbansim.txt"
-Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_2019.csv"
+Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_02132018.csv"
 Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-06192018-2.csv"
-Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-2019density-newpop'
+Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-no-homejobs"
 Parcels_Sqft_File_Name = r"ParcelSummary_Revised_GrpPSRCIDs-modified_Final.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
@@ -39,7 +39,7 @@ Hh_and_person_file = r'D:\BKR0V1-1-PopsimTest\inputs\hh_and_persons.h5'
 
 
 # set False if want to drop home based jobs
-KEEP_HOME_BASED_JOBS = True
+KEEP_HOME_BASED_JOBS = False
 
 # further adjust parking cost in Bellevue. Set it to 1 if no adjustment is made.
 BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR = 0.5
