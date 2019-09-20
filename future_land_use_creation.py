@@ -7,6 +7,7 @@ import os
 PSRC_2014_ESD_Parcel_File = r'Z:\Modeling Group\BKRCast\2014ESD\parcels_urbansim.txt'
 PSRC_Future_Year_Parcel_File = r'Z:\Modeling Group\BKRCast\2035Parcel_fromPSRC\LUV2_2035SCinputs\LUV2_Refined_2035_SCInputs\parcels_bkr.txt'
 BKRCast_2014_SQFT_based_Parcel_File = r'Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11\parcels_urbansim.txt'
+#BKRCast_2014_SQFT_based_Parcel_File = r'Z:\Modeling Group\BKRCast\2014_ParkingCost\Half_parking_Cost_Bellevue\parcels_urbansim.txt'
 Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based'
 Hh_and_person_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\inputs\hh_and_persons.h5'
 JOB_Category = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPRSC_P', 'EMPSVC_P', 'EMPTOT_P']
@@ -120,7 +121,7 @@ BKRCast_Future_Parcels_DF.drop(['hhexpfac', 'hhsize'], axis = 1, inplace = True)
 
 
 print 'Exporting future parcel file...'
-BKRCast_Future_Parcels_DF.to_csv(os.path.join(Output_Parcel_Folder, 'BKRCastFuture_parcels_urbansim.txt'), sep = ' ')
+BKRCast_Future_Parcels_DF.to_csv(os.path.join(Output_Parcel_Folder, 'BKRCastFuture_parcels_urbansim_test.txt'), sep = ' ')
 
 
 print 'Done.'

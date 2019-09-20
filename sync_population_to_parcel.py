@@ -8,8 +8,8 @@ This program is used to pass number of households by parcel from synthetic popul
 the households in parcel file is consistent with synthetic population file.
 '''
 
-Hh_and_person_file = r'D:\BKR0V1-1-PopsimTest\inputs\hh_and_persons.h5'
-parcel_folder = r'Z:\Modeling Group\BKRCast\2014_ParkingCost\Half_parking_Cost_Bellevue'
+Hh_and_person_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline-test\inputs\hh_and_persons.h5'
+parcel_folder = r'Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based_half_parkingcost_test'
 input_parcel_file = 'parcels_urbansim.txt'
 output_parcel_file = 'updated_parcels_urbansim.txt'
 

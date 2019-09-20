@@ -12,21 +12,21 @@ import os
 # 8/29/2019
 # fixed a bug in trip filtering.
 
-tours_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\outputs\_tour.tsv'
+tours_file = r'D:\BKR0V1-1\outputs\_tour.tsv'
 
 # enter a TAZ list if mode share for a specific subarea is desired. 
 # if the list is empty (with the header 'TAZ only), the mode share for the whole region will be calculated.
 subarea_taz_file = r'D:\BKR0V1-1\Bellevue_TAZ.txt'
-Output_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\2035_from_Bellevue_tour_daily_mode_share.txt'
+Output_file = r'D:\BKR0V1-1\BKR0V1-1_to_Bellevue_tour_daily_mode_share_PM.txt'
 
 # Below is the start and end time you want to query from daysim output. It is number of minutes after 12am. 
 # if you want 24hr data, set all to 0.
-start_time = 0  # minutes starting from 12am, 1530
-end_time = 0   # minutes starting from 12am, 1830
+start_time = 930  # minutes starting from 12am, 1530
+end_time = 1110   # minutes starting from 12am, 1830
 
 # if both of them are true, both ends are inside the defined subarea!!!
-tours_from_only = True  # if true, trips from the TAZ list
-tours_end_only = False    # if true, trips to the TAZ list
+tours_from_only = False  # if true, trips from the TAZ list
+tours_end_only = True    # if true, trips to the TAZ list
 
 tour_purpose = {0: 'all',
                 1: 'work',

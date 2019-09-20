@@ -13,17 +13,18 @@ import os
 
 #8/23/2019
 # fixed a bug in trips with both ends in subarea.
+# add trip distance calculation.
 ##############################################################################################################
 # Below are inputs that need to modify
 
-trips_file = r'D:\BKR0V1-1\outputs\_trip.tsv'
+trips_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\outputs\_trip.tsv'
 
 # enter a TAZ list if mode share for a specific subarea is desired. 
 # if the list is empty (with the header 'TAZ only), the mode share for the whole region will be calculated.
-subarea_taz_file = r'D:\BKR0V1-1\BKRTaz.txt'
-Output_file = r'D:\BKR0V1-1\2014_BKR_trip_PMPK_mode_share.txt'
+subarea_taz_file = r'D:\BKR0V1-1\BellevueDTTAZ.txt'
+Output_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\2035_BelDT_trip_daily_mode_share.txt'
 
-Output_file_trip_dist = r'D:\BKR0V1-1\2014_BKR0V1-1_trip_distance_BKR.txt'
+Output_file_trip_dist = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\2035_BelDT_daily_trip_distance.txt'
 
 # Below is the start and end time you want to query from daysim output. It is number of minutes after 12am. 
 # if you want 24hr data, set all to 0.
