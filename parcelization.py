@@ -155,7 +155,8 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
         else:
             mfhhs = mfhhs_blkgrp_df.sample(n = mfhhs_sum)
             combined = pd.concat([sfhhs_blkgrp_df, mfhhs])
-            for i in range(int(mfhhs_sum)):
+            total = int(combined['hhexpfac'].sum())
+            for i in range(total):
                 combined['hhparcel'].iat[i] = sfparcels_df['PSRC_ID'].iat[i]
         updatedHHs = updatedHHs.append(combined)
         mfhhs_blkgrp_df = mfhhs_blkgrp_df[~mfhhs_blkgrp_df['household_id'].isin(mfhhs['household_id'])]
@@ -165,6 +166,9 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
         return updatedHHs
 
     mfhhs = pd.DataFrame()
+    tot_sum = mfparcels_df['total_hhs'].sum()
+    allocated = 0
+    mfparcels_df['total_hhs'] = mfparcels_df['total_hhs'].fillna(0)
     for parcel in mfparcels_df.itertuples():
         total_mfhhs = mfhhs_blkgrp_df.shape[0]
         if total_mfhhs <= 0:
@@ -173,13 +177,18 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
         if numHhs == 0:
             continue
         pid = parcel.PSRC_ID
-        if numHhs <= total_mfhhs:
-            mfhhs = mfhhs_blkgrp_df.sample(n = int(numHhs))
-        else:
-            mfhhs = mfhhs_blkgrp_df.sample(n = int(total_mfhhs))
-        mfhhs_blkgrp_df = mfhhs_blkgrp_df[~mfhhs_blkgrp_df['household_id'].isin(mfhhs['household_id'])]
+        proportion = numHhs / tot_sum * 1.0
+        selected = int(total_mfhhs * proportion)
+        allocated = allocated + selected
+        mfhhs = mfhhs_blkgrp_df.sample(n = selected)
         mfhhs.loc[:, 'hhparcel'] = pid
+        mfhhs_blkgrp_df = mfhhs_blkgrp_df[~mfhhs_blkgrp_df['household_id'].isin(mfhhs['household_id'])]
         updatedHHs = updatedHHs.append(mfhhs)       
+    
+    if (mfhhs_blkgrp_df.shape[0] > 0):
+        mfhhs_blkgrp_df.loc[:, 'hhparcel'] = parcel.PSRC_ID
+        updatedHHs = updatedHHs.append(mfhhs_blkgrp_df)   
+
     return updatedHHs
     
 try:
@@ -221,7 +230,7 @@ id = 0
 for blcgrpid in all_blcgrp_ids:
     hhs_new = hhs_by_blkgrp.loc[hhs_by_blkgrp.index == blcgrpid].iloc[0]['hhexpfac']
     if hhs_new > 0:
-        #if blcgrpid != 530330248003:
+        #if blcgrpid != 530330229012:
         #    a = 0
         #    continue
             
@@ -355,7 +364,7 @@ pop_df.drop(['block_group_id', 'hh_id', 'PUMA', 'WKW'], axis = 1, inplace = True
 
 morecols=pd.DataFrame({'hownrent': [-1]*final_hhs_df.shape[0]})
 #del final_hhs_df[u'hownrent']
-final_hhs_df.drop([u'hownrent', 'block_group_id'], axis = 1, inplace = True)
+final_hhs_df.drop([u'hownrent'], axis = 1, inplace = True)
 final_hhs_df=final_hhs_df.join(morecols) 
 
 pop_df = pop_df.loc[pop_df['hhno'].isin(final_hhs_df['hhno'])]
