@@ -43,7 +43,7 @@ Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\2035S
 KEEP_HOME_BASED_JOBS = True
 
 # further adjust parking cost in Bellevue. Set it to 1 if no adjustment is made.
-BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR = 0.5
+BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR = 1
 
 CONVERSION_LEVEL = ['verylow', 'low', 'med', 'high', 'veryhigh']
 EMPLOYMENT_TYPE = ['EDU', 'FOO', 'GOV', 'IND', 'MED', 'OFC', 'OTH', 'RET', 'SVC', 'NoEMP']
@@ -64,6 +64,8 @@ adjustment_factors = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, 
 taz_subarea = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
 
 parcels_sqft = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Parcels_Sqft_File_Name), sep = ",")   
+parcels_sqft = parcels_sqft.groupby('PSRCID').sum()
+parcels_sqft.reset_index(inplace = True)
 parcels_sqft = parcels_sqft.join(parcels['TAZ_P'], on = "PSRCID")
 parcels_sqft = parcels_sqft.join(taz_subarea[['Subarea', 'SubareaName']], on = 'TAZ_P')
 parcels_sqft = parcels_sqft.join(adjustment_factors['Factor'], on = "Subarea")
@@ -144,11 +146,11 @@ homeoffice_parcels.to_csv(os.path.join(Output_Parcel_Folder, "HomeOfficeParcels.
 
 # Because the limitation of sqft method, need to put the home office back to the parcel data.
 # for home based jobs, put them back to the converted job list. It is now a hybrid of ESD data and converted jobs.
-oldindex = parcels_sqft.index.name
-parcels_sqft.reset_index(inplace = True)
-parcels_sqft = parcels_sqft.set_index('PSRCID') 
+#oldindex = parcels_sqft.index.name
+#parcels_sqft.reset_index(inplace = True)
+#parcels_sqft = parcels_sqft.set_index('PSRCID') 
 if KEEP_HOME_BASED_JOBS:
-    parcels_sqft.loc[parcels_sqft.index.isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
+    parcels_sqft.loc[parcels_sqft['PSRCID'].isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
     print 'Home based jobs are put back. '
 else: 
     print 'Home based jobs are NOT put back'
@@ -156,28 +158,25 @@ else:
 print 'total home based jobs (in BKR) are {0:.0f}'.format(homeoffice_parcels['EMPTOT_P'].sum())
 print 'Total converted jobs in BKR (with home based jobs back) are {0:.0f}'.format(parcels_sqft['EMPTOT_P'].sum())
 
-# restore the index to the previous one.
-parcels_sqft.reset_index(inplace = True)
-parcels_sqft.set_index(oldindex, inplace = True)
 
 newESDLabels = [x.replace('_P', '_ESD') for x in JOB_CATEGORY]
 outputlist = JOB_CATEGORY + newESDLabels
 
-summary_by_jurisdiction = parcels_sqft.groupby('JURISDICTION')[outputlist].sum()
-print "Exporting \"summary_by_jurisdiction.csv\""
-summary_by_jurisdiction.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_jurisdiction.csv"))
-summary_by_taz = parcels_sqft.groupby('TAZ_P')[outputlist].sum()
-print "Exporting \"summary_by_TAZ.csv\""
-summary_by_taz.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_TAZ.csv")) 
+#summary_by_jurisdiction = parcels_sqft.groupby('JURISDICTION')[outputlist].sum()
+#print "Exporting \"summary_by_jurisdiction.csv\""
+#summary_by_jurisdiction.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_jurisdiction.csv"))
+#summary_by_taz = parcels_sqft.groupby('TAZ_P')[outputlist].sum()
+#print "Exporting \"summary_by_TAZ.csv\""
+#summary_by_taz.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_TAZ.csv")) 
 
 #"SUBRAREA" is the index
-summary_by_subarea = parcels_sqft.groupby('SUBAREA')[outputlist].sum()
-subarea_def = parcels_sqft[["SUBAREA", "SUBAREANAME"]]
-subarea_def = subarea_def.drop_duplicates(keep = 'first')  
-subarea_def.set_index("SUBAREA", inplace = True)     
-summary_by_subarea = summary_by_subarea.join(subarea_def["SUBAREANAME"])
-print "Exporting \"summary_by_subarea.csv\""
-summary_by_subarea.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_subarea.csv"))
+#summary_by_subarea = parcels_sqft.groupby('SUBAREA')[outputlist].sum()
+#subarea_def = parcels_sqft[["SUBAREA", "SUBAREANAME"]]
+#subarea_def = subarea_def.drop_duplicates(keep = 'first')  
+#subarea_def.set_index("SUBAREA", inplace = True)     
+#summary_by_subarea = summary_by_subarea.join(subarea_def["SUBAREANAME"])
+#print "Exporting \"summary_by_subarea.csv\""
+#summary_by_subarea.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_subarea.csv"))
 
 parcels.drop_duplicates(keep = 'first', inplace = True) 
 parcels_sqft.drop_duplicates(subset = 'PSRCID', keep = 'first', inplace = True)
