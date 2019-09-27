@@ -1,10 +1,15 @@
 ### This tool is used to produce parcel files for BKRCast.
 ### It takes sqft by land use category and conversion rate as input files, and converts sqft to number of
-### jobs. Additional adjustment based on subarea factors is available to further fine tune the converted jobs.
+### jobs. Additional adjustment based on subarea factors and TAZ factors is available to further fine tune the converted jobs.
+## 
+## Home based jobs is identified as zero commercial sqft with non zero jobs in ESD.
 
 ## Two extra features added 8/26/2019
 ## 1. add one switch remove home based jobs (BKR area, as long as sqft data are provided) from parcel file. 
 ## 2. add a parking cost adjustment factor for Bellevue only. Set it to one if no adjustment is needed.
+
+## 9/27/2019
+## add TAZ level adjustment factor. Only applied for Bellevue Square. But can extend to any TAZ.
 
 import pandana as pdna
 import os, sys
@@ -18,28 +23,19 @@ from shutil import copyfile
 import h5py
 import utility
 
-#Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
-#Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
-#Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_02132018.csv"
-#Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-06192018-2.csv"
-#Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11"
-#Parcels_Sqft_File_Name = r"ParcelSummary_Revised_GrpPSRCIDs-modified_Final.csv"
-#TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
-#Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
-
 Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
 Original_ESD_Parcel_File_Name = r"original_parcels_urbansim.txt"
 Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_2019.csv"
-Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-06192018-2.csv"
-Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-2019density-newpop'
+Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-9-26-19-test.csv"
+Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-2019density_newsubadj_tazadj'
 Parcels_Sqft_File_Name = r"ParcelSummary_Revised_GrpPSRCIDs-modified_Final.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
 Hh_and_person_file = r'D:\BKR0V1-1-PopsimTest\inputs\hh_and_persons.h5'
-
+TAZ_adjustment_file_name = r'TAZ_adjustment_factors.csv'
 
 # set False if want to drop home based jobs
-KEEP_HOME_BASED_JOBS = True
+KEEP_HOME_BASED_JOBS = False
 
 # further adjust parking cost in Bellevue. Set it to 1 if no adjustment is made.
 BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR = 0.5
@@ -60,6 +56,7 @@ original_ESD_tot_jobs = parcels['EMPTOT_P'].sum()
 print 'Original ESD jobs {0:.0f}'.format(original_ESD_tot_jobs)
 conversion_rates = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Conversion_Factors_File_Name), sep = ",")
 adjustment_factors = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Subarea_Adjustment_Factor_File_Name), sep = ",", index_col = "Subarea_ID")
+TAZ_adjustment_factors_df = pd.read_csv(os.path.join(Original_Parcel_Folder, TAZ_adjustment_file_name), sep = ',')
 taz_subarea = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
 
 parcels_sqft = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Parcels_Sqft_File_Name), sep = ",")   
@@ -67,6 +64,8 @@ parcels_sqft = parcels_sqft.join(parcels['TAZ_P'], on = "PSRCID")
 parcels_sqft = parcels_sqft.join(taz_subarea[['Subarea', 'SubareaName']], on = 'TAZ_P')
 parcels_sqft = parcels_sqft.join(adjustment_factors['Factor'], on = "Subarea")
 parcels_sqft = parcels_sqft[~parcels_sqft["Factor"].isnull()]
+parcels_sqft = parcels_sqft.merge(TAZ_adjustment_factors_df, how = 'left', left_on = 'TAZ_P', right_on = 'BKRCastTAZ')
+parcels_sqft['TAZFactor'].fillna(1, inplace = True)
 
 #capitalize all column names to avoid unexpected errors
 parcels.columns = [i.upper() for i in parcels.columns]
@@ -107,7 +106,7 @@ def Sqft_to_Jobs(empType, convertLevel):
                 jobrate = conversion_rates.loc['Sqft_to_Job_Rate', type_level]
                 occrate = conversion_rates.loc['Occupied_Rate', type_level]
                 type_level_Job = type_level + "_J"
-                parcels_sqft[type_level_Job] = parcels_sqft[type_level] * occrate / jobrate * parcels_sqft['FACTOR']
+                parcels_sqft[type_level_Job] = parcels_sqft[type_level] * occrate / jobrate * parcels_sqft['FACTOR'] * parcels_sqft['TAZFACTOR']
             else:
                 parcels_sqft[type_level_Job] = 0
             parcels_sqft[totJobType] = parcels_sqft[totJobType] + parcels_sqft[type_level_Job]
@@ -143,8 +142,6 @@ homeoffice_parcels.to_csv(os.path.join(Output_Parcel_Folder, "HomeOfficeParcels.
 
 # Because the limitation of sqft method, need to put the home office back to the parcel data.
 # for home based jobs, put them back to the converted job list. It is now a hybrid of ESD data and converted jobs.
-oldindex = parcels_sqft.index.name
-parcels_sqft.reset_index(inplace = True)
 parcels_sqft = parcels_sqft.set_index('PSRCID') 
 if KEEP_HOME_BASED_JOBS:
     parcels_sqft.loc[parcels_sqft.index.isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
@@ -157,7 +154,6 @@ print 'Total converted jobs in BKR (with home based jobs back) are {0:.0f}'.form
 
 # restore the index to the previous one.
 parcels_sqft.reset_index(inplace = True)
-parcels_sqft.set_index(oldindex, inplace = True)
 
 newESDLabels = [x.replace('_P', '_ESD') for x in JOB_CATEGORY]
 outputlist = JOB_CATEGORY + newESDLabels
@@ -221,6 +217,7 @@ if not os.path.exists(input_backup_folder):
 copyfile(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), os.path.join(input_backup_folder, Original_ESD_Parcel_File_Name))
 copyfile(os.path.join(Original_Parcel_Folder, Conversion_Factors_File_Name), os.path.join(input_backup_folder, Conversion_Factors_File_Name))
 copyfile(os.path.join(Original_Parcel_Folder, Subarea_Adjustment_Factor_File_Name), os.path.join(input_backup_folder, Subarea_Adjustment_Factor_File_Name))
+copyfile(os.path.join(Original_Parcel_Folder, Subarea_Adjustment_Factor_File_Name), os.path.join(input_backup_folder, TAZ_adjustment_file_name))
 copyfile(os.path.join(Original_Parcel_Folder, Parcels_Sqft_File_Name), os.path.join(input_backup_folder, Parcels_Sqft_File_Name))
 copyfile(Hh_and_person_file, os.path.join(input_backup_folder, os.path.basename(Hh_and_person_file)))
 
