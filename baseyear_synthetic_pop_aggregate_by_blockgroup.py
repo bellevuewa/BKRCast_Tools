@@ -27,6 +27,8 @@ local_estimate_choice_file_name = 'Local_estimate_choice.csv'
 OFM_estimate_file = '2018_OFM_estimate.csv'
 acs_existing_control_file_name = r'ACS2016_controls_OFM2018estimate.csv'
 
+parcels_for_allocation_filename = '2018_parcels_for_allocation_local_estimate.csv'
+
 sf_occupancy_rate = 0.952  # from Gwen
 mf_occupancy_rate = 0.895  # from Gwen
 avg_persons_per_sfhh =  2.82 # from Gwen
@@ -42,6 +44,9 @@ new_local_estimate_df['MF'] = new_local_estimate_df['MFUnits'] * mf_occupancy_ra
 new_local_estimate_df['Tot_New_hhs'] = new_local_estimate_df['SF'] + new_local_estimate_df['MF']
 new_local_estimate_df['Tot_New_Persons'] =  new_local_estimate_df['SF'] * avg_persons_per_sfhh + new_local_estimate_df['MF'] * avg_persons_per_mfhh
 new_local_estimate_df = new_local_estimate_df.merge(parcel_df[['PSRC_ID', 'GEOID10']], how = 'left', left_on = 'PSRC_ID', right_on = 'PSRC_ID')
+new_local_estimate_by_parcel_df = new_local_estimate_df.groupby('PSRC_ID')['Tot_New_hhs', 'Tot_New_Persons'].sum()
+new_local_estimate_by_parcel_df.reset_index(inplace = True)
+new_local_estimate_by_parcel_df = new_local_estimate_by_parcel_df.merge(parcel_df[['PSRC_ID','GEOID10']], how = 'left', left_on = 'PSRC_ID', right_on = 'PSRC_ID')
 new_local_estimate_df = new_local_estimate_df.groupby('GEOID10')['SF', 'MF', 'SFUnits', 'MFUnits', 'Tot_New_hhs', 'Tot_New_Persons'].sum()
 new_local_estimate_df.reset_index(inplace = True)
 new_local_estimate_df[['Tot_New_hhs', 'Tot_New_Persons']] = new_local_estimate_df[['Tot_New_hhs', 'Tot_New_Persons']].astype(int)
@@ -80,6 +85,7 @@ print int(baseyear_control_df['hh_bg_weight'].sum()), ' hhs in final control fil
 print int(baseyear_control_df['pers_bg_weight'].sum()), ' persons in final control file (after local estimate is incorporated).'
 
 baseyear_control_df.to_csv(os.path.join(working_folder, acs_existing_control_file_name), sep = ',')
+new_local_estimate_by_parcel_df.to_csv(os.path.join(working_folder, parcels_for_allocation_filename), sep = ',')
 
 print 'Done.'
 
