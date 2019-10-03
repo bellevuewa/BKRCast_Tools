@@ -22,17 +22,17 @@ Always check the error file to make sure all households are allocated.
 '''
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\2035SyntheticPopulation_S_DT_Access_Study'
-synthetic_households_file_name = '2035_synthetic_households.csv'
-synthetic_population_file_name = '2035_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018'
+synthetic_households_file_name = '2018_synthetic_households.csv'
+synthetic_population_file_name = '2018_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
-h5_file_name = '2035_popsim_hh_and_persons.h5'
-updated_hhs_file_name = 'updated_2035_synthetic_households.csv'
-updated_persons_file_name = 'updated_2035_synthetic_persons.csv'
-new_local_estimated_file_name = r'2035BellevueHHsEstimates.csv'
-block_group_list_for_local_estimate_name = r'blockgroups_list_for_local_estimate.csv' 
+h5_file_name = '2018_popsim_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2018_synthetic_households.csv'
+updated_persons_file_name = 'updated_2018_synthetic_persons.csv'
+new_local_estimated_file_name = r'2018_COB_hhs_estimate.csv'
+block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 error_file_name = 'error.txt'
-parcels_for_allocation_filename = r'2035_parcels_for_allocation.csv'
+parcels_for_allocation_filename = r'2018_parcels_for_allocation_local_estimate.csv'
 
 
 sf_occupancy_rate = 0.952  # from Gwen
@@ -53,6 +53,9 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
         blkgrp: block group id
     '''
     parcels = parcel_df.loc[parcel_df['GEOID10'] == blcgrpid]
+    if parcels.shape[0] == 0:
+        print 'blockgroup ', blcgrpid, ' has no parcels'
+        return
     
     # assign SF first
     sfparcelids = parcels.loc[parcels['LUTYPE_P'] == 24]
@@ -88,8 +91,14 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
         if mfparcels.shape[0] > 0:
             mfparcels.loc[:, 'forecastedHhs'] = remainHhs * 1.0 / mfparcels.shape[0]
         else:
-            mfparcels = sfparcelids
-            mfparcels.loc[:, 'forecastedHhs'] = remainHhs * 1.0 / numSFparcels
+            if numSFparcels > 0:
+                mfparcels = sfparcelids
+                mfparcels.loc[:, 'forecastedHhs'] = remainHhs * 1.0 / numSFparcels
+            else:
+                mfparcels = parcels
+                n = parcels.shape[0]
+                mfparcels.loc[:, 'forecastedHhs'] = remainHhs / n * 1.0 
+                
 
     # decide in each mf parcel, how many hhs should be allocated
     if (remainHhs >= mfparcels['forecastedHhs'].apply(np.floor).sum()):
@@ -199,7 +208,8 @@ except:
 
 ###
 parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
-GEOID10_with_local_estimate = pd.read_csv(os.path.join(working_folder, block_group_list_for_local_estimate_name), low_memory = False)['GEOID10'].tolist()
+GEOID10_with_local_estimate_df = pd.read_csv(os.path.join(working_folder, block_group_list_for_local_estimate_name), low_memory = False)
+GEOID10_with_local_estimate = GEOID10_with_local_estimate_df.loc[GEOID10_with_local_estimate_df['Use_Local'] == 'Y', 'GEOID10'].tolist()
 hhs_df = pd.read_csv(os.path.join(working_folder, synthetic_households_file_name))
 hhs_df['hhparcel'] = 0
 
@@ -230,9 +240,9 @@ id = 0
 for blcgrpid in all_blcgrp_ids:
     hhs_new = hhs_by_blkgrp.loc[hhs_by_blkgrp.index == blcgrpid].iloc[0]['hhexpfac']
     if hhs_new > 0:
-        #if blcgrpid != 530330229012:
-        #    a = 0
-        #    continue
+    #    if blcgrpid != 530530729053:
+    #        a = 0
+    #        continue
             
         hhs_blkgrp_df = hhs_df.loc[hhs_df['block_group_id'] == blcgrpid] 
         if blcgrpid in GEOID10_with_local_estimate:
