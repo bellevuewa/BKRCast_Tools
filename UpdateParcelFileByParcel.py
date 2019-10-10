@@ -23,15 +23,17 @@ from shutil import copyfile
 import h5py
 import utility
 
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test"
-Original_ESD_Parcel_File_Name = r"original_parcels_urbansim.txt"
+Common_Data_Folder = r'Z:\Modeling Group\BKRCast\CommonData'
+working_folder = r'Z:\Modeling Group\BKRCast\2018LU'
+Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2018LU'
+
+Original_ESD_Parcel_File_Name = r"original_2014_parcels_urbansim.txt"
 Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_2019.csv"
-Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-9-26-19-test.csv"
-Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-2019density_newsubadj_tazadj'
-Parcels_Sqft_File_Name = r"ParcelSummary_Revised_GrpPSRCIDs-modified_Final.csv"
+Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-9-26-19.csv"
+Parcels_Sqft_File_Name = r"updated_2018_kingcounty_LU_by_parcel.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
-Hh_and_person_file = r'D:\BKR0V1-1-PopsimTest\inputs\hh_and_persons.h5'
+Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\2018_popsim_hh_and_persons.h5'
 TAZ_adjustment_file_name = r'TAZ_adjustment_factors.csv'
 
 # set False if want to drop home based jobs
@@ -51,16 +53,16 @@ if not os.path.exists(Output_Parcel_Folder):
     os.makedirs(Output_Parcel_Folder)
 
 print "Loading input files ..."
-parcels = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = " ", index_col = "PARCELID")
+parcels = pd.DataFrame.from_csv(os.path.join(Common_Data_Folder, Original_ESD_Parcel_File_Name), sep = " ", index_col = "PARCELID")
 original_ESD_tot_jobs = parcels['EMPTOT_P'].sum()
 print 'Original ESD jobs {0:.0f}'.format(original_ESD_tot_jobs)
-conversion_rates = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Conversion_Factors_File_Name), sep = ",")
-adjustment_factors = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Subarea_Adjustment_Factor_File_Name), sep = ",", index_col = "Subarea_ID")
-TAZ_adjustment_factors_df = pd.read_csv(os.path.join(Original_Parcel_Folder, TAZ_adjustment_file_name), sep = ',')
-taz_subarea = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
+conversion_rates = pd.DataFrame.from_csv(os.path.join(Common_Data_Folder, Conversion_Factors_File_Name), sep = ",")
+adjustment_factors = pd.DataFrame.from_csv(os.path.join(Common_Data_Folder, Subarea_Adjustment_Factor_File_Name), sep = ",", index_col = "Subarea_ID")
+TAZ_adjustment_factors_df = pd.read_csv(os.path.join(Common_Data_Folder, TAZ_adjustment_file_name), sep = ',')
+taz_subarea = pd.DataFrame.from_csv(os.path.join(Common_Data_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
 
-parcels_sqft = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Parcels_Sqft_File_Name), sep = ",")   
-parcels_sqft = parcels_sqft.join(parcels['TAZ_P'], on = "PSRCID")
+parcels_sqft = pd.read_csv(os.path.join(working_folder, Parcels_Sqft_File_Name), sep = ",")   
+parcels_sqft = parcels_sqft.join(parcels['TAZ_P'], on = 'PSRC_ID')
 parcels_sqft = parcels_sqft.join(taz_subarea[['Subarea', 'SubareaName']], on = 'TAZ_P')
 parcels_sqft = parcels_sqft.join(adjustment_factors['Factor'], on = "Subarea")
 parcels_sqft = parcels_sqft[~parcels_sqft["Factor"].isnull()]
@@ -126,7 +128,7 @@ def Print_DF_Columns(df):
 Sqft_to_Jobs(EMPLOYMENT_TYPE, CONVERSION_LEVEL)  
 ESD_jobs = parcels[JOB_CATEGORY]
 ESD_jobs = ESD_jobs.rename(columns = lambda x: x.replace('_P', '_ESD'))
-parcels_sqft = parcels_sqft.join(ESD_jobs, on = "PSRCID")
+parcels_sqft = parcels_sqft.join(ESD_jobs, on = "PSRC_ID")
 
 print "Exporting \"Converted_jobs_in_BKRarea.csv\""
 parcels_sqft.to_csv(os.path.join(Output_Parcel_Folder, "Converted_jobs_in_BKRarea.csv"))
@@ -137,12 +139,12 @@ homeoffice_detailedparcels = parcels_sqft.loc[(parcels_sqft['EMPTOT_P'] == 0) & 
 # export parcels only with home based jobs, and sqft related data
 homeoffice_detailedparcels.to_csv(os.path.join(Output_Parcel_Folder, "HomeOfficeParcels_detailed.csv"))  
 # export ESD parcel data with only home based jobs      
-homeoffice_parcels = parcels.loc[homeoffice_detailedparcels['PSRCID']]
+homeoffice_parcels = parcels.loc[homeoffice_detailedparcels['PSRC_ID']]
 homeoffice_parcels.to_csv(os.path.join(Output_Parcel_Folder, "HomeOfficeParcels.csv"))
 
 # Because the limitation of sqft method, need to put the home office back to the parcel data.
 # for home based jobs, put them back to the converted job list. It is now a hybrid of ESD data and converted jobs.
-parcels_sqft = parcels_sqft.set_index('PSRCID') 
+parcels_sqft = parcels_sqft.set_index('PSRC_ID') 
 if KEEP_HOME_BASED_JOBS:
     parcels_sqft.loc[parcels_sqft.index.isin(homeoffice_parcels.index), JOB_CATEGORY] = homeoffice_parcels[JOB_CATEGORY]
     print 'Home based jobs are put back. '
@@ -175,8 +177,8 @@ print "Exporting \"summary_by_subarea.csv\""
 summary_by_subarea.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_subarea.csv"))
 
 parcels.drop_duplicates(keep = 'first', inplace = True) 
-parcels_sqft.drop_duplicates(subset = 'PSRCID', keep = 'first', inplace = True)
-parcels_sqft.set_index('PSRCID', inplace = True) 
+parcels_sqft.drop_duplicates(subset = 'PSRC_ID', keep = 'first', inplace = True)
+parcels_sqft.set_index('PSRC_ID', inplace = True) 
 
 parcels.loc[parcels.index.isin(parcels_sqft.index), JOB_CATEGORY] = parcels_sqft[JOB_CATEGORY]
 #print("Before home office update, total jobs are ", parcels['EMPTOT_P'].sum())
@@ -214,11 +216,11 @@ print "Backup input files ..."
 input_backup_folder = os.path.join(Output_Parcel_Folder, 'inputs')
 if not os.path.exists(input_backup_folder):
     os.makedirs(input_backup_folder) 
-copyfile(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), os.path.join(input_backup_folder, Original_ESD_Parcel_File_Name))
-copyfile(os.path.join(Original_Parcel_Folder, Conversion_Factors_File_Name), os.path.join(input_backup_folder, Conversion_Factors_File_Name))
-copyfile(os.path.join(Original_Parcel_Folder, Subarea_Adjustment_Factor_File_Name), os.path.join(input_backup_folder, Subarea_Adjustment_Factor_File_Name))
-copyfile(os.path.join(Original_Parcel_Folder, Subarea_Adjustment_Factor_File_Name), os.path.join(input_backup_folder, TAZ_adjustment_file_name))
-copyfile(os.path.join(Original_Parcel_Folder, Parcels_Sqft_File_Name), os.path.join(input_backup_folder, Parcels_Sqft_File_Name))
+copyfile(os.path.join(Common_Data_Folder, Original_ESD_Parcel_File_Name), os.path.join(input_backup_folder, Original_ESD_Parcel_File_Name))
+copyfile(os.path.join(Common_Data_Folder, Conversion_Factors_File_Name), os.path.join(input_backup_folder, Conversion_Factors_File_Name))
+copyfile(os.path.join(Common_Data_Folder, Subarea_Adjustment_Factor_File_Name), os.path.join(input_backup_folder, Subarea_Adjustment_Factor_File_Name))
+copyfile(os.path.join(Common_Data_Folder, TAZ_adjustment_file_name), os.path.join(input_backup_folder, TAZ_adjustment_file_name))
+copyfile(os.path.join(working_folder, Parcels_Sqft_File_Name), os.path.join(input_backup_folder, Parcels_Sqft_File_Name))
 copyfile(Hh_and_person_file, os.path.join(input_backup_folder, os.path.basename(Hh_and_person_file)))
 
 print "Finished"  
