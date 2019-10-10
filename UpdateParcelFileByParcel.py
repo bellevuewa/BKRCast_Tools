@@ -27,7 +27,9 @@ Common_Data_Folder = r'Z:\Modeling Group\BKRCast\CommonData'
 working_folder = r'Z:\Modeling Group\BKRCast\2018LU'
 Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2018LU'
 
-Original_ESD_Parcel_File_Name = r"original_2014_parcels_urbansim.txt"
+# Original ESD parcel file name can be an absolute name or relative name. If it is relative, will open from Commond data folder. 
+Original_ESD_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\2018LU\interpolated_parcel_file.txt"
+
 Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_2019.csv"
 Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-9-26-19.csv"
 Parcels_Sqft_File_Name = r"updated_2018_kingcounty_LU_by_parcel.csv"
@@ -53,7 +55,11 @@ if not os.path.exists(Output_Parcel_Folder):
     os.makedirs(Output_Parcel_Folder)
 
 print "Loading input files ..."
-parcels = pd.DataFrame.from_csv(os.path.join(Common_Data_Folder, Original_ESD_Parcel_File_Name), sep = " ", index_col = "PARCELID")
+if os.path.isabs(Original_ESD_Parcel_File_Name) == False:
+    Original_ESD_Parcel_File_Name = os.path.join(Common_Data_Folder, Original_ESD_Parcel_File_Name)
+    
+parcels = pd.DataFrame.from_csv(Original_ESD_Parcel_File_Name, sep = " ", index_col = "PARCELID")
+
 original_ESD_tot_jobs = parcels['EMPTOT_P'].sum()
 print 'Original ESD jobs {0:.0f}'.format(original_ESD_tot_jobs)
 conversion_rates = pd.DataFrame.from_csv(os.path.join(Common_Data_Folder, Conversion_Factors_File_Name), sep = ",")
@@ -153,6 +159,7 @@ else:
 
 print 'total home based jobs (in BKR) are {0:.0f}'.format(homeoffice_parcels['EMPTOT_P'].sum())
 print 'Total converted jobs in BKR (with home based jobs back) are {0:.0f}'.format(parcels_sqft['EMPTOT_P'].sum())
+print 'Total jobs in BKR area in the original parcel fiel are ', parcels.loc[parcels.index.isin(parcels_sqft.index), 'EMPTOT_P'].sum()
 
 # restore the index to the previous one.
 parcels_sqft.reset_index(inplace = True)
@@ -216,7 +223,9 @@ print "Backup input files ..."
 input_backup_folder = os.path.join(Output_Parcel_Folder, 'inputs')
 if not os.path.exists(input_backup_folder):
     os.makedirs(input_backup_folder) 
-copyfile(os.path.join(Common_Data_Folder, Original_ESD_Parcel_File_Name), os.path.join(input_backup_folder, Original_ESD_Parcel_File_Name))
+
+
+copyfile(Original_ESD_Parcel_File_Name, os.path.join(input_backup_folder, os.path.basename(Original_ESD_Parcel_File_Name)))
 copyfile(os.path.join(Common_Data_Folder, Conversion_Factors_File_Name), os.path.join(input_backup_folder, Conversion_Factors_File_Name))
 copyfile(os.path.join(Common_Data_Folder, Subarea_Adjustment_Factor_File_Name), os.path.join(input_backup_folder, Subarea_Adjustment_Factor_File_Name))
 copyfile(os.path.join(Common_Data_Folder, TAZ_adjustment_file_name), os.path.join(input_backup_folder, TAZ_adjustment_file_name))
