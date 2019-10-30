@@ -41,18 +41,18 @@ parcel_df = pd.read_csv(parcel_filename, low_memory=False)
 new_local_estimate_df = pd.read_csv(os.path.join(working_folder,new_local_estimated_file_name), sep = ',')
 new_local_estimate_df['SF'] = new_local_estimate_df['SFUnits'] * sf_occupancy_rate
 new_local_estimate_df['MF'] = new_local_estimate_df['MFUnits'] * mf_occupancy_rate
-new_local_estimate_df['Tot_New_hhs'] = new_local_estimate_df['SF'] + new_local_estimate_df['MF']
-new_local_estimate_df['Tot_New_Persons'] =  new_local_estimate_df['SF'] * avg_persons_per_sfhh + new_local_estimate_df['MF'] * avg_persons_per_mfhh
+new_local_estimate_df['total_hhs'] = new_local_estimate_df['SF'] + new_local_estimate_df['MF']
+new_local_estimate_df['total_persons'] =  new_local_estimate_df['SF'] * avg_persons_per_sfhh + new_local_estimate_df['MF'] * avg_persons_per_mfhh
 new_local_estimate_df = new_local_estimate_df.merge(parcel_df[['PSRC_ID', 'GEOID10']], how = 'left', left_on = 'PSRC_ID', right_on = 'PSRC_ID')
-new_local_estimate_by_parcel_df = new_local_estimate_df.groupby('PSRC_ID')['Tot_New_hhs', 'Tot_New_Persons'].sum()
+new_local_estimate_by_parcel_df = new_local_estimate_df.groupby('PSRC_ID')['total_hhs', 'total_persons'].sum()
 new_local_estimate_by_parcel_df.reset_index(inplace = True)
 new_local_estimate_by_parcel_df = new_local_estimate_by_parcel_df.merge(parcel_df[['PSRC_ID','GEOID10']], how = 'left', left_on = 'PSRC_ID', right_on = 'PSRC_ID')
-new_local_estimate_df = new_local_estimate_df.groupby('GEOID10')['SF', 'MF', 'SFUnits', 'MFUnits', 'Tot_New_hhs', 'Tot_New_Persons'].sum()
+new_local_estimate_df = new_local_estimate_df.groupby('GEOID10')['SF', 'MF', 'SFUnits', 'MFUnits', 'total_hhs', 'total_persons'].sum()
 new_local_estimate_df.reset_index(inplace = True)
-new_local_estimate_df[['Tot_New_hhs', 'Tot_New_Persons']] = new_local_estimate_df[['Tot_New_hhs', 'Tot_New_Persons']].astype(int)
+new_local_estimate_df[['total_hhs', 'total_persons']] = new_local_estimate_df[['total_hhs', 'total_persons']].astype(int)
 
-print 'Total local estimate hhs: ',  int(new_local_estimate_df['Tot_New_hhs'].sum())
-print 'Total local estimate persons: ', int(new_local_estimate_df['Tot_New_Persons'].sum())
+print 'Total local estimate hhs: ',  int(new_local_estimate_df['total_hhs'].sum())
+print 'Total local estimate persons: ', int(new_local_estimate_df['total_persons'].sum())
 
 local_estimate_choice_df = pd.read_csv(os.path.join(working_folder, local_estimate_choice_file_name), sep = ',')
 new_local_estimate_df = new_local_estimate_df.merge(local_estimate_choice_df, how = 'left', left_on = 'GEOID10', right_on = 'GEOID10')
@@ -75,11 +75,11 @@ print baseyear_control_df['hh_bg_weight'].sum(), ' hhs in new control file'
 print baseyear_control_df['pers_bg_weight'].sum(), ' persons in new control file'
 
 # assign local estimate to control file
-baseyear_control_df = baseyear_control_df.merge(new_local_estimate_df[['GEOID10', 'Tot_New_hhs', 'Tot_New_Persons']], how = 'left', left_on = 'block_group_id', right_on = 'GEOID10')
-baseyear_control_df.loc[~baseyear_control_df['Tot_New_hhs'].isnull(), ['hh_bg_weight', 'hh_tract_weight']] = baseyear_control_df['Tot_New_hhs']
-baseyear_control_df.loc[~baseyear_control_df['Tot_New_Persons'].isnull(), ['pers_bg_weight', 'pers_tract_weight']] = baseyear_control_df['Tot_New_Persons']
+baseyear_control_df = baseyear_control_df.merge(new_local_estimate_df[['GEOID10', 'total_hhs', 'total_persons']], how = 'left', left_on = 'block_group_id', right_on = 'GEOID10')
+baseyear_control_df.loc[~baseyear_control_df['total_hhs'].isnull(), ['hh_bg_weight', 'hh_tract_weight']] = baseyear_control_df['total_hhs']
+baseyear_control_df.loc[~baseyear_control_df['total_persons'].isnull(), ['pers_bg_weight', 'pers_tract_weight']] = baseyear_control_df['total_persons']
 
-baseyear_control_df.drop(new_local_estimate_df[['GEOID10', 'Tot_New_hhs', 'Tot_New_Persons']].columns, axis = 1, inplace = True)
+baseyear_control_df.drop(new_local_estimate_df[['GEOID10', 'total_hhs', 'total_persons']].columns, axis = 1, inplace = True)
 
 print int(baseyear_control_df['hh_bg_weight'].sum()), ' hhs in final control file (after local estimate is incorporated).'
 print int(baseyear_control_df['pers_bg_weight'].sum()), ' persons in final control file (after local estimate is incorporated).'
