@@ -22,17 +22,19 @@ Always check the error file to make sure all households are allocated.
 '''
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018'
-synthetic_households_file_name = '2018_synthetic_households.csv'
-synthetic_population_file_name = '2018_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest'
+synthetic_households_file_name = '2020_concurrency_for_pretest_synthetic_households.csv'
+synthetic_population_file_name = '2020_concurrency_for_pretest_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
-h5_file_name = '2018_popsim_hh_and_persons.h5'
-updated_hhs_file_name = 'updated_2018_synthetic_households.csv'
-updated_persons_file_name = 'updated_2018_synthetic_persons.csv'
-new_local_estimated_file_name = r'2018_COB_hhs_estimate.csv'
+new_local_estimated_file_name = r'2020concurrency_pretest_hhs_estimate.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
+parcels_for_allocation_filename = r'2020concurrency_pretest_parcel_for_allocation_local_estimates.csv'
+
+## output
+updated_hhs_file_name = 'updated_2020_concurrency_for_pretest_synthetic_households.csv'
+updated_persons_file_name = 'updated_2020_concurrency_for_pretest_synthetic_persons.csv'
+h5_file_name = '2020_concurrency_for_pretest_popsim_hh_and_persons.h5'
 error_file_name = 'error.txt'
-parcels_for_allocation_filename = r'2018_parcels_for_allocation_local_estimate.csv'
 
 
 sf_occupancy_rate = 0.952  # from Gwen
@@ -240,9 +242,9 @@ id = 0
 for blcgrpid in all_blcgrp_ids:
     hhs_new = hhs_by_blkgrp.loc[hhs_by_blkgrp.index == blcgrpid].iloc[0]['hhexpfac']
     if hhs_new > 0:
-    #    if blcgrpid != 530530729053:
-    #        a = 0
-    #        continue
+        #if blcgrpid != 530330238032:
+        #    a = 0
+        #    continue
             
         hhs_blkgrp_df = hhs_df.loc[hhs_df['block_group_id'] == blcgrpid] 
         if blcgrpid in GEOID10_with_local_estimate:
