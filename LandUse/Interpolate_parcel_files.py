@@ -29,9 +29,11 @@ job_cat = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P
 
 columns = list(job_cat)
 columns.append('PARCELID')
+job_std = list(job_cat)
+job_std.extend(['STUGRD_P', 'STUHGH_P', 'STUUNI_P'])
 
-parcels_from_earlier_df = parcel_earlier_df.loc[:,columns]
-parcels_from_earlier_df.set_index('PARCELID', inplace = True)
+parcel_earlier_df.set_index('PARCELID', inplace = True)
+parcels_from_earlier_df = parcel_earlier_df.loc[:,job_std]
 parcels_from_earlier_df.columns = [i + '_E' for i in parcels_from_earlier_df.columns]
 parcels_from_earlier_df['EMPTOT_E'] = 0
 for cat in job_cat:
@@ -47,7 +49,7 @@ parcel_horizon_df['EMPTOT_P'] = parcel_horizon_df['EMPTOT_L']
 print 'Total jobs in year ', latter_year, ' are ', parcel_horizon_df['EMPTOT_P'].sum()
 
 # interpolate number of jobs, and round to integer.
-for cat in job_cat:
+for cat in job_std:
     parcel_horizon_df[cat] = parcel_horizon_df[cat + '_E'] + ((horizon_year - earlier_year) * 1.0 / (latter_year - earlier_year) * (parcel_horizon_df[cat] - parcel_horizon_df[cat + '_E'])) 
     parcel_horizon_df[cat] = parcel_horizon_df[cat].round(0).astype(int)
 
