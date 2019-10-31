@@ -4,16 +4,21 @@ import os
 import utility
 
 '''
-   This program is used to create control file (for concurrency test) for PopulationSim. The permit data (permit_file) includes two types of land use: one is
-to replace the existing land use; the other is to add to the existing land use. The type is flagged by 'Action' column. Permitted land use will be placed on top of the base year
-land use (base_year_Bellevue_LU_file). The final output is saved in parcel_output_file. This file is one of many input files for replace_kingcounty_sqft_with_local_estimate.py.
+   This program is used to create PopulationSim control file (for concurrency test) and a parcel file (sqft) to be used in the following steps of parcel_urbansim.txt creation. 
+The permit data (permit_file) includes two types of land use: one is to replace the existing land use; the other is to add to the existing land use. The type is flagged by 'Action' column. 
+Permitted land use will be placed on top of the base year land use (base_year_Bellevue_LU_file). The control file includes all blockgroups in the model. 
+The final output is saved in parcel_output_file. This file is one of many input files for replace_kingcounty_sqft_with_local_estimate.py. 
 
 Sf units and mf units are included in the land use input file. They will be converted to households by occupancy rate (bel_occ_file). The households by parcel will be aggregated into
 census blockgroups and then the control file (popsim_control_output_file) for populationsim is created.  
 
+Very likely the only useful output from this program is parcel_output_file, due to recent change in synthetic population creation approach.
+ 
 output files for parcelization:
     dwellunits_output_file
     hhs_output_file
+    parcel_output_file
+    popsim_control_output_file
 '''
 
 ### configuration
@@ -24,9 +29,9 @@ bel_occ_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\Bellevue_oc
 base_year_hhs_by_parcel = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\hh_summary_by_parcel.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 popsim_2018_control_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\ACS2016_controls_OFM2018estimate.csv'
-popsim_control_output_file = 'popsim_control_for_2020concurrencypretest.csv'
 
 ### output files
+popsim_control_output_file = 'popsim_control_for_2020concurrencypretest.csv'
 parcel_output_file = r'Z:\Modeling Group\BKRCast\2020concurrencyPretest\cob_parcels_for_2020_concurrency_pretest.csv'
 dwellunits_output_file = '2020concurrency_pretest_hhs_estimate.csv'
 hhs_output_file = '2020concurrency_pretest_parcel_for_allocation_local_estimates.csv'
@@ -54,6 +59,7 @@ seleted_columns.append('PSRC_ID')
 permit_df = pd.read_csv(permit_file, sep = ',', low_memory = False)
 permit_df.fillna(0, inplace = True)
 permit_sum_df = permit_df[seleted_columns]
+permit_sum_df = permit_sum_df.groupby('PSRC_ID').sum().reset_index()
 base_year_LU_df = pd.read_csv(base_year_Bellevue_LU_file, sep = ',', low_memory = False)
 base_year_LU_df.fillna(0, inplace = True)
 base_year_LU_df = base_year_LU_df.groupby('PSRC_ID')[hhs_emp_columns].sum().reset_index()
@@ -67,6 +73,7 @@ print 'concurrency new added dwell units: ', permit_df['SFUnits'].sum() + permit
 
 concurrency_LU_df = base_year_LU_df.loc[~base_year_LU_df['PSRC_ID'].isin(permit_replace_df['PSRC_ID'])]
 concurrency_LU_df = concurrency_LU_df.append(permit_sum_df)
+concurrency_LU_df = concurrency_LU_df.groupby('PSRC_ID').sum().reset_index()
 
 print 'total dwell units in concurrency: ', concurrency_LU_df['SFUnits'].sum() + concurrency_LU_df['MFUnits'].sum()
 
