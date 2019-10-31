@@ -23,17 +23,20 @@ Always check the error file to make sure all households are allocated.
 
 ###############Start of configuration
 working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest'
-synthetic_households_file_name = '2020_concurrency_for_pretest_synthetic_households.csv'
-synthetic_population_file_name = '2020_concurrency_for_pretest_synthetic_persons.csv'
+synthetic_households_file_name = '2020_concurrency_pretest_growth_synthetic_households.csv'
+synthetic_population_file_name = '2020_concurrency_pretest_growth_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
-new_local_estimated_file_name = r'2020concurrency_pretest_hhs_estimate.csv'
+
+# dwelling units per parcel
+new_local_estimated_file_name = r'2020concurrency_pretest_units_growth.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
-parcels_for_allocation_filename = r'2020concurrency_pretest_parcel_for_allocation_local_estimates.csv'
+# number of hhs per parcel
+parcels_for_allocation_filename = r'2020concurrency_pretest_hhs_growth.csv'
 
 ## output
-updated_hhs_file_name = 'updated_2020_concurrency_for_pretest_synthetic_households.csv'
-updated_persons_file_name = 'updated_2020_concurrency_for_pretest_synthetic_persons.csv'
-h5_file_name = '2020_concurrency_for_pretest_popsim_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2020_concurrency_for_pretest_growth_synthetic_households.csv'
+updated_persons_file_name = 'updated_2020_concurrency_for_pretest_growth_synthetic_persons.csv'
+h5_file_name = '2020_concurrency_for_pretest_popsim_growth_hh_and_persons.h5'
 error_file_name = 'error.txt'
 
 
@@ -164,14 +167,21 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
             for i in range(int(numSFparcels)):
                 combined['hhparcel'].iat[i] = sfparcels_df['PSRC_ID'].iat[i]
         else:
-            mfhhs = mfhhs_blkgrp_df.sample(n = mfhhs_sum)
-            combined = pd.concat([sfhhs_blkgrp_df, mfhhs])
+            if mfhhs_blkgrp_df.shape[0] != 0:
+                mfhhs = mfhhs_blkgrp_df.sample(n = mfhhs_sum)
+                combined = pd.concat([sfhhs_blkgrp_df, mfhhs])
+            else:
+                combined = pd.concat([sfhhs_blkgrp_df])
             total = int(combined['hhexpfac'].sum())
             for i in range(total):
                 combined['hhparcel'].iat[i] = sfparcels_df['PSRC_ID'].iat[i]
         updatedHHs = updatedHHs.append(combined)
-        mfhhs_blkgrp_df = mfhhs_blkgrp_df[~mfhhs_blkgrp_df['household_id'].isin(mfhhs['household_id'])]
-    mfhhs_sum = mfhhs_blkgrp_df['hhexpfac'].sum() 
+        if mfhhs_blkgrp_df.shape[0] != 0:
+            mfhhs_blkgrp_df = mfhhs_blkgrp_df[~mfhhs_blkgrp_df['household_id'].isin(mfhhs['household_id'])]
+    if mfhhs_blkgrp_df.shape[0] != 0:
+        mfhhs_sum = mfhhs_blkgrp_df['hhexpfac'].sum() 
+    else:
+        mfhhs_sum = 0
 
     if mfhhs_sum == 0:
         return updatedHHs
@@ -219,10 +229,10 @@ hhs_df['hhparcel'] = 0
 new_local_estimate_df = pd.read_csv(os.path.join(working_folder, new_local_estimated_file_name), sep = ',')
 new_local_estimate_df['SF'] = new_local_estimate_df['SFUnits'] * sf_occupancy_rate
 new_local_estimate_df['MF'] = new_local_estimate_df['MFUnits'] * mf_occupancy_rate
-new_local_estimate_df['Tot_New_hhs'] = new_local_estimate_df['SF'] + new_local_estimate_df['MF']
-new_local_estimate_df['Tot_New_Persons'] =  new_local_estimate_df['SF'] * avg_persons_per_sfhh + new_local_estimate_df['MF'] * avg_persons_per_mfhh
+new_local_estimate_df['total_hhs'] = new_local_estimate_df['SF'] + new_local_estimate_df['MF']
+new_local_estimate_df['total_persons'] =  new_local_estimate_df['SF'] * avg_persons_per_sfhh + new_local_estimate_df['MF'] * avg_persons_per_mfhh
 # Some parcels may have same PSRC_ID but different PINs. Stacked parcels. So need to groupby PSRC_ID first.
-new_local_estimate_df = new_local_estimate_df.groupby('PSRC_ID')['SF', 'MF', 'SFUnits', 'MFUnits', 'Tot_New_hhs', 'Tot_New_Persons'].sum()
+new_local_estimate_df = new_local_estimate_df.groupby('PSRC_ID')['SF', 'MF', 'SFUnits', 'MFUnits', 'total_hhs', 'total_persons'].sum()
 new_local_estimate_df.reset_index(inplace = True)
 new_local_estimate_df = new_local_estimate_df.merge(parcel_df[['PSRC_ID', 'GEOID10']], how = 'left', left_on = 'PSRC_ID', right_on = 'PSRC_ID')
 
@@ -242,7 +252,7 @@ id = 0
 for blcgrpid in all_blcgrp_ids:
     hhs_new = hhs_by_blkgrp.loc[hhs_by_blkgrp.index == blcgrpid].iloc[0]['hhexpfac']
     if hhs_new > 0:
-        #if blcgrpid != 530330238032:
+        #if blcgrpid != 530330249014:
         #    a = 0
         #    continue
             
