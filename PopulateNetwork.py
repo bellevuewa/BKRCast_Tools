@@ -15,8 +15,9 @@ class BKRCastExportNetwork(_modeller.Tool()):
     Files will be produced:
       base network file, link shape file, turn file, and transit lines for AM, MD, PM and NI.
     1.1.0: populate vdf functions for four TOD.
+    1.1.1: populate sc_headway.csv
     '''
-    version = "1.1.0" # this is the version
+    version = "1.1.1" # this is the version
     default_path = ""
     tool_run_message = ""
     outputFolder = _modeller.Attribute(_modeller.InstanceType)
@@ -92,6 +93,10 @@ class BKRCastExportNetwork(_modeller.Tool()):
         md_vdf_name = os.path.join(self.outputFolder, "vdfs9to1530.txt")
         pm_vdf_name = os.path.join(self.outputFolder, "vdfs1530to1830.txt")
         ni_vdf_name = os.path.join(self.outputFolder, "vdfs1830to6.txt")
+        headway_name = os.path.join(self.outputFolder, 'sc_headways.csv')
+        
+        with _modeller.logbook_trace(name = "Export headway file", value = ""):
+            self.exportTransitLineHeadway(current_scen, headway_name)
 
         with _modeller.logbook_trace(name = "Export temporary transit network", value = ""):
             self.tLineNetCalculator("hdw", "ut1")
@@ -256,3 +261,11 @@ class BKRCastExportNetwork(_modeller.Tool()):
         export_function = _modeller.Modeller().tool(NAMESPACE)
         export_function(export_file = exportfile, append_to_file = False)
 
+    def exportTransitLineHeadway(self, curScen, exportfile):
+        network = curScen.get_network()
+        tlines = network.transit_lines()
+
+        with open(exportfile, mode = 'w') as f:
+            f.write('LineID, hdw_6to9, hdw_9to1530, hdw_1530to1830, hdw_1830to6, id\n')
+            for tline in tlines:
+                f.write('{0:d}, {1:.0f}, {2:.0f}, {3:.0f}, {4:.0f}, {5:d}\n'.format(int(tline.id), tline.data1, tline.data2, tline.data3, tline['@nihdwy'], int(tline.id)))
