@@ -24,7 +24,6 @@ synthetic_pop_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\inputs\hh_and_
 parcel_bg_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\2014_parcels.csv"
 # base year control file, from census_getter.
 acs_existing_control_file_name = r'D:\PopulationSim\PSRCrun0423\data\acecon0403.csv'
-acs_future_control_file_name = 'acecon0403-2035PSRC_control_total.csv'
 new_local_estimated_file_name = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\2035SyntheticPopulation_S_DT_Access_Study\2035BellevueHHsEstimates.csv'
 sf_occupancy_rate = 0.952  # from Gwen
 mf_occupancy_rate = 0.895  # from Gwen
@@ -33,6 +32,7 @@ avg_persons_per_mfhh =  2.03 # from Gwen
 # output hh and persons file- don't overwrite existing one!
 future_control_file = '2035PSRC_hhs_by_bg.csv'
 parcels_for_allocation_filename = '2035_parcels_for_allocation.csv'
+acs_future_control_file_name = 'acecon0403-2035PSRC_control_total.csv'
 ################### End of configuration
 
 print 'Loading hh and person file...'

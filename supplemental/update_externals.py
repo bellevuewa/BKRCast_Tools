@@ -2,17 +2,21 @@ import pandas as pd
 import math
 from datetime import date
 
+# configuration
 external_file = r"D:\2018baseyear\BKR0V1-02\inputs\supplemental\generation\externals-2014.csv"
-external_output_file = r"D:\2018baseyear\BKR0V1-02\inputs\supplemental\generation\externals.csv"
-
 landuse_file = r"D:\2018baseyear\BKR0V1-02\inputs\supplemental\generation\landuse\tazdata_2014.csv"
-updated_landuse_file = r"D:\2018baseyear\BKR0V1-02\inputs\supplemental\generation\landuse\updated_tazdata.in"
 updated_hhs = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\hh_summary_by_taz.csv"
 new_jobs_file = r"Z:\Modeling Group\BKRCast\2018LU\summary_by_TAZ.csv"
+
+## output files
+external_output_file = r"D:\2018baseyear\BKR0V1-02\inputs\supplemental\generation\externals.csv"
+updated_landuse_file = r"D:\2018baseyear\BKR0V1-02\inputs\supplemental\generation\landuse\updated_tazdata.in"
 
 annual_growth_rate = 0.0114
 original_year = 2014
 target_year = 2018
+
+## end of configuration
 
 # update external Prod and Attr
 external_df = pd.read_csv(external_file, sep = ',', index_col = 'taz')
