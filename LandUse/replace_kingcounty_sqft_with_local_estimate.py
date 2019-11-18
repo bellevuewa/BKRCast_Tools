@@ -17,10 +17,10 @@ import ntpath
 
 ### configuration
 Original_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\2018LU\2018_kingcounty_LU_by_parcel.csv"
-Output_Parcel_Folder = r"Z:\Modeling Group\BKRCast\2018LU"
+Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2018LU'
 parcel_lookup_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
-Subset_Parcels_File_Name = r"Z:\Modeling Group\BKRCast\2018LU\2018_Bellevue_LU_by_parcel.csv"
+Subset_Parcels_File_Name = r'Z:\Modeling Group\BKRCast\2018LU\2018_Bellevue_LU_by_parcel.csv'
 Output_Parcel_File_Name = "updated_2018_kingcounty_LU_by_parcel.csv"
 ###
 
@@ -39,6 +39,9 @@ for lu_type in EMPLOYMENT_TYPE:
         new_lu_type = lu_type + "_" + level
         new_lu_type = new_lu_type.upper()
         lu_type_list.append(new_lu_type)
+
+lu_type_list.append('SFUNITS')
+lu_type_list.append('MFUNITS')
 
 print "Loading input files ..."
 parcels = pd.read_csv(Original_Parcel_File_Name, sep = ',')
