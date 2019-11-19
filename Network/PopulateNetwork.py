@@ -266,6 +266,6 @@ class BKRCastExportNetwork(_modeller.Tool()):
         tlines = network.transit_lines()
 
         with open(exportfile, mode = 'w') as f:
-            f.write('LineID, hdw_6to9, hdw_9to1530, hdw_1530to1830, hdw_1830to6, id\n')
+            f.write('LineID,hdw_6to9,hdw_9to1530,hdw_1530to1830,hdw_1830to6,id\n')
             for tline in tlines:
                 f.write('{0:d}, {1:.0f}, {2:.0f}, {3:.0f}, {4:.0f}, {5:d}\n'.format(int(tline.id), tline.data1, tline.data2, tline.data3, tline['@nihdwy'], int(tline.id)))
