@@ -14,13 +14,13 @@ file is an input file to populationSim.
 '''
 
 ### configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest'
-permit_file = r'Z:\Modeling Group\BKRCast\2020concurrencyPretest\2018_2019_permits_updated_pscrid+19-118270LP.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021ConcurrencyPretest'
+permit_file = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest\2020_permits_psrcid.csv'
 bel_occ_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\Bellevue_occupancy_rates.csv'
-base_year_hhs_by_parcel = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\hh_summary_by_parcel.csv'
+base_year_hhs_by_parcel = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest\hh_summary_by_parcel.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-popsim_2018_control_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\ACS2016_controls_OFM2018estimate.csv'
-popsim_control_output_file = 'popsim_control_for_growth_in_2020concurrencypretest.csv'
+popsim_base_control_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest\popsim_control_for_2020concurrencypretest.csv'
+popsim_control_output_file = 'popsim_control_for_growth_in_2021concurrencypretest.csv'
 
 ### output files
 hhs_output_comparison_file = '2020concurrency_pretest_hhs_growth_comparison.csv'
@@ -79,8 +79,8 @@ growth_combined_df.to_csv(os.path.join(working_folder, hhs_output_file), sep = '
 
 # create control file for populationsim
 growth_combined_df = growth_combined_df.groupby('GEOID10').sum().reset_index()
-popsim_2018_control_df = pd.read_csv(popsim_2018_control_file, sep = ',')
-growth_hhs_control_df = growth_combined_df.merge(popsim_2018_control_df, how = 'left', left_on = 'GEOID10', right_on = 'block_group_id')
+popsim_base_control_df = pd.read_csv(popsim_base_control_file, sep = ',')
+growth_hhs_control_df = growth_combined_df.merge(popsim_base_control_df, how = 'left', left_on = 'GEOID10', right_on = 'block_group_id')
 growth_hhs_control_df.fillna(0, inplace = True)
 growth_hhs_control_df['hh_bg_weight'] =  growth_hhs_control_df['total_hhs'].astype(int)
 growth_hhs_control_df['hh_tract_weight'] =  growth_hhs_control_df['total_hhs']

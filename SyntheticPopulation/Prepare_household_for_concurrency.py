@@ -28,7 +28,7 @@ permit_file = r'Z:\Modeling Group\BKRCast\2020concurrencyPretest\2018_2019_permi
 bel_occ_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\Bellevue_occupancy_rates.csv'
 base_year_hhs_by_parcel = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\hh_summary_by_parcel.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-popsim_2018_control_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\ACS2016_controls_OFM2018estimate.csv'
+popsim_base_control_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\ACS2016_controls_OFM2018estimate.csv'
 
 ### output files
 popsim_control_output_file = 'popsim_control_for_2020concurrencypretest.csv'
@@ -112,8 +112,8 @@ print 'total sqft in concurrency: ', concurrency_LU_df[emp_den_cats].sum().sum()
 # create control file for populationsim
 con_year_hhs_by_parcel_df = con_year_hhs_by_parcel_df.merge(blkgrp_lookup_df[['PSRC_ID', 'GEOID10']], how = 'left', on = 'PSRC_ID')
 con_year_hhs_by_blkgrp = con_year_hhs_by_parcel_df.groupby('GEOID10').sum().reset_index()
-popsim_2018_control_df = pd.read_csv(popsim_2018_control_file, sep = ',')
-concurrency_control_df = popsim_2018_control_df.merge(con_year_hhs_by_blkgrp, how = 'left', left_on = 'block_group_id', right_on = 'GEOID10')
+popsim_base_control_df = pd.read_csv(popsim_base_control_file, sep = ',')
+concurrency_control_df = popsim_base_control_df.merge(con_year_hhs_by_blkgrp, how = 'left', left_on = 'block_group_id', right_on = 'GEOID10')
 concurrency_control_df.fillna(0, inplace = True)
 concurrency_control_df['hh_bg_weight'] =  concurrency_control_df['total_hhs'].astype(int)
 concurrency_control_df['hh_tract_weight'] =  concurrency_control_df['total_hhs']
