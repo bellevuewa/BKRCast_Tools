@@ -15,17 +15,17 @@ file is an input file to populationSim.
 
 ### configuration
 working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021ConcurrencyPretest'
-permit_file = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest\2020_permits_psrcid.csv'
+permit_file = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest\2020_permits_psrcid_plus_project_X.csv'
 bel_occ_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\Bellevue_occupancy_rates.csv'
 base_year_hhs_by_parcel = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest\hh_summary_by_parcel.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 popsim_base_control_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest\popsim_control_for_2020concurrencypretest.csv'
-popsim_control_output_file = 'popsim_control_for_growth_in_2021concurrencypretest.csv'
 
 ### output files
-hhs_output_comparison_file = '2020concurrency_pretest_hhs_growth_comparison.csv'
-hhs_output_file = '2020concurrency_pretest_hhs_growth.csv'
-dwellingunits_outputs_file = '2020concurrency_pretest_units_growth.csv'
+popsim_control_output_file = 'popsim_control_for_growth_in_2021concurrencypretest.csv'
+hhs_output_comparison_file = '2021concurrency_pretest_hhs_growth_comparison.csv'
+hhs_output_file = '2021concurrency_pretest_hhs_growth.csv'
+dwellingunits_outputs_file = '2021concurrency_pretest_units_growth.csv'
 
 avg_persons_per_sfhh =  2.82 # from Gwen
 avg_persons_per_mfhh =  2.03 # from Gwen
@@ -34,7 +34,7 @@ avg_persons_per_mfhh =  2.03 # from Gwen
 permit_df = pd.read_csv(permit_file, sep = ',', low_memory = False)
 permit_df.fillna(0, inplace = True)
 permit_sum_df = permit_df.groupby('PSRC_ID')[['SFUnits', 'MFUnits']].sum().reset_index()
-permit_sum_df = permit_sum_df.merge(permit_df[['PSRC_ID', 'Action']], how = 'left', on = 'PSRC_ID')
+permit_sum_df = permit_sum_df.merge(permit_df[['PSRC_ID', 'Action']].drop_duplicates(), how = 'left', on = 'PSRC_ID')
 blkgrp_lookup_df = pd.read_csv(lookup_file, sep = ',', low_memory = False)
 
 ## bellevue occupancy rates
