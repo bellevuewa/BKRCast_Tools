@@ -22,19 +22,19 @@ output files for parcelization:
 '''
 
 ### configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest'
-base_year_Bellevue_LU_file = r'Z:\Modeling Group\BKRCast\2018LU\2018_Bellevue_LU_by_parcel.csv'
-permit_file = r'Z:\Modeling Group\BKRCast\2020concurrencyPretest\2018_2019_permits_updated_pscrid+19-118270LP.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021ConcurrencyPretest'
+base_year_Bellevue_LU_file = r'Z:\Modeling Group\BKRCast\2020concurrencyPretest\cob_parcels_for_2020_concurrency_pretest.csv'
+permit_file = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest\2020_permits_psrcid_plus_project_X.csv'
 bel_occ_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\Bellevue_occupancy_rates.csv'
-base_year_hhs_by_parcel = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\hh_summary_by_parcel.csv'
+base_year_hhs_by_parcel = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021ConcurrencyPretest\hh_summary_by_parcel.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-popsim_base_control_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\ACS2016_controls_OFM2018estimate.csv'
+popsim_base_control_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest\popsim_control_for_2020concurrencypretest.csv'
 
 ### output files
-popsim_control_output_file = 'popsim_control_for_2020concurrencypretest.csv'
-parcel_output_file = r'Z:\Modeling Group\BKRCast\2020concurrencyPretest\cob_parcels_for_2020_concurrency_pretest.csv'
-dwellunits_output_file = '2020concurrency_pretest_hhs_estimate.csv'
-hhs_output_file = '2020concurrency_pretest_parcel_for_allocation_local_estimates.csv'
+popsim_control_output_file = 'popsim_control_for_2021concurrencypretest.csv'
+parcel_output_file = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest\cob_parcels_for_2021_concurrency_pretest.csv'
+dwellunits_output_file = '2021concurrency_pretest_hhs_estimate.csv'
+hhs_output_file = '2021concurrency_pretest_parcel_for_allocation_local_estimates.csv'
 
 avg_persons_per_sfhh =  2.82 # from Gwen
 avg_persons_per_mfhh =  2.03 # from Gwen
@@ -74,6 +74,7 @@ print 'concurrency new added dwell units: ', permit_df['SFUnits'].sum() + permit
 concurrency_LU_df = base_year_LU_df.loc[~base_year_LU_df['PSRC_ID'].isin(permit_replace_df['PSRC_ID'])]
 concurrency_LU_df = concurrency_LU_df.append(permit_sum_df)
 concurrency_LU_df = concurrency_LU_df.groupby('PSRC_ID').sum().reset_index()
+concurrency_LU_df.mask(concurrency_LU_df < 0, 0, inplace = True)
 
 print 'total dwell units in concurrency: ', concurrency_LU_df['SFUnits'].sum() + concurrency_LU_df['MFUnits'].sum()
 
