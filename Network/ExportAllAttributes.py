@@ -11,8 +11,12 @@ from shutil import copyfile
 class BKRCastExportAllAttributes(_modeller.Tool()):
     '''
     this tool is to export all extra attributes from current scenario.
+    1.0.1: export all extra attributes
+    1.0.2: 
+        export @nihdwy for all @nihdwy < 999. It can be directly loaded into the model.
+        export @rdly to four time periods. No need to mannually copy and rename to different time periods.
     '''
-    version = "1.0.1" # this is the version
+    version = "1.0.2" # this is the version
     default_path = ""
     tool_run_message = ""
     outputFolder = _modeller.Attribute(_modeller.InstanceType)
@@ -64,6 +68,17 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
             for extra_attr in current_scen.extra_attributes():
                 self.exportExtraAttribute(extra_attr.name, self.outputFolder, current_scen)
 
+            # export @nihdwy to @nihdwy.txt. This will overwrite the same file exported earlier.
+            self.exportnihdwy(self.outputFolder, current_scen)
+
+            ## copy @rdly.txt to am_rdly.txt, md_rdly.txt, pm_rdly.txt, ni_rdly.txt
+            copyfile(os.path.join(self.outputFolder, '@rdly.txt'), os.path.join(self.outputFolder, 'am_rdly.txt'))
+            copyfile(os.path.join(self.outputFolder, '@rdly.txt'), os.path.join(self.outputFolder, 'md_rdly.txt'))
+            copyfile(os.path.join(self.outputFolder, '@rdly.txt'), os.path.join(self.outputFolder, 'pm_rdly.txt'))
+            os.rename(os.path.join(self.outputFolder, '@rdly.txt'), os.path.join(self.outputFolder, 'ni_rdly.txt'))
+
+          
+
     def exportExtraAttribute(self, attr, path, scen):
         attribute = scen.extra_attribute(attr)
         if (attribute == None):
@@ -105,6 +120,20 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
             file.write("\n")
 
         file.close()
+
+    def exportnihdwy(self, path, scen):
+        network = scen.get_network()
+        tlines = network.transit_lines()
+
+        fn = os.path.join(path, '@nihdwy.txt')
+        with open(fn, mode = 'w') as f:
+            f.write('line @nihdwy\n')
+            for tline in tlines:
+                if tline['@nihdwy'] < 999:
+                    f.write('{0:d} {1:.0f}\n'.format(int(tline.id), tline['@nihdwy']))
+
+       
+       
 
 
  
