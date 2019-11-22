@@ -8,12 +8,15 @@ within our modeling area. So this tool is used to retrieve data only in four cou
 For some reason, the original household serialno (presumed to be household id) does not work well so an extra column 
 'hhnum' is added and numbered as household id.
 '''
+## confirguration
 working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018'
 original_seed_households_file = 'wa2017_pums_hhs.csv'
 original_seed_population_file = 'wa2017_pums_persons.csv'
 puma_county_lookup_file = '2010_county_puma_lookup.csv'
 output_hhs = '2017_seed_households.csv'
 output_persons = '2017_seed_persons.csv'
+
+## end of configuration
 
 original_hhs_pd = pd.read_csv(os.path.join(working_folder, original_seed_households_file), sep = ',')
 original_persons_pd = pd.read_csv(os.path.join(working_folder, original_seed_population_file), sep = ',')
