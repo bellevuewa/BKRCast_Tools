@@ -12,10 +12,10 @@ sys.path.append(os.getcwd())
 import utility
 
 ### inputs
-hh_person_folder = r'D:\PopulationSim\PSRCrun0423\output'
-hh_person_file = '2035_popsim_hh_and_persons.h5'
-TAZ_Subarea_File_Name = r'Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv'
-parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
+hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021ConcurrencyPretest'
+hh_person_file = '2021_concurrency_for_pretest_hh_and_persons.h5'
+TAZ_Subarea_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv'
+parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
 
 print 'Loading hh and person file...'
@@ -56,7 +56,7 @@ summary_by_geoid10 = hh_taz.groupby('GEOID10')['total_hhs', 'total_persons'].sum
 print 'exporting summary by block groups...'
 summary_by_geoid10.to_csv(os.path.join(hh_person_folder, 'hh_summary_by_geoid10.csv'), header = True)
 
-hh_df.to_csv(os.path.join(hh_person_folder, 'households.csv'), header = True)
-person_df.to_csv(os.path.join(hh_person_folder, 'persons.csv'), header = True)
+#hh_df.to_csv(os.path.join(hh_person_folder, 'households.csv'), header = True)
+#person_df.to_csv(os.path.join(hh_person_folder, 'persons.csv'), header = True)
 print 'done.'
 

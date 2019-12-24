@@ -7,7 +7,7 @@ import numpy as np
 
 
 
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test9"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11"
 Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 

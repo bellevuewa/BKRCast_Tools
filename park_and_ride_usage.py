@@ -21,10 +21,10 @@ def plotPnR(pnrLoad, xlabel, ylabel, title):
 
 
 trips_file = r'D:\Soundcast\SC2040\soundcast-2.1\outputs\daysim\_trip.tsv'
-tour_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\outputs\_tour.tsv'
-park_and_ride_file = r'D:\BKR0V1-1\inputs\p_r_nodes.csv'
+tour_file = r'D:\BKR0V1-1-newcap-newpop-S93-newdensity-shortwalkdist-coeff8-newadjfacs-nohomejobs-BSq_attractiveness\outputs\_tour.tsv'
+park_and_ride_file = r'D:\BKR0V1-1-newcap-newpop-S93-newdensity-shortwalkdist-coeff8-newadjfacs-nohomejobs-BSq_attractiveness\inputs\p_r_nodes.csv'
 pnr_pricing_sc_fie = r'D:\Soundcast\SC2040\soundcast-2.1\outputs\daysim\archive_park_and_ride_shadow_prices.txt'
-pnr_pricing_bkr_file = r'D:\BKR0V1-1\working\park_and_ride_shadow_prices.txt'
+pnr_pricing_bkr_file = r'D:\BKR0V1-1-newcap-newpop-S93-newdensity-shortwalkdist-coeff8-newadjfacs-nohomejobs-BSq_attractiveness\working\park_and_ride_shadow_prices.txt'
 
 #trips_df = pd.DataFrame.from_csv(trips_file, sep = '\t')
 #pnr_df = pd.DataFrame.from_csv(park_and_ride_file, index_col = 'ZoneID')

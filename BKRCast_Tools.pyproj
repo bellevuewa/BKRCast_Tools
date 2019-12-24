@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>synthetic_pop_aggregate_by_blockgroup.py</StartupFile>
+    <StartupFile>parcelization.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -26,18 +26,20 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="CreateNoGovParcelFile.py" />
-    <Compile Include="ExportAllAttributes.py" />
     <Compile Include="Extract_hh_person.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Extract_hh_person0430.py" />
     <Compile Include="extract_subset_of_parcel_file.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="filter_seed_hhs_persons_by_puma.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="future_land_use_adjustment_by_factors.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="future_land_use_creation.py" />
+    <Compile Include="future_synthetic_pop_aggregate_by_blockgroup.py" />
     <Compile Include="hh_and_person_summary.py" />
     <Compile Include="hh_and_person_survey_summary.py" />
     <Compile Include="HH_ajustment_by_TAZ.py">
@@ -49,12 +51,40 @@
     <Compile Include="Create_parcel_TAZ_crosstable.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LandUse\Create_LU_for_oldTAZ.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LandUse\Find_PSRCID_from_PIN.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LandUse\Interpolate_parcel_files.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LandUse\replace_kingcounty_sqft_with_local_estimate.py" />
+    <Compile Include="LandUse\replace_parcel_fields.py" />
+    <Compile Include="LandUse\replace_subset_of_parcel_file.py" />
+    <Compile Include="Locations\trip_destination_by_purpose.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="mode_share_calculatorV2.py" />
+    <Compile Include="Network\ExportAllAttributes.py" />
+    <Compile Include="Network\PopulateNetwork.py" />
     <Compile Include="parcelization.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="parcelizebyratio0430.py" />
+    <Compile Include="PSRC2BKR\Convert_PSRC_TAZ_to_BKRCastTAZ_in_parcel.py" />
+    <Compile Include="PSRC2BKR\Convert_PSRC_TAZ_to_BKRCastTAZ_pop.py" />
+    <Compile Include="supplemental\update_externals.py" />
     <Compile Include="sync_population_to_parcel.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SyntheticPopulation\Create_popsim_control_file_from_hhs_growth.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SyntheticPopulation\merge_two_synthetic_populations.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SyntheticPopulation\Prepare_household_for_concurrency.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="synthetic_population_error_checking.py">
@@ -63,28 +93,24 @@
     <Compile Include="synthetic_population_to_shapefile.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="synthetic_pop_aggregate_by_blockgroup.py">
+    <Compile Include="baseyear_synthetic_pop_aggregate_by_blockgroup.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="TemoraryCode.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="time_of_day_by_tours.py" />
     <Compile Include="tour_mode_share_calculator.py" />
     <Compile Include="parcel_file_summary.py" />
     <Compile Include="park_and_ride_usage.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="PopulateNetwork.py" />
-    <Compile Include="remove_hhs.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="replace_parcel_fields.py">
+    <Compile Include="SyntheticPopulation\Remove_Relocate_households.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="restore_parking_cost.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SynthPopAdjustment.py" />
     <Compile Include="test.py">
       <SubType>Code</SubType>
     </Compile>
@@ -98,14 +124,12 @@
     <Compile Include="UpdateHHs_in_Parcels.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="replace_subset_of_parcel_file.py" />
+    <Compile Include="Future_parcel_file_creation_with_local_estimate.py" />
     <Compile Include="UpdateParcelFileByParcel.py" />
     <Compile Include="UpdateParcelFileBySubarea.py" />
     <Compile Include="utility.py" />
+    <Compile Include="walk_trips.py" />
     <Compile Include="workers_taz.py" />
-    <Compile Include="work_trips.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
@@ -119,6 +143,14 @@
     <Content Include="TAZ11.csv" />
     <Content Include="TAZ41_parcels.csv" />
     <Content Include="TAZ_subarea.csv" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Locations\" />
+    <Folder Include="LandUse\" />
+    <Folder Include="Network\" />
+    <Folder Include="SyntheticPopulation\" />
+    <Folder Include="supplemental\" />
+    <Folder Include="PSRC2BKR\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

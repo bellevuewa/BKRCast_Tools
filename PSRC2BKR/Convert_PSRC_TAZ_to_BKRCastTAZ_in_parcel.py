@@ -12,8 +12,8 @@ import numpy as np
 import csv
 
 # inputs
-wd = r"Z:\Modeling Group\BKRCast\Other ESD from PSRC\2025"
-parcel_file_name = '2025_parcels.dat'
+wd = r"Z:\Modeling Group\BKRCast\Other ESD from PSRC\2020"
+parcel_file_name = '2020_parcels.dat'
 
 # correspondence file
 parcel_bkr_taz_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel2014_BKRTAZ.csv"

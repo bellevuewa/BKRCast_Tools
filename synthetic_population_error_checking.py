@@ -6,7 +6,7 @@ import numpy as np
 sys.path.append(os.getcwd())
 import utility
 
-hh_person_folder = r'D:\PopulationSim\PSRCrun0423\output'
+hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\2035SyntheticPopulation_S_DT_Access_Study'
 hh_person_file = '2035_popsim_hh_and_persons.h5'
 
 print 'Loading hh and person file...'

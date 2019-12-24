@@ -6,9 +6,9 @@ import numpy as np
 # Summarize parcel urbansim file to TAZ, subarea and city level.
 
 ### Configuration
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-2019densitytest"
-Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
-TAZ_Subarea_File_Name = r"Z:\Modeling Group\BKRCast\Job Conversion Test\TAZ_subarea.csv"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\2021concurrencyPretest+ProjectM"
+Original_ESD_Parcel_File_Name = r"parcels_urbansim_2021concurrency_pretest+project_M.txt"
+TAZ_Subarea_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
 
 Output_Field = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P', 'EMPTOT_P', 'HH_P']

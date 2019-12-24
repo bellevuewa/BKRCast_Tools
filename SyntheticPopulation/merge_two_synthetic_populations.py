@@ -9,12 +9,12 @@ import utility
 
 
 ### configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest'
-base_syn_pop_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\2018_popsim_hh_and_persons.h5'
-growth_syn_pop_file = '2020_concurrency_for_pretest_popsim_growth_hh_and_persons.h5'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021ConcurrencyPretest'
+base_syn_pop_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020ConcurrencyPretest\2020_concurrency_for_pretest_hh_and_persons.h5'
+growth_syn_pop_file = '2021_concurrency_for_pretest_popsim_growth_hh_and_persons.h5'
 
 # output
-final_output_pop_file = '2020_concurrency_for_pretest_hh_and_persons.h5'
+final_output_pop_file = '2021_concurrency_for_pretest_hh_and_persons.h5'
 
 ### end of configuration
 

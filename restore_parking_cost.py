@@ -10,11 +10,11 @@ from shutil import copyfile
 
 # copy parking cost data ['PARKDY_P', 'PARKHR_P', 'PPRICDYP', 'PPRICHRP'] from the source to original esd parcel file.
 
-Project_Folder =  r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11"
-Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
-TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
-Parking_Cost_Source =  r"Z:\Modeling Group\BKRCast\2014ESD\parcels_urbansim.txt"
-Updated_Parcel_File_Name = r'Updated_parking_cost_parcels_urbansim.txt'
+Project_Folder =  r"Z:\Modeling Group\BKRCast\2021concurrencyPretest"
+Original_ESD_Parcel_File_Name = r"parcels_urbansim_2021concurrency_pretest.txt"
+TAZ_Subarea_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
+Parking_Cost_Source =  r"Z:\Modeling Group\BKRCast\2020concurrencyPretest\parcels_urbansim.txt"
+Updated_Parcel_File_Name = r'updated_parcels_urbansim_2021concurrency_pretest.txt'
 
 Parking_Cost_Attributes = ['PARKDY_P', 'PARKHR_P', 'PPRICDYP', 'PPRICHRP']
 

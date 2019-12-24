@@ -16,12 +16,12 @@ from shutil import copyfile
 import ntpath
 
 ### configuration
-Original_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\2018LU\2018_kingcounty_LU_by_parcel.csv"
-Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2018LU'
+Original_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\2018LU\updated_2018_kingcounty_LU_by_parcel.csv"
+Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest'
 parcel_lookup_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
-Subset_Parcels_File_Name = r'Z:\Modeling Group\BKRCast\2018LU\2018_Bellevue_LU_by_parcel.csv'
-Output_Parcel_File_Name = "updated_2018_kingcounty_LU_by_parcel.csv"
+Subset_Parcels_File_Name = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest\cob_parcels_for_2021_concurrency_pretest.csv'
+Output_Parcel_File_Name = "updated_2018_kingcounty_LU_by_parcel_for_concurrency2021pretest.csv"
 ###
 
 CONVERSION_LEVEL = ['verylow', 'low', 'med', 'high', 'veryhigh']

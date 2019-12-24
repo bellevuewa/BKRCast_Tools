@@ -24,25 +24,25 @@ import h5py
 import utility
 
 Common_Data_Folder = r'Z:\Modeling Group\BKRCast\CommonData'
-working_folder = r'Z:\Modeling Group\BKRCast\2018LU'
-Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2018LU'
+working_folder = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest'
+Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest'
 
-# Original ESD parcel file name can be an absolute name or relative name. If it is relative, will open from Commond data folder. 
-Original_ESD_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\2018LU\interpolated_parcel_file.txt"
+# Original ESD parcel file name can be an absolute name or relative name. If it is relative, will open from Common data folder. 
+Original_ESD_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\2020concurrencyPretest\parcels_urbansim_2020concurrency_pretest.txt"
 
 Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_2019.csv"
 Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-9-26-19.csv"
-Parcels_Sqft_File_Name = r"updated_2018_kingcounty_LU_by_parcel.csv"
+Parcels_Sqft_File_Name = r"updated_2018_kingcounty_LU_by_parcel_for_concurrency2021pretest.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
-Output_Parcel_File_Name = "parcels_urbansim_Updated.txt"
-Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\2018_popsim_hh_and_persons.h5'
+Output_Parcel_File_Name = "parcels_urbansim_2021concurrency_pretest.txt"
+Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021ConcurrencyPretest\2021_concurrency_for_pretest_hh_and_persons.h5'
 TAZ_adjustment_file_name = r'TAZ_adjustment_factors.csv'
 
 # set False if want to drop home based jobs
 KEEP_HOME_BASED_JOBS = False
 
 # further adjust parking cost in Bellevue. Set it to 1 if no adjustment is made.
-BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR = 0.5
+BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR = 1
 
 CONVERSION_LEVEL = ['verylow', 'low', 'med', 'high', 'veryhigh']
 EMPLOYMENT_TYPE = ['EDU', 'FOO', 'GOV', 'IND', 'MED', 'OFC', 'OTH', 'RET', 'SVC', 'NoEMP']

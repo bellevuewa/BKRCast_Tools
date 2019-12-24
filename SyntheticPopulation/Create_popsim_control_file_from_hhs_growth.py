@@ -6,7 +6,7 @@ import utility
 '''
 This program is to create populationsim control file only for household growth. The growth is calculated by 
 multiplying dwelling units (permit_file) witih occupancy rate (bel_occ_file) saved in permit_file. The growth will be 
-either replacement to new addition. We need to calculate the net growth from replacement. Net growth is 
+either replacement or new addition. We need to calculate the net growth from replacement. Net growth is 
 calculated by subtracting base year number of hhs from permit data.
 
 The net growth will be exported to hhs_output_file. The populationsim control file is also created. This control
