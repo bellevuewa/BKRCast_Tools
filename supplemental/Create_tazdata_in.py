@@ -2,6 +2,12 @@ import pandas as pd
 import math
 from datetime import date
 
+'''
+This tool is used to generate updated tazdata.in file, which is a land use file in 4k trip format. This land use file is used in supplemental and truck models.
+Employment data in the new_jobs_file are aggregated to 4k model land use categories. They will replace employment data located in landuse_file. 
+College FTE (column 121) and group quarters (column 122-124) do not change (always in 2014 value).
+'''
+
 # configuration
 landuse_file = r"D:\projects\2018baseyear\BKR0V1-02\inputs\supplemental\generation\landuse\tazdata_2014.csv"
 updated_hhs = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\2035SyntheticPopulation_S_DT_Access_Study\hh_summary_by_taz.csv"
