@@ -16,8 +16,9 @@ class BKRCastExportNetwork(_modeller.Tool()):
       base network file, link shape file, turn file, and transit lines for AM, MD, PM and NI.
     1.1.0: populate vdf functions for four TOD.
     1.1.1: populate sc_headway.csv
+    1.1.2: remove future bike links with modes == "wk" and @biketype == 0
     '''
-    version = "1.1.1" # this is the version
+    version = "1.1.2" # this is the version
     default_path = ""
     tool_run_message = ""
     outputFolder = _modeller.Attribute(_modeller.InstanceType)
@@ -62,6 +63,9 @@ class BKRCastExportNetwork(_modeller.Tool()):
         scens = self.current_emmebank.scenarios()
         current_scen = self.current_scenario
         _modeller.logbook_write("Version", self.version)
+
+        with _modeller.logbook_trace(name = 'Remove future non-motorized-only links', value = ""):
+            self.removeExtraBikeLinks(current_scen)
 
         num_scns = 0;
         for scen in scens:
@@ -269,3 +273,20 @@ class BKRCastExportNetwork(_modeller.Tool()):
             f.write('LineID,hdw_6to9,hdw_9to1530,hdw_1530to1830,hdw_1830to6,id\n')
             for tline in tlines:
                 f.write('{0:d}, {1:.0f}, {2:.0f}, {3:.0f}, {4:.0f}, {5:d}\n'.format(int(tline.id), tline.data1, tline.data2, tline.data3, tline['@nihdwy'], int(tline.id)))
+
+    # remove future non-motorized links with condition modes = "wk" and @biketype == 0. (if non-motorized only, @biketype has to be 1.
+    def removeExtraBikeLinks(self, curScen):
+        network = curScen.get_network()
+        links = network.links()
+        bikemodeset = set([network.mode('w'), network.mode('k')])
+
+        emmebank_dir = os.path.dirname(_modeller.Modeller().emmebank.path)
+        extraBikeLinks = os.path.join(emmebank_dir, 'removed_bike_links.dat')
+        with open(extraBikeLinks, mode = 'w') as f:
+            for link in links: 
+                if (link.modes == bikemodeset) and (link['@biketype'] == 0):
+                    print 'link ', link.id, ' is removed from network'
+                    f.write('link {0} is removed from network\n'.format(link.id))
+                    network.delete_link(link.i_node, link.j_node)
+
+        curScen.publish_network(network)
