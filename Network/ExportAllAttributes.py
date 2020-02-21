@@ -15,8 +15,10 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
     1.0.2: 
         export @nihdwy for all @nihdwy < 999. It can be directly loaded into the model.
         export @rdly to four time periods. No need to mannually copy and rename to different time periods.
+    1.03:
+        export @biketype and @slope to emme_attr.in
     '''
-    version = "1.0.2" # this is the version
+    version = "1.0.3" # this is the version
     default_path = ""
     tool_run_message = ""
     outputFolder = _modeller.Attribute(_modeller.InstanceType)
@@ -60,9 +62,7 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
         #export extra attributes
         with _modeller.logbook_trace(name = "Export extra attributes", value = ""):
             for f in os.listdir(self.outputFolder):
-                if f.startswith("@"):
-                    os.remove(os.path.join(self.outputFolder, f))
-                    print f + " is removed"
+                os.remove(os.path.join(self.outputFolder, f))
             
             self.exportExtraAttributeDefinition(self.outputFolder, current_scen)
             for extra_attr in current_scen.extra_attributes():
@@ -70,14 +70,14 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
 
             # export @nihdwy to @nihdwy.txt. This will overwrite the same file exported earlier.
             self.exportnihdwy(self.outputFolder, current_scen)
+            # export @biketype and @slope to emme_attr.in, which is an input file to bike model.
+            self.exportBikeLaneTypeSlope(self.outputFolder, current_scen)
 
             ## copy @rdly.txt to am_rdly.txt, md_rdly.txt, pm_rdly.txt, ni_rdly.txt
             copyfile(os.path.join(self.outputFolder, '@rdly.txt'), os.path.join(self.outputFolder, 'am_rdly.txt'))
             copyfile(os.path.join(self.outputFolder, '@rdly.txt'), os.path.join(self.outputFolder, 'md_rdly.txt'))
             copyfile(os.path.join(self.outputFolder, '@rdly.txt'), os.path.join(self.outputFolder, 'pm_rdly.txt'))
             os.rename(os.path.join(self.outputFolder, '@rdly.txt'), os.path.join(self.outputFolder, 'ni_rdly.txt'))
-
-          
 
     def exportExtraAttribute(self, attr, path, scen):
         attribute = scen.extra_attribute(attr)
@@ -133,7 +133,13 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
                     f.write('{0:d} {1:.0f}\n'.format(int(tline.id), tline['@nihdwy']))
 
        
-       
-
+    def exportBikeLaneTypeSlope(self, path, scen):
+        network = scen.get_network()
+        links = network.links()
+        flink = os.path.join(path, 'emme_attr.in')
+        with open(flink, mode = 'w') as f:
+            f.write('inode jnode @bkfac @upslp\n')
+            for link in links:
+                f.write('{0:d} {1:d} {2:d} {3:.4f}\n'.format(int(link.i_node), int(link.j_node), int(link['@biketype']), link['@slope']))
 
  
