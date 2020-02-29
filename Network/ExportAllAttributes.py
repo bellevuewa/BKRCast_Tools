@@ -70,8 +70,6 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
 
             # export @nihdwy to @nihdwy.txt. This will overwrite the same file exported earlier.
             self.exportnihdwy(self.outputFolder, current_scen)
-            # export @biketype and @slope to emme_attr.in, which is an input file to bike model.
-            self.exportBikeLaneTypeSlope(self.outputFolder, current_scen)
 
             ## copy @rdly.txt to am_rdly.txt, md_rdly.txt, pm_rdly.txt, ni_rdly.txt
             copyfile(os.path.join(self.outputFolder, '@rdly.txt'), os.path.join(self.outputFolder, 'am_rdly.txt'))
@@ -133,13 +131,4 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
                     f.write('{0:d} {1:.0f}\n'.format(int(tline.id), tline['@nihdwy']))
 
        
-    def exportBikeLaneTypeSlope(self, path, scen):
-        network = scen.get_network()
-        links = network.links()
-        flink = os.path.join(path, 'emme_attr.in')
-        with open(flink, mode = 'w') as f:
-            f.write('inode jnode @bkfac @upslp\n')
-            for link in links:
-                f.write('{0:d} {1:d} {2:d} {3:.4f}\n'.format(int(link.i_node), int(link.j_node), int(link['@biketype']), link['@slope']))
-
  
