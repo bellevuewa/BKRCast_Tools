@@ -103,13 +103,13 @@ class BKRCastExportNetwork(_modeller.Tool()):
             self.exportTransitLineHeadway(current_scen, headway_name)
 
         with _modeller.logbook_trace(name = "Export temporary transit network", value = ""):
-            self.tLineNetCalculator("hdw", "ut1")
+            self.tLineNetCalculator("hdw", "ut1", 'all')
             self.exportTransit(am_transit_name, current_scen, "not hdw = 999")
-            self.tLineNetCalculator("hdw", "ut2")
+            self.tLineNetCalculator("hdw", "ut2", 'all')
             self.exportTransit(md_transit_name, current_scen, "not hdw = 999")
-            self.tLineNetCalculator("hdw", "ut3")
+            self.tLineNetCalculator("hdw", "ut3", 'all')
             self.exportTransit(pm_transit_name, current_scen, "not hdw = 999")
-            self.tLineNetCalculator("hdw", "@nihdwy")
+            self.tLineNetCalculator("hdw", "@nihdwy", 'all')
             self.exportTransit(ni_transit_name, current_scen, "not hdw = 999")
 
 
@@ -198,14 +198,14 @@ class BKRCastExportNetwork(_modeller.Tool()):
         line_file = os.path.join(emmebank_dir, tempFileName)
         export_transitlines(export_file = line_file, selection = selection, scenario = scen)
             
-    def tLineNetCalculator(self, result, expression):
+    def tLineNetCalculator(self, result, expression, sel):
         NAMESPACE = "inro.emme.network_calculation.network_calculator"
         specs = {
             "type": "NETWORK_CALCULATION",
             "result": result,
             "expression": expression,
             "selections": {
-                "transit_line": "all" }
+                "transit_line": sel }
             }
         netcalc = _modeller.Modeller().tool(NAMESPACE)
         report = netcalc(specs)
