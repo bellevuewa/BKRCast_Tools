@@ -19,25 +19,33 @@ class BKRCastExportNetwork(_modeller.Tool()):
     1.1.2: remove future bike links with modes == "wk" and @biketype == 0
     1.2:   create network for a horizon year directly from the master network and punch out all network inputs files.
     1.2.1  remove links with vdf24. otherwise ped/bike would use these facilities.
+    1.2.2  add scenario selection and overwrite feature.
     '''
-    version = "1.2.1" # this is the version
+    version = "1.2.2" # this is the version
     default_path = ""
     tool_run_message = ""
     outputFolder = _modeller.Attribute(_modeller.InstanceType)
     horizon_year = _modeller.Attribute(_modeller.IntType)
     new_scen_id = _modeller.Attribute(_modeller.IntType)
     new_scen_title = _modeller.Attribute(_modeller.StringType)
+    current_scen = _modeller.Attribute(_modeller.InstanceType)
+    overwrite_scen = _modeller.Attribute(bool)
+
 
     def page(self):
         pb = _modeller.ToolPageBuilder(self, title="BKRCast Network Interface",
                      description="Populate networks from master network",
                      branding_text="Modeling and Analysis Group -- City of Bellevue Transportation")
         pb.add_select_file("outputFolder", "directory", "", self.default_path, title = "Select the directory for output files")
+        if not self.current_scen:
+            self.current_scen = self.current_scenario
+        pb.add_select_scenario("current_scen", title="Scenario:")
         pb.add_text_box("new_scen_id", 5, title = "Enter the new scenario ID", note = "Number between 1 and 99999.")
+        pb.add_checkbox('overwrite_scen', title = 'Overwrite existing scenario?')
         pb.add_text_box("new_scen_title", 60, title = 'New scenario title', note = 'Maximum 60 characters.')
         pb.add_text_box("horizon_year", 4, title = "Enter the horizon year", note = "4-digit integer only")
-
-        self.new_scen_title = str(self.horizon_year) + ' network built from scen ' + self.current_scenario.id
+        self.horizon_year = ''
+        self.new_scen_title = str(self.horizon_year) + ' network built from scen ' + self.current_scen.id
         if self.tool_run_message != "":
             pb.tool_run_status(self.tool_run_msg_status)
 
@@ -70,8 +78,8 @@ class BKRCastExportNetwork(_modeller.Tool()):
         ## total number of scenarios allowed
         tot_scn_spaces = self.current_emmebank.dimensions['scenarios']
         scens = self.current_emmebank.scenarios()
-        current_scen = self.current_scenario
         _modeller.logbook_write("Version", self.version)
+        self.new_scen_title = str(self.horizon_year) + ' network built from scen ' + self.current_scen.id
 
         num_scns = 0;
         for scen in scens:
@@ -84,9 +92,10 @@ class BKRCastExportNetwork(_modeller.Tool()):
             exit(1)
 
         notes = 'Create network for horizon year ' + str(self.horizon_year)
+        print notes
         with _modeller.logbook_trace(name = notes, value = ""):
             # copy master scenario to horizon year and set the new network as primary
-            horizon_scen = self.copyScenario(current_scen, self.new_scen_id, self.new_scen_title, True, True, True, True)
+            horizon_scen = self.copyScenario(self.current_scen, self.new_scen_id, self.new_scen_title, True, True, self.overwrite_scen, True)
 
             # set network to existing condition
             self.copyAttribute('@exist_lanes', 'lanes', horizon_scen)
@@ -111,9 +120,15 @@ class BKRCastExportNetwork(_modeller.Tool()):
             # set link modes for HOV if @tolllane==5 HOT 2 Plus if @tolllane=6, HOT 3 Plus if @tolllane=1..4
             NAMESPACE = "inro.emme.data.network.base.change_link_modes"
             change_link_mode = _modeller.Modeller().tool(NAMESPACE)
-            change_link_mode(modes = 'ahdimjgbp', action = 'SET', selection = '@tolllane=5')
-            change_link_mode(modes = 'asehdimjgvbp', action = 'SET', selection = '@tolllane=6')
-            change_link_mode(modes = 'asehdimjgvbp', action = 'SET', selection = '@tolllane=1,4')
+            test = self.linkNetCalculator(None, '1', '@tolllane=5')
+            if test['num_evaluations'] > 0:
+                change_link_mode(modes = 'ahdimjgbp', action = 'SET', selection = '@tolllane=5')
+            test = self.linkNetCalculator(None, '1', '@tolllane=6')
+            if test['num_evaluations'] > 0:
+                change_link_mode(modes = 'asehdimjgvbp', action = 'SET', selection = '@tolllane=6')
+            test = self.linkNetCalculator(None, '1', '@tolllane=1,4')
+            if test['num_evaluations'] > 0:
+                change_link_mode(modes = 'asehdimjgvbp', action = 'SET', selection = '@tolllane=1,4')
 
             # backup active transit lines
             self.tLineNetCalculator('@tactive', '0', "*")
@@ -286,16 +301,26 @@ class BKRCastExportNetwork(_modeller.Tool()):
 
     def linkNetCalculator(self, result, expression, selectors):
         NAMESPACE = "inro.emme.network_calculation.network_calculator"
-        specs = {
-            "type": "NETWORK_CALCULATION",
-            "result": result,
-            "expression": expression,
-            "selections": {
-                "link": selectors }
-            }
+        if result is None:
+            specs = {
+                "type": "NETWORK_CALCULATION",
+                "result": None,
+                "expression": expression,
+                "selections": {
+                    "link": selectors }
+                }
+        else:
+            specs = {
+                "type": "NETWORK_CALCULATION",
+                "result": result,
+                "expression": expression,
+                "selections": {
+                    "link": selectors }
+                }
 
         netCalc = _modeller.Modeller().tool(NAMESPACE)
         report = netCalc(specs)
+        return report
 
     def loadTransitLines(self, scen, transitFile, revertOnError):
         NAMESPACE = "inro.emme.data.network.transit.transit_line_transaction"
