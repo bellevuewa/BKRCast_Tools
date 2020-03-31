@@ -31,6 +31,11 @@ class BKRCastExportNetwork(_modeller.Tool()):
     current_scen = _modeller.Attribute(_modeller.InstanceType)
     overwrite_scen = _modeller.Attribute(bool)
 
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        self.overwrite_scen = False
 
     def page(self):
         pb = _modeller.ToolPageBuilder(self, title="BKRCast Network Interface",
