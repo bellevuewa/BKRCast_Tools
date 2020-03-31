@@ -29,3 +29,9 @@ def df_to_h5(df, h5_store, group_name):
         print "Group Skims Created"
     for col in df.columns:
         h5_store[group_name].create_dataset(col, data=df[col], dtype = 'int', compression = 'gzip')
+
+def backupScripts(source, dest):
+    import os
+    import shutil
+    shutil.copyfile(source, dest)
+    
