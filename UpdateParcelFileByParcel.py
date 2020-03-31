@@ -10,8 +10,11 @@
 
 ## 9/27/2019
 ## add TAZ level adjustment factor. Only applied for Bellevue Square. But can extend to any TAZ.
+##
+## 3/31/2020
+## backup this script to the output folder. So in the future user will know what script was used to generate
+## this set of output.
 
-import pandana as pdna
 import os, sys
 sys.path.append(os.getcwd())
 import pandas as pd
@@ -232,4 +235,5 @@ copyfile(os.path.join(Common_Data_Folder, TAZ_adjustment_file_name), os.path.joi
 copyfile(os.path.join(working_folder, Parcels_Sqft_File_Name), os.path.join(input_backup_folder, Parcels_Sqft_File_Name))
 copyfile(Hh_and_person_file, os.path.join(input_backup_folder, os.path.basename(Hh_and_person_file)))
 
+utility.backupScripts(__file__, os.path.join(input_backup_folder, os.path.basename(__file__)))
 print "Finished"  
