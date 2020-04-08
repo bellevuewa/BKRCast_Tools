@@ -4,7 +4,6 @@
 
 ### This output is used as an input file in UpdateParcelFileByParcel.py.
 
-import pandana as pdna
 import os, sys
 sys.path.append(os.getcwd())
 import pandas as pd
@@ -14,14 +13,15 @@ from pyproj import Proj, transform
 import copy
 from shutil import copyfile
 import ntpath
+import utility
 
 ### configuration
-Original_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\2018LU\updated_2018_kingcounty_LU_by_parcel.csv"
-Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest'
+Original_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\2018LU\2018_kingcounty_LU_by_parcel.csv"
+Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear'
 parcel_lookup_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
-Subset_Parcels_File_Name = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest\cob_parcels_for_2021_concurrency_pretest.csv'
-Output_Parcel_File_Name = "updated_2018_kingcounty_LU_by_parcel_for_concurrency2021pretest.csv"
+Subset_Parcels_File_Name = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear\2018_COB_landuse.csv'
+Output_Parcel_File_Name = "updated_2018_kingcounty_LU_by_parcel.csv"
 ###
 
 CONVERSION_LEVEL = ['verylow', 'low', 'med', 'high', 'veryhigh']
@@ -73,6 +73,7 @@ print 'Updated total sqft {0:.0f}'.format(updated_tot_sqft)
 print "Exporting updated urbansim parcel file ..."
 final_updated_parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), sep = ',')
 
+utility.backupScripts(__file__, os.path.join(Output_Parcel_Folder, os.path.basename(__file__)))
 
 
 print "Finished."  
