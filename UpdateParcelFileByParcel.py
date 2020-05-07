@@ -27,25 +27,32 @@ import h5py
 import utility
 
 Common_Data_Folder = r'Z:\Modeling Group\BKRCast\CommonData'
-working_folder = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest'
-Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\2021concurrencyPretest'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear'
+Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear'
 
-# Original ESD parcel file name can be an absolute name or relative name. If it is relative, will open from Common data folder. 
-Original_ESD_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\2020concurrencyPretest\parcels_urbansim_2020concurrency_pretest.txt"
+# Base year original ESD parcel file name can be an absolute name or relative name. If it is relative, will open from Common data folder. 
+# this can be true original 2014, or introplated ESD dataset between 2014 and 2035. 
+Original_ESD_Parcel_File_Name = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear\interpolated_parcel_file_2018.txt'
 
-Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_2019.csv"
-Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-9-26-19.csv"
-Parcels_Sqft_File_Name = r"updated_2018_kingcounty_LU_by_parcel_for_concurrency2021pretest.csv"
+Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_2020.csv"
+Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-4-7-2020.csv"
+Parcels_Sqft_File_Name = r"updated_2018_kingcounty_LU_by_parcel.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
-Output_Parcel_File_Name = "parcels_urbansim_2021concurrency_pretest.txt"
-Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021ConcurrencyPretest\2021_concurrency_for_pretest_hh_and_persons.h5'
-TAZ_adjustment_file_name = r'TAZ_adjustment_factors.csv'
+Output_Parcel_File_Name = "parcels_urbansim.txt"
+Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\2018_popsim_hh_and_persons.h5'
+TAZ_adjustment_file_name = r'TAZ_adjustment_factors-4-7-2020.csv'
+
+# if the Parcel_Job_File_Name is available, use job numbers in this file to overwrite jobs in the generated parcel file.
+# otherwise set this variable to None
+Parcel_Job_File_Name = '2018_COB_Jobs.csv'
 
 # set False if want to drop home based jobs
 KEEP_HOME_BASED_JOBS = False
 
+ONLY_USE_BELLEVUE_JOB_ESTIMATE_IN_COB_LIMIT = True
+
 # further adjust parking cost in Bellevue. Set it to 1 if no adjustment is made.
-BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR = 1
+BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR = 0.5
 
 CONVERSION_LEVEL = ['verylow', 'low', 'med', 'high', 'veryhigh']
 EMPLOYMENT_TYPE = ['EDU', 'FOO', 'GOV', 'IND', 'MED', 'OFC', 'OTH', 'RET', 'SVC', 'NoEMP']
@@ -61,14 +68,14 @@ print "Loading input files ..."
 if os.path.isabs(Original_ESD_Parcel_File_Name) == False:
     Original_ESD_Parcel_File_Name = os.path.join(Common_Data_Folder, Original_ESD_Parcel_File_Name)
     
-parcels = pd.DataFrame.from_csv(Original_ESD_Parcel_File_Name, sep = " ", index_col = "PARCELID")
+parcels = pd.read_csv(Original_ESD_Parcel_File_Name, sep = " ", index_col = "PARCELID")
 
 original_ESD_tot_jobs = parcels['EMPTOT_P'].sum()
 print 'Original ESD jobs {0:.0f}'.format(original_ESD_tot_jobs)
 conversion_rates = pd.DataFrame.from_csv(os.path.join(Common_Data_Folder, Conversion_Factors_File_Name), sep = ",")
-adjustment_factors = pd.DataFrame.from_csv(os.path.join(Common_Data_Folder, Subarea_Adjustment_Factor_File_Name), sep = ",", index_col = "Subarea_ID")
+adjustment_factors = pd.read_csv(os.path.join(Common_Data_Folder, Subarea_Adjustment_Factor_File_Name), sep = ",", index_col = "Subarea_ID")
 TAZ_adjustment_factors_df = pd.read_csv(os.path.join(Common_Data_Folder, TAZ_adjustment_file_name), sep = ',')
-taz_subarea = pd.DataFrame.from_csv(os.path.join(Common_Data_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
+taz_subarea = pd.read_csv(os.path.join(Common_Data_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
 
 parcels_sqft = pd.read_csv(os.path.join(working_folder, Parcels_Sqft_File_Name), sep = ",")   
 parcels_sqft = parcels_sqft.join(parcels['TAZ_P'], on = 'PSRC_ID')
@@ -171,11 +178,11 @@ newESDLabels = [x.replace('_P', '_ESD') for x in JOB_CATEGORY]
 outputlist = JOB_CATEGORY + newESDLabels
 
 summary_by_jurisdiction = parcels_sqft.groupby('JURISDICTION')[outputlist].sum()
-print "Exporting \"summary_by_jurisdiction.csv\""
-summary_by_jurisdiction.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_jurisdiction.csv"))
+print "Exporting \"converted_vs_ESD_summary_by_jurisdiction.csv\""
+summary_by_jurisdiction.to_csv(os.path.join(Output_Parcel_Folder, "converted_vs_ESD_summary_by_jurisdiction.csv"))
 summary_by_taz = parcels_sqft.groupby('TAZ_P')[outputlist].sum()
-print "Exporting \"summary_by_TAZ.csv\""
-summary_by_taz.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_TAZ.csv")) 
+print "Exporting \"converted_vs_ESD_summary_by_TAZ.csv\""
+summary_by_taz.to_csv(os.path.join(Output_Parcel_Folder, "converted_vs_ESD_summary_by_TAZ.csv")) 
 
 #"SUBRAREA" is the index
 summary_by_subarea = parcels_sqft.groupby('SUBAREA')[outputlist].sum()
@@ -183,8 +190,8 @@ subarea_def = parcels_sqft[["SUBAREA", "SUBAREANAME"]]
 subarea_def = subarea_def.drop_duplicates(keep = 'first')  
 subarea_def.set_index("SUBAREA", inplace = True)     
 summary_by_subarea = summary_by_subarea.join(subarea_def["SUBAREANAME"])
-print "Exporting \"summary_by_subarea.csv\""
-summary_by_subarea.to_csv(os.path.join(Output_Parcel_Folder, "summary_by_subarea.csv"))
+print "Exporting \"converted_vs_ESD_summary_by_subarea.csv\""
+summary_by_subarea.to_csv(os.path.join(Output_Parcel_Folder, "converted_vs_ESD_summary_by_subarea.csv"))
 
 parcels.drop_duplicates(keep = 'first', inplace = True) 
 parcels_sqft.drop_duplicates(subset = 'PSRC_ID', keep = 'first', inplace = True)
@@ -197,10 +204,43 @@ parcels.loc[parcels.index.isin(parcels_sqft.index), JOB_CATEGORY] = parcels_sqft
 #print("After home office update, total jobs are ", parcels['EMPTOT_P'].sum())
 
 # BEllevue CBD Parking Cost process
-parcels =  parcels.join(taz_subarea['Jurisdiction'], on = 'TAZ_P')
-parcels.loc[parcels['Jurisdiction'] == 'BELLEVUE', 'PPRICDYP']  = parcels['PPRICDYP'] * BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR
-parcels.loc[parcels['Jurisdiction'] == 'BELLEVUE', 'PPRICHRP']  = parcels['PPRICHRP'] * BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR
-parcels = parcels.drop(['Jurisdiction'], axis = 1)  
+parcels =  parcels.join(taz_subarea['Subarea'], on = 'TAZ_P')
+parcels.loc[parcels['Subarea'] == 3, 'PPRICDYP']  = parcels['PPRICDYP'] * BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR
+parcels.loc[parcels['Subarea'] == 3, 'PPRICHRP']  = parcels['PPRICHRP'] * BELLEVUE_PARKING_COST_ADJUSTMENT_FACTOR
+parcels = parcels.drop(['Subarea'], axis = 1)  
+
+# Overwrite job numbers with external inputs, if applicable
+if Parcel_Job_File_Name != None:
+    subarea_parcel_jobs_df = pd.read_csv(os.path.join(working_folder, Parcel_Job_File_Name), sep = ',')
+    subarea_parcel_jobs_df.rename(columns = {'PSRC_ID' : 'PARCELID'}, inplace = True)
+    subarea_parcel_jobs_df = subarea_parcel_jobs_df.groupby('PARCELID').sum().round(0).astype(int)
+    print 'Total jobs in ', Parcel_Job_File_Name, ' is ', subarea_parcel_jobs_df['EMPTOT_P'].sum()
+    updated_parcel_job_df = parcels.loc[subarea_parcel_jobs_df.index]
+    updated_parcel_job_df.to_csv(os.path.join(working_folder, 'jobs_to_be_replaced.csv'))
+    jobs_tobereplaced =  updated_parcel_job_df['EMPTOT_P'].sum().round(0).astype(int)
+    print 'Total jobs to be replaced: ', jobs_tobereplaced
+    fields = subarea_parcel_jobs_df.columns
+    subarea_parcel_jobs_df.rename(columns = lambda col: col + '_new', inplace = True)
+    updated_parcel_job_df = updated_parcel_job_df.merge(subarea_parcel_jobs_df, left_index = True, right_index = True, how = 'left')
+
+    for emp in JOB_CATEGORY:
+        updated_parcel_job_df[emp] = updated_parcel_job_df[emp + '_new'].round(0).astype(int)
+        
+    updated_parcel_job_df.drop(subarea_parcel_jobs_df.columns, axis = 1, inplace = True)
+    print 'Total replacement jobs: ', updated_parcel_job_df['EMPTOT_P'].sum()
+    print 'Net job changes due to job number overwritten: ', updated_parcel_job_df['EMPTOT_P'].sum() - jobs_tobereplaced
+    bellevue1 = parcels.reset_index().merge(taz_subarea.reset_index()[['TAZNUM', 'Jurisdiction']], left_on = 'TAZ_P', right_on = 'TAZNUM', how = 'left')
+    bellevue1 = bellevue1.loc[bellevue1['Jurisdiction'] == 'BELLEVUE']
+    other_bellevue_parcels = bellevue1.loc[~bellevue1['PARCELID'].isin(updated_parcel_job_df.index)]
+    parcels.loc[other_bellevue_parcels['PARCELID'], JOB_CATEGORY] = 0
+    print 'Jobs in ', other_bellevue_parcels.shape[0], ' parcels in Bellevue are zero out'
+    print 'Total removed jobs are: ', other_bellevue_parcels['EMPTOT_P'].sum()
+    parcels = parcels.drop(updated_parcel_job_df.index)
+    # parcels.loc[other_bellevue_parcels.index, [JOB_CATEGORY]] = 0
+    parcels.reset_index(inplace = True)
+    updated_parcel_job_df.reset_index(inplace = True)
+    parcels = parcels.append(updated_parcel_job_df.reset_index())
+    print 'Specified jobs are all imported.'
 
 # synchronizing synthetic population and parcel file
 print 'Synchronizing synthetic population'
@@ -211,14 +251,14 @@ hh_df.set_index('hhparcel', inplace = True)
 
 print 'Updating number of households...'
 hhs = hh_df.groupby('hhparcel')['hhexpfac', 'hhsize'].sum()
-parcels = parcels.join(hhs, how = 'left')
+parcels = parcels.merge(hhs, left_on = 'PARCELID', right_index = True, how = 'left')
 
 parcels['HH_P']  = parcels['hhexpfac']
 parcels.fillna(0, inplace = True)
 parcels.drop(['hhexpfac', 'hhsize'], axis = 1, inplace = True)
 
 print "Exporting updated urbansim parcel file ..."
-parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), index = True, sep = ' ')
+parcels.to_csv(os.path.join(Output_Parcel_Folder, Output_Parcel_File_Name), sep = ' ')
 print 'Total jobs in updated parcel file are {0:.0f}'.format(parcels['EMPTOT_P'].sum())
 
 # backup input files inside input folder
