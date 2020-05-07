@@ -7,13 +7,14 @@ from parcel_file_name_latter.
 import pandas as pd
 import numpy as np
 import os
+import utility
 
 
 ### Inputs
 parcel_file_name_ealier = r'Z:\Modeling Group\BKRCast\CommonData\original_2014_parcels_urbansim.txt'
 parcel_file_name_latter = r'Z:\Modeling Group\BKRCast\2035Parcel_fromPSRC\LUV2_2035SCinputs\LUV2_Refined_2035_SCInputs\parcels_bkr.txt'
-working_folder = r'Z:\Modeling Group\BKRCast\2018LU'
-new_parcel_file_name = 'interpolated_parcel_file.txt'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear'
+new_parcel_file_name = 'interpolated_parcel_file_2018.txt'
 earlier_year = 2014
 latter_year = 2035
 horizon_year = 2018
@@ -61,4 +62,7 @@ parcel_horizon_df = parcel_horizon_df.drop([i + '_E' for i in job_cat], axis = 1
 parcel_horizon_df = parcel_horizon_df.drop(['EMPTOT_L', 'EMPTOT_E'], axis = 1)
 parcel_horizon_df.to_csv(os.path.join(working_folder, new_parcel_file_name), sep = ' ')
 print 'After interpolation, total jobs are ', parcel_horizon_df['EMPTOT_P'].sum()
+
+utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
+
 print 'done'
