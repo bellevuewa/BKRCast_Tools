@@ -9,17 +9,18 @@ import numpy as np
 ### Configuration
 SELECT_BY_TAZ = True
 SELECT_BY_PARCEL = False
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\Job Conversion Test\parcel_level\test11-no-homejobs"
-Original_ESD_Parcel_File_Name = r"parcels_urbansim_updated.txt"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\2035DTAccess"
+Common_Data_Folder = r'Z:\Modeling Group\BKRCast\CommonData'
+Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
-Subset_definition_file = r"BellevueCBD.csv"   # TAZ list or ParcelID list
-Outputfile = '2014_BellevueCBD.txt'
+Subset_definition_file = r"BellevueCBDTaz.csv"   # TAZ list or ParcelID list
+Outputfile = '2035_BellevueCBD.csv'
 ###
 
 print "Loading input files ..."
-parcels_df = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = " ", index_col = "PARCELID")
-taz_subarea_df = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
-subset_def_df = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Subset_definition_file), sep = ',')
+parcels_df = pd.read_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = " ", index_col = "PARCELID")
+taz_subarea_df = pd.read_csv(os.path.join(Common_Data_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
+subset_def_df = pd.read_csv(os.path.join(Common_Data_Folder, Subset_definition_file), sep = ',')
 # parcels_df = parcels_df.join(taz_subarea_df, on = 'TAZ_P')
 
 if SELECT_BY_TAZ: 
