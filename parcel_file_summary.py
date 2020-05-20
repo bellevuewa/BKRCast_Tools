@@ -2,22 +2,23 @@ import os, sys
 sys.path.append(os.getcwd())
 import pandas as pd
 import numpy as np
+import utility
 
 # Summarize parcel urbansim file to TAZ, subarea and city level.
 
 ### Configuration
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\2021concurrencyPretest+ProjectM"
-Original_ESD_Parcel_File_Name = r"parcels_urbansim_2021concurrency_pretest+project_M.txt"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\2035DTAccess"
+Original_ESD_Parcel_File_Name = r"2035_DTAccess_urbansim_Updated.txt"
 TAZ_Subarea_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
 
-Output_Field = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P', 'EMPTOT_P', 'HH_P']
+Output_Field = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P', 'EMPTOT_P', 'STUGRD_P', 'STUHGH_P', 'STUUNI_P', 'HH_P']
 
 print "Loading input files ..."
-parcels = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = " ", index_col = "PARCELID")
-taz_subarea = pd.DataFrame.from_csv(os.path.join(Original_Parcel_Folder, TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
+parcels = pd.read_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = ' ')
+taz_subarea = pd.read_csv(os.path.join(Original_Parcel_Folder, TAZ_Subarea_File_Name), sep = ',')
 
-parcels = parcels.join(taz_subarea, on = 'TAZ_P')
+parcels = parcels.merge(taz_subarea, how = 'left',  left_on = 'TAZ_P', right_on = 'TAZNUM')
 
 summary_by_jurisdiction = parcels.groupby('Jurisdiction')[Output_Field].sum()
 print "Exporting \"summary_by_jurisdiction.csv\""
@@ -32,5 +33,6 @@ taz_subarea.set_index('Subarea', inplace = True)
 summary_by_subarea = summary_by_subarea.join(taz_subarea['SubareaName'])
 summary_by_subarea.to_csv(os.path.join(Original_Parcel_Folder, "summary_by_subarea.csv"))
 
-
-
+# copy source file
+utility.backupScripts(__file__, os.path.join(Original_Parcel_Folder, os.path.basename(__file__)))
+print 'Done'
