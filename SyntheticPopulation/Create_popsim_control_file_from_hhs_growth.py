@@ -94,6 +94,7 @@ growth_hhs_control_df.pers_tract_weight = growth_hhs_control_df.pers_tract_weigh
 
 growth_hhs_control_df.to_csv(os.path.join(working_folder, popsim_control_output_file), sep = ',')
 
+utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
 
 
 print 'Done'
