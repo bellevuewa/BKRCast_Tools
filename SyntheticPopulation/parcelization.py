@@ -22,21 +22,21 @@ Always check the error file to make sure all households are allocated.
 '''
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021ConcurrencyPretest'
-synthetic_households_file_name = '2020_concurrency_for_pretest_for_growth_only_synthetic_households.csv'
-synthetic_population_file_name = '2020_concurrency_for_pretest_for_growth_only_synthetic_persons.csv'
-parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2019'
+synthetic_households_file_name = '2019_synthetic_households.csv'
+synthetic_population_file_name = '2019_synthetic_persons.csv'
+parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
 # dwelling units per parcel
-new_local_estimated_file_name = r'2021concurrency_pretest_units_growth.csv'
+new_local_estimated_file_name = r'2019_COB_hhs_estimate.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2021concurrency_pretest_hhs_growth.csv'
+parcels_for_allocation_filename = r'2019_parcels_for_allocation_local_estimate.csv'
 
 ## output
-updated_hhs_file_name = 'updated_2021_concurrency_for_pretest_growth_synthetic_households.csv'
-updated_persons_file_name = 'updated_2021_concurrency_for_pretest_growth_synthetic_persons.csv'
-h5_file_name = '2021_concurrency_for_pretest_popsim_growth_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2019_synthetic_households.csv'
+updated_persons_file_name = 'updated_2019_synthetic_persons.csv'
+h5_file_name = '2019_hh_and_persons.h5'
 error_file_name = 'error.txt'
 
 
@@ -403,3 +403,5 @@ error_f.close()
 print 'Total census block groups: ', len(all_blcgrp_ids)
 print 'Final number of households: ', final_hhs_df.shape[0]
 print 'Final number of persons: ', pop_df.shape[0]
+
+utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))

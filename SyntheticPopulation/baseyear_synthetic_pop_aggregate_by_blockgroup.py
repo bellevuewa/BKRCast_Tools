@@ -17,17 +17,18 @@ PSRC's control total, merged control file, and an error file with missing values
 '''
 
 ########### configuration #########################
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018'   
-new_local_estimated_file_name = r'2018_COB_hhs_estimate.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2019'   
+new_local_estimated_file_name = r'2019_COB_hhs_estimate.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 baseyear_control_file = 'acecon0403.csv'
 
-local_estimate_by_GOEID10_file_name = '2018_COB_hh_estimate_by_GEOID10.csv';
+local_estimate_by_GOEID10_file_name = '2019_COB_hh_estimate_by_GEOID10.csv';
 local_estimate_choice_file_name = 'Local_estimate_choice.csv'
-OFM_estimate_file = '2018_OFM_estimate.csv'
-acs_existing_control_file_name = r'ACS2016_controls_OFM2018estimate.csv'
+OFM_estimate_file = '2019_OFM_estimate.csv'
 
-parcels_for_allocation_filename = '2018_parcels_for_allocation_local_estimate.csv'
+#output files
+acs_existing_control_file_name = r'ACS2016_controls_OFM2019estimate.csv'
+parcels_for_allocation_filename = '2019_parcels_for_allocation_local_estimate.csv'
 
 sf_occupancy_rate = 0.952  # from Gwen
 mf_occupancy_rate = 0.895  # from Gwen
@@ -65,10 +66,10 @@ print baseyear_control_df['hh_bg_weight'].sum(), ' hhs in old control file'
 print baseyear_control_df['pers_bg_weight'].sum(), ' persons in old control file'
 
 baseyear_control_df = baseyear_control_df.merge(OFM_estimate_df, how = 'left', left_on = 'block_group_id', right_on = 'GEOID10')
-baseyear_control_df['hh_bg_weight'] = baseyear_control_df['OFM18_hhs']
-baseyear_control_df['hh_tract_weight'] = baseyear_control_df['OFM18_hhs']
-baseyear_control_df['pers_bg_weight'] = baseyear_control_df['OFM18_persons']
-baseyear_control_df['pers_tract_weight'] = baseyear_control_df['OFM18_persons']
+baseyear_control_df['hh_bg_weight'] = baseyear_control_df['OFM_hhs']
+baseyear_control_df['hh_tract_weight'] = baseyear_control_df['OFM_hhs']
+baseyear_control_df['pers_bg_weight'] = baseyear_control_df['OFM_persons']
+baseyear_control_df['pers_tract_weight'] = baseyear_control_df['OFM_persons']
 baseyear_control_df.drop(OFM_estimate_df.columns, axis = 1, inplace = True)
 
 print baseyear_control_df['hh_bg_weight'].sum(), ' hhs in new control file'
@@ -86,6 +87,8 @@ print int(baseyear_control_df['pers_bg_weight'].sum()), ' persons in final contr
 
 baseyear_control_df.to_csv(os.path.join(working_folder, acs_existing_control_file_name), sep = ',')
 new_local_estimate_by_parcel_df.to_csv(os.path.join(working_folder, parcels_for_allocation_filename), sep = ',')
+
+utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
 
 print 'Done.'
 
