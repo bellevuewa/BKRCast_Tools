@@ -3,8 +3,11 @@ import math
 from datetime import date
 
 '''
-This tool is used to generate updated tazdata.in file, which is a land use file in 4k trip format. This land use file is used in supplemental and truck models.
-Employment data in the new_jobs_file are aggregated to 4k model land use categories. They will replace employment data located in landuse_file. 
+Most likely, this tool is used generate tazdata.in for a future horizon year. 
+This tool is used to generate updated tazdata.in file, which is a land use file in 4k trip format. It takes future year hh as control total and proportionally adjusts 
+2014 base year hh by income level (col 102~105). It also takes future year number of jobs in BKRCast format and aggregates to 4K model land use categories. 
+This land use file is used in supplemental and truck models. Employment data in the new_jobs_file are aggregated to 4k model land use categories. 
+They will replace employment data located in landuse_file. 
 College FTE (column 121) and group quarters (column 122-124) do not change (always in 2014 value).
 '''
 
