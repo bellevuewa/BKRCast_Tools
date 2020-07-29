@@ -22,21 +22,21 @@ Always check the error file to make sure all households are allocated.
 '''
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2019'
-synthetic_households_file_name = '2019_synthetic_households.csv'
-synthetic_population_file_name = '2019_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020Concurrency'
+synthetic_households_file_name = '2020concurrency_growth_synthetic_households.csv'
+synthetic_population_file_name = '2020concurrency_growth_synthetic_persons.csv'
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
 # dwelling units per parcel
-new_local_estimated_file_name = r'2019_COB_hhs_estimate.csv'
+new_local_estimated_file_name = r'2020concurrency_units_growth.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2019_parcels_for_allocation_local_estimate.csv'
+parcels_for_allocation_filename = r'2020concurrency_hhs_growth.csv'
 
 ## output
-updated_hhs_file_name = 'updated_2019_synthetic_households.csv'
-updated_persons_file_name = 'updated_2019_synthetic_persons.csv'
-h5_file_name = '2019_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2020concurrency_growth_synthetic_households.csv'
+updated_persons_file_name = 'updated_2020concurrency_growth_synthetic_persons.csv'
+h5_file_name = '2020concurrencygrowth_hh_and_persons.h5'
 error_file_name = 'error.txt'
 
 

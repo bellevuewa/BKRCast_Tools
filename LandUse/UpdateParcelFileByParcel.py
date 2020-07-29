@@ -27,24 +27,24 @@ import h5py
 import utility
 
 Common_Data_Folder = r'Z:\Modeling Group\BKRCast\CommonData'
-working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear'
-Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\Concurrency\2020Concurrency'
+Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\LandUse\Concurrency\2020Concurrency'
 
 # Base year original ESD parcel file name can be an absolute name or relative name. If it is relative, will open from Common data folder. 
 # this can be true original 2014, or introplated ESD dataset between 2014 and 2035. 
-Original_ESD_Parcel_File_Name = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear\interpolated_parcel_file_2018.txt'
+Original_ESD_Parcel_File_Name = r'Z:\Modeling Group\BKRCast\LandUse\2019Baseyear\interpolated_parcel_file_2019.txt'
 
 Conversion_Factors_File_Name = r"BKRCast_Conversion_rate_2020.csv"
 Subarea_Adjustment_Factor_File_Name = r"subarea_adjustment_factor-4-7-2020.csv"
-Parcels_Sqft_File_Name = r"updated_2018_kingcounty_LU_by_parcel.csv"
+Parcels_Sqft_File_Name = r"2019_king_county_lu_sqft_by_PSRC_ID.csv"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Output_Parcel_File_Name = "parcels_urbansim.txt"
-Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018\2018_popsim_hh_and_persons.h5'
+Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020Concurrency\2020_concurrency_hh_and_persons.h5'
 TAZ_adjustment_file_name = r'TAZ_adjustment_factors-4-7-2020.csv'
 
 # if the Parcel_Job_File_Name is available, use job numbers in this file to overwrite jobs in the generated parcel file.
 # otherwise set this variable to None
-Parcel_Job_File_Name = '2018_COB_Jobs.csv'
+Parcel_Job_File_Name = '2020concurrency_COB_Jobs.csv'
 
 # set False if want to drop home based jobs
 KEEP_HOME_BASED_JOBS = False
