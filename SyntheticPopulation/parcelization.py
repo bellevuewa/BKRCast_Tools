@@ -22,21 +22,21 @@ Always check the error file to make sure all households are allocated.
 '''
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020Concurrency'
-synthetic_households_file_name = '2020concurrency_growth_synthetic_households.csv'
-synthetic_population_file_name = '2020concurrency_growth_synthetic_persons.csv'
-parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020'
+synthetic_households_file_name = '2020_synthetic_households.csv'
+synthetic_population_file_name = '2020_synthetic_persons.csv'
+parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 
 # dwelling units per parcel
-new_local_estimated_file_name = r'2020concurrency_units_growth.csv'
+new_local_estimated_file_name = r'2020_COB_hhs_estimate.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2020concurrency_hhs_growth.csv'
+parcels_for_allocation_filename = r'2020_parcels_for_allocation_local_estimate.csv'
 
 ## output
-updated_hhs_file_name = 'updated_2020concurrency_growth_synthetic_households.csv'
-updated_persons_file_name = 'updated_2020concurrency_growth_synthetic_persons.csv'
-h5_file_name = '2020concurrencygrowth_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_synthetic_households.csv'
+updated_persons_file_name = 'updated_synthetic_persons.csv'
+h5_file_name = '2020_hh_and_persons.h5'
 error_file_name = 'error.txt'
 
 
@@ -60,7 +60,7 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
     parcels = parcel_df.loc[parcel_df['GEOID10'] == blcgrpid]
     if parcels.shape[0] == 0:
         print 'blockgroup ', blcgrpid, ' has no parcels'
-        return
+        return None
     
     # assign SF first
     sfparcelids = parcels.loc[parcels['LUTYPE_P'] == 24]
@@ -136,7 +136,11 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
     '''
         allocate households to match local estimate.
     '''
+
     parcels = parcel_df.loc[parcel_df['GEOID10'] == blcgrpid]
+    if parcels.shape[0] == 0:
+        print 'blockgroup ', blcgrpid, ' has no parcels'
+        return None
     
     # assign SF first
     sfparcels_df = new_local_estimate_df.loc[new_local_estimate_df['SFUnits'] == 1]
@@ -261,11 +265,20 @@ for blcgrpid in all_blcgrp_ids:
             local_estimate_df = new_local_estimate_df.loc[new_local_estimate_df['GEOID10'] == blcgrpid]
             parcels_available_for_alloc_df = parcels_for_allocation.loc[parcels_for_allocation['GEOID10'] == blcgrpid, ['PSRC_ID', 'GEOID10', 'total_hhs']]
             updatedHhs = assign_hhs_parcels_by_local_estimate(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid, local_estimate_df, parcels_available_for_alloc_df)
-            msg = '{4:d}: blocgroup {0:d}: allocated by local estimate. total hhs: {1:.0f},  allocated: {2:d}, local estimate: {3:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum(), int(local_estimate_df['SF'].sum() + local_estimate_df['MF'].sum()), id) 
+            if updatedHhs is not None:
+                msg = '{4:d}: blocgroup {0:d}: allocated by local estimate. total hhs: {1:.0f},  allocated: {2:d}, local estimate: {3:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum(), int(local_estimate_df['SF'].sum() + local_estimate_df['MF'].sum()), id) 
+                print msg
+            else: 
+                id += 1
+                continue
         else:
             updatedHhs = assign_hhs_to_parcels_by_blkgrp(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid)
-            msg = '{3:d}: blocgroup {0:d}: total hhs: {1:.0f},  allocated: {2:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum(), id) 
-        print msg
+            if updatedHhs is not None:
+                msg = '{3:d}: blocgroup {0:d}: total hhs: {1:.0f},  allocated: {2:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum(), id) 
+                print msg
+            else:
+                id += 1
+                continue
         if (hhs_new != updatedHhs['hhexpfac'].sum()):
             print '******************** blockgroup ', blcgrpid, ': total hhs does not match control total.'           
             error_f.write(msg+'\n')
@@ -400,8 +413,8 @@ pop_df.to_csv(os.path.join(working_folder, updated_persons_file_name), sep = ','
 final_hhs_df.to_csv(os.path.join(working_folder, updated_hhs_file_name), sep = ',')
 error_f.close()
 
+utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
+
 print 'Total census block groups: ', len(all_blcgrp_ids)
 print 'Final number of households: ', final_hhs_df.shape[0]
 print 'Final number of persons: ', pop_df.shape[0]
-
-utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
