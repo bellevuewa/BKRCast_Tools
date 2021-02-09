@@ -5,13 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>parcelization.py</StartupFile>
+    <StartupFile>Future_parcel_file_creation_with_local_estimate.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId />
+    <InterpreterId>Global|ContinuumAnalytics|Anaconda27-64</InterpreterId>
+    <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
   <PropertyGroup Condition="'$(Configuration)' == 'Release'" />
@@ -51,13 +52,25 @@
     <Compile Include="Create_parcel_TAZ_crosstable.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LandUse\Create_LU_for_oldTAZ.py">
+    <Compile Include="LandUse\validate_parcel_data_from_local_jurisdiction.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Network\bkr_slope.py" />
+    <Compile Include="Network\PopulateNetwork.py" />
+    <Compile Include="Network\bkr_slope_step2.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Network\Pathbased_assignment_on_multiple_scenarios.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Network\SOLA_assignment_on_multiple_scenarios.py" />
+    <Compile Include="supplemental\Create_tazdata_in.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LandUse\Find_PSRCID_from_PIN.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LandUse\Interpolate_parcel_files.py">
+    <Compile Include="LandUse\Interpolate_parcel_files2.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LandUse\replace_kingcounty_sqft_with_local_estimate.py" />
@@ -68,8 +81,9 @@
     </Compile>
     <Compile Include="mode_share_calculatorV2.py" />
     <Compile Include="Network\ExportAllAttributes.py" />
-    <Compile Include="Network\PopulateNetwork.py" />
-    <Compile Include="parcelization.py">
+    <Compile Include="Network\PopulateNetwork2.py" />
+    <Compile Include="SyntheticPopulation\generate_COB_local_hhs_estimate.py" />
+    <Compile Include="SyntheticPopulation\parcelization.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PSRC2BKR\Convert_PSRC_TAZ_to_BKRCastTAZ_in_parcel.py" />
@@ -93,12 +107,10 @@
     <Compile Include="synthetic_population_to_shapefile.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="baseyear_synthetic_pop_aggregate_by_blockgroup.py">
+    <Compile Include="SyntheticPopulation\baseyear_synthetic_pop_aggregate_by_blockgroup.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="TemoraryCode.py">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="TemoraryCode.py" />
     <Compile Include="time_of_day_by_tours.py" />
     <Compile Include="tour_mode_share_calculator.py" />
     <Compile Include="parcel_file_summary.py" />
@@ -120,14 +132,20 @@
     <Compile Include="transfer_parcel_attributes.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Trucks\update_truck_externals.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="UpdateDatabaseLink.py" />
     <Compile Include="UpdateHHs_in_Parcels.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Future_parcel_file_creation_with_local_estimate.py" />
-    <Compile Include="UpdateParcelFileByParcel.py" />
+    <Compile Include="LandUse\UpdateParcelFileByParcel.py" />
     <Compile Include="UpdateParcelFileBySubarea.py" />
     <Compile Include="utility.py" />
+    <Compile Include="validate_urbansim_parcels.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="walk_trips.py" />
     <Compile Include="workers_taz.py" />
     <Compile Include="__init__.py" />
@@ -136,10 +154,6 @@
     <Content Include="BKRCast_Conversion_rate.csv" />
     <Content Include="BKRCast_Conversion_rate_test.csv" />
     <Content Include="original_TAZ11.csv" />
-    <Content Include="parcels_duplicated.csv" />
-    <Content Include="parcels_duplicated_flag.csv" />
-    <Content Include="subarea_adjustment_factor.csv" />
-    <Content Include="subarea_conversion_schedule3.csv" />
     <Content Include="TAZ11.csv" />
     <Content Include="TAZ41_parcels.csv" />
     <Content Include="TAZ_subarea.csv" />
@@ -148,9 +162,13 @@
     <Folder Include="Locations\" />
     <Folder Include="LandUse\" />
     <Folder Include="Network\" />
+    <Folder Include="Trucks\" />
     <Folder Include="SyntheticPopulation\" />
     <Folder Include="supplemental\" />
     <Folder Include="PSRC2BKR\" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda27-64" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>
