@@ -8,10 +8,10 @@ This program is used to pass number of households by parcel from synthetic popul
 the households in parcel file is consistent with synthetic population file.
 '''
 
-Hh_and_person_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline-test\inputs\hh_and_persons.h5'
-parcel_folder = r'Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based_half_parkingcost_test'
+Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020\2020_hh_and_persons.h5'
+parcel_folder = r'Z:\Modeling Group\BKRCast\LandUse\2020baseyear'
 input_parcel_file = 'parcels_urbansim.txt'
-output_parcel_file = 'updated_parcels_urbansim.txt'
+output_parcel_file = 'parcels_urbansim.txt'
 
 print 'Loading hh_and_persons.h5...'
 hdf_file = h5py.File(Hh_and_person_file, "r")

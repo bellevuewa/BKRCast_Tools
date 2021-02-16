@@ -20,7 +20,7 @@ Original_Parcel_File_Name = r"Z:\Modeling Group\BKRCast\2018LU\2018_kingcounty_L
 Output_Parcel_Folder = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear'
 parcel_lookup_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
-Subset_Parcels_File_Name = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear\2018_COB_landuse.csv'
+Subset_Parcels_File_Name = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear\2018_COB_sqft.csv'
 Output_Parcel_File_Name = "updated_2018_kingcounty_LU_by_parcel.csv"
 ###
 

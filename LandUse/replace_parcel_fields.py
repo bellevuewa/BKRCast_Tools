@@ -6,15 +6,17 @@ import os
 
 # this program is used to replace a subset of parcel data
 
-New_parcel_data_file_name = r"Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based\COB estimate\2035_parcels_COB_Jobs_Estimate.csv"
-Original_parcel_file_name = r"Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based\BKRCastFuture_parcels_urbansim.txt"
-Updated_parcel_file_name =  r"Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based\COB estimate\parcels_urbansim.txt"
-Old_Subset_parcel_file_name = r"Z:\Modeling Group\BKRCast\2035Parcel_Sqft_based\COB estimate\Old_parcels_subset.txt"
+# we no longer use it.
+
+New_parcel_data_file_name = r"Z:\Modeling Group\BKRCast\LandUse\2020baseyear\2020_KC_Jobs.csv"
+Original_parcel_file_name = r"Z:\Modeling Group\BKRCast\LandUse\2020baseyear\2020_parcels_bkr_from_PSRC_with_half_Bellevue_parkingcost.txt"
+Updated_parcel_file_name =  r"Z:\Modeling Group\BKRCast\LandUse\2020baseyear\parcels_urbansim.txt"
+Old_Subset_parcel_file_name = r"Z:\Modeling Group\BKRCast\LandUse\2020baseyear\Old_parcels_subset.txt"
 
 
 print 'Loading...'
-New_parcel_data_df = pd.DataFrame.from_csv(New_parcel_data_file_name, sep = ',', index_col = 'PARCELID')
-Orig_parcel_df = pd.DataFrame.from_csv(Original_parcel_file_name, sep = ' ', index_col = 'PARCELID')
+New_parcel_data_df = pd.read_csv(New_parcel_data_file_name, sep = ',', index_col = 'PSRC_ID')
+Orig_parcel_df = pd.read_csv(Original_parcel_file_name, sep = ' ', index_col = 'PARCELID', low_memory = False)
 
 fields = New_parcel_data_df.columns
 New_parcel_data_df.rename(columns = lambda col: col + '_new', inplace = True)
