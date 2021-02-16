@@ -2,6 +2,12 @@ import pandas as pd
 import math
 from datetime import date
 
+
+###
+###This program is not working. A lot of things need to be done.  Do not run this program.
+## Need to manually process truck externals and special generators
+## 
+
 truck_model_directory = r'D:\projects\2019baseyear\BKR0V2\inputs\2019\trucks'
 truck_external_files = {'heavy_trucks_ee_2014.in':'heavy_trucks_ee.in', 'heavy_trucks_ei_2014.in':'heavy_trucks_ei.in', 'heavy_trucks_ie_2014.in':'heavy_trucks_ie.in',
     'medium_trucks_ee_2014.in':'medium_trucks_ee.in', 'medium_trucks_ei_2014.in':'medium_trucks_ei.in', 'medium_trucks_ie_2014.in':'medium_trucks_ie.in'}
