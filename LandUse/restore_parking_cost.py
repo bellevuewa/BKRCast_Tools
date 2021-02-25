@@ -17,7 +17,7 @@ SET_BELLEVUE_PARKING_COST_HALF = False
 
 print "Loading input files ..."
 original_parcel_df = pd.read_csv(os.path.join(Project_Folder, Original_ESD_Parcel_File_Name), sep = " ", index_col = "PARCELID", low_memory = False)
-taz_subarea_df = pd.read_csv(os.path.join(Project_Folder,TAZ_Subarea_File_Name), sep = ",", index_col = "TAZNUM")
+taz_subarea_df = pd.read_csv(os.path.join(Project_Folder,TAZ_Subarea_File_Name), sep = ",", index_col = "BKRCastTAZ")
 
 # drop four parking attributes 
 update_parcel_df = original_parcel_df.drop(Parking_Cost_Attributes, axis = 1)

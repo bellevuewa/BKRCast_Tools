@@ -15,7 +15,7 @@ import os
 ###################### configuration
 ### inputs ###
 working_folder = r"Z:\Modeling Group\BKRCast\LandUse\2020baseyear"
-New_parcel_data_file_name = r"2020_COB_Jobs.csv"
+New_parcel_data_file_name = r"2020_BKR_Jobs.csv"
 Original_parcel_file_name = r"interpolated_parcel_file_2020_with_half_Bellevue_parkingcost.txt"
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
@@ -34,8 +34,8 @@ full_bellevue_parcels_df = lookup_df.loc[lookup_df['Jurisdiction'] == 'BELLEVUE'
 actual_bel_parcels_df = new_parcel_data_df.loc[new_parcel_data_df['PSRC_ID'].isin(full_bellevue_parcels_df['PSRC_ID'])]
 not_in_full_bellevue_parcels = actual_bel_parcels_df.loc[~actual_bel_parcels_df['PSRC_ID'].isin(full_bellevue_parcels_df['PSRC_ID'])]
 missing_bellevue_parcels_df = original_parcel_data_df.loc[original_parcel_data_df['PARCELID'].isin(full_bellevue_parcels_df.loc[~full_bellevue_parcels_df['PSRC_ID'].isin(new_parcel_data_df['PSRC_ID']), 'PSRC_ID'])]
-missing_bellevue_parcels_df.to_csv(os.path.join(working_folder, 'missing_bellevue_parcels.csv'), sep = ',')
-not_in_full_bellevue_parcels.to_csv(os.path.join(working_folder, 'not_valid_bellevue_parcels.csv'), sep = ',')
+missing_bellevue_parcels_df.to_csv(os.path.join(working_folder, 'missing_bellevue_parcels.csv'), sep = ',', index = False)
+not_in_full_bellevue_parcels.to_csv(os.path.join(working_folder, 'not_valid_bellevue_parcels.csv'), sep = ',', index = False)
 
 newjobs = new_parcel_data_df['EMPTOT_P'].sum() 
 print 'new parcel data file has ' + str(newjobs)  + ' jobs.'
