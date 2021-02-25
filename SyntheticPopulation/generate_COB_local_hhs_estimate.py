@@ -6,12 +6,12 @@ import utility
 ## input ##
 working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020'   
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-kc_housingUnits_file = '2020_kingcounty_housingunits.csv'
+kc_housingUnits_file = '2020_BKR_housingunits.csv'
 ofm_hhs_estimate_file = '2020_OFM_estimate.csv'
 
 ## output ##
-cob_hhs_estimate_by_blkgp_file = '2020_COB_hh_estimate_by_GEOID10.csv'
-cob_hhs_estimate_by_parcel_file = '2020_COB_hhs_estimate.csv'
+cob_hhs_estimate_by_blkgp_file = '2020_COB_hh_estimate_by_GEOID10_BKR.csv'
+cob_hhs_estimate_by_parcel_file = '2020_COB_hhs_estimate_BKR.csv'
 
 
 sf_occupancy_rate = 0.952  # from Gwen

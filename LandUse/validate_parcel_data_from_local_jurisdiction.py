@@ -3,7 +3,7 @@ import utility
 import pandas as pd
 
 parcel_lookup_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-parcel_data_file_name = r'Z:\Modeling Group\BKRCast\LandUse\2018Baseyear\2018_COB_jobs.csv'
+parcel_data_file_name = r'Z:\Modeling Group\BKRCast\LandUse\2020Baseyear\2020_KC_Jobs.csv'
 
 # Juridisction = Rest of KC, External, BELLEVUE, BellevueFringe, KIRKLAND, REDMOND, RedmondFridge, KirklandFringe, 
 # only look into this subset of parcel_lookup_df if Jurisdiction is not set to None. Otherwise use the whole set of parcel_lookup_df,

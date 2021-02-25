@@ -28,10 +28,10 @@ synthetic_population_file_name = '2020_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 
 # dwelling units per parcel
-new_local_estimated_file_name = r'2020_COB_hhs_estimate.csv'
+new_local_estimated_file_name = r'2020_COB_hhs_estimate_BKR.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2020_parcels_for_allocation_local_estimate.csv'
+parcels_for_allocation_filename = r'2020_parcels_for_allocation_local_estimate_BKR.csv'
 
 ## output
 updated_hhs_file_name = 'updated_synthetic_households.csv'
