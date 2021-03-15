@@ -20,6 +20,8 @@ class BKRCastExportNetwork(_modeller.Tool()):
     1.2:   create network for a horizon year directly from the master network and punch out all network inputs files.
     1.2.1  remove links with vdf24. otherwise ped/bike would use these facilities.
     1.2.2  add scenario selection and overwrite feature.
+    1.2.3  remove links modes including w and vdf=24. Otherwise transit only links would be removed. This is still a temporary fix. Eventually we need to add 
+            @exist_modes and @imp_modes 
     '''
     version = "1.2.2" # this is the version
     default_path = ""
@@ -162,7 +164,7 @@ class BKRCastExportNetwork(_modeller.Tool()):
         with _modeller.logbook_trace(name = 'Remove future motorized links', value = ""):
             NAMESPACE = "inro.emme.data.network.base.delete_links"
             delete_links = _modeller.Modeller().tool(NAMESPACE)
-            delete_links(scenario = horizon_scen, selection = 'vdf=24', condition = 'cascade')    
+            delete_links(scenario = horizon_scen, selection = 'modes=w and vdf=24', condition = 'cascade')    
 
         am_net_name = os.path.join(self.outputFolder, "am_roadway.in")
         md_net_name = os.path.join(self.outputFolder, "md_roadway.in")
