@@ -12,17 +12,17 @@ import utility
 # # summarize land use  on the same base data.
 
 ### input files
-working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2020baseyear'
-kingcsqft = 'base_2020.csv'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\TFP\2018TFP sensitivity'
+kingcsqft = 'base_lua_rf_2021_0317.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
 
 ### Output fiels
-kc_job_file = '2020_BKR_Jobs.csv'
-kc_SQFT_file = '2020_BKR_Sqft.csv'
+kc_job_file = '2018TFPSensitivity_COB_Jobs.csv'
+kc_SQFT_file = '2018TFPSensitivity_COB_Sqft.csv'
 error_parcel_file = 'parcels_not_in_2014_PSRC_parcels.csv'
-kc_du_file = '2020_BKR_housingunits.csv'
+kc_du_file = '2018TFPSensitivity_COB_housingunits.csv'
 ###
 
 ##
@@ -30,18 +30,18 @@ kc_du_file = '2020_BKR_housingunits.csv'
 # 'Rest of KC','External','BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'
 # if it is empty, means all parcels in kingcsqft file   
 ##
-subset_area = ['BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'] 
+#subset_area = ['BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'] 
+subset_area = ['BELLEVUE'] 
 
 job_rename_dict = {'JOBS_EDU':'EMPEDU_P', 'JOBS_FOOD':'EMPFOO_P', 'JOBS_GOV':'EMPGOV_P', 'JOBS_IND':'EMPIND_P',
     'JOBS_MED':'EMPMED_P', 'JOBS_OFF':'EMPOFC_P', 'JOBS_RET':'EMPRET_P', 'JOBS_RSV':'EMPRSC_P', 'JOBS_SERV':'EMPSVC_P', 'JOBS_OTH':'EMPOTH_P',
     'JOBS_TOTAL':'EMPTOT_P'}
-sqft_rename_dict = {'EDU':'SQFT_EDU', 'FOOD':'SQFT_FOO','IND':'SQFT_IND','MED':'SQFT_MED', 'OFF':'SQFT_OFC',
-    'RET':'SQFT_RET', 'RSV':'SQFT_RSV', 'SERV':'SQFT_SVC', 'OTH': 'SQFT_OTH', 'NONE':'SQFT_NON', 
-    'TOTAL':'SQFT_TOT'}
+sqft_rename_dict = {'EDU':'SQFT_EDU', 'FOOD':'SQFT_FOO', 'GOV':'SQFT_GOV', 'IND':'SQFT_IND','MED':'SQFT_MED', 'OFF':'SQFT_OFC',
+    'RET':'SQFT_RET', 'RSV':'SQFT_RSV', 'SERV':'SQFT_SVC', 'OTH': 'SQFT_OTH', 'TOTAL':'SQFT_TOT'}
 du_rename_dict = {'UNITS_SF':'SFUnits', 'UNITS_MF':'MFUnits'}
 
 jobs_columns_List = ['PSRC_ID', 'EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPRET_P', 'EMPRSC_P', 'EMPSVC_P', 'EMPOTH_P', 'EMPTOT_P']
-sqft_columns_list = ['PSRC_ID', 'SQFT_EDU', 'SQFT_FOO', 'SQFT_IND', 'SQFT_MED', 'SQFT_OFC', 'SQFT_RET', 'SQFT_RSV', 'SQFT_SVC', 'SQFT_OTH', 'SQFT_NON', 'SQFT_TOT']
+sqft_columns_list = ['PSRC_ID', 'SQFT_EDU', 'SQFT_FOO', 'SQFT_GOV', 'SQFT_IND', 'SQFT_MED', 'SQFT_OFC', 'SQFT_RET', 'SQFT_RSV', 'SQFT_SVC', 'SQFT_OTH', 'SQFT_TOT']
 dwellingunits_list = ['PSRC_ID', 'SFUnits', 'MFUnits']
 
 print 'Loading....'

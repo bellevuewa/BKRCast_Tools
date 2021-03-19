@@ -8,8 +8,8 @@ This program is used to pass number of households by parcel from synthetic popul
 the households in parcel file is consistent with synthetic population file.
 '''
 
-Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020\2020_hh_and_persons.h5'
-parcel_folder = r'Z:\Modeling Group\BKRCast\LandUse\2020baseyear'
+Hh_and_person_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018TFPSensitivity\2018TFPSensitivity_hh_and_persons.h5'
+parcel_folder = r'Z:\Modeling Group\BKRCast\LandUse\TFP\2018TFP sensitivity'
 input_parcel_file = 'parcels_urbansim.txt'
 output_parcel_file = 'parcels_urbansim.txt'
 
@@ -32,5 +32,6 @@ parcel_df.drop(['hhexpfac', 'hhsize'], axis = 1, inplace = True)
 print 'Exporting future parcel file...'
 parcel_df.to_csv(os.path.join(parcel_folder, output_parcel_file), sep = ' ')
 
+utility.backupScripts(__file__, os.path.join(parcel_folder, os.path.basename(__file__)))
 
 print 'Done.'

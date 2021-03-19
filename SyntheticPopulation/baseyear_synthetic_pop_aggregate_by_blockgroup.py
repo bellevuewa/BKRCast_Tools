@@ -23,17 +23,17 @@ OFM_estimate_file. For instance, OFM18_hhs now becomes OFM_hhs, OFM18_persons be
 
 ########### configuration #########################
 ## input files
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020'   
-new_local_estimated_file_name = r'2020_COB_hhs_estimate_BKR.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018TFPSensitivity'   
+new_local_estimated_file_name = r'2018TFPSensitivity_COB_hhs_estimate.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 baseyear_control_file = 'acecon0403.csv'
-local_estimate_by_GOEID10_file_name = '2020_COB_hh_estimate_by_GEOID10_BKR.csv';
+local_estimate_by_GOEID10_file_name = '2018TFPSensitivity_COB_hh_estimate_by_GEOID10.csv';
 local_estimate_choice_file_name = 'Local_estimate_choice.csv'
-OFM_estimate_file = '2020_OFM_estimate.csv'
+OFM_estimate_file = '2030_OFM_estimate.csv'
 
 ## output files
-acs_existing_control_file_name = r'ACS2016_controls_OFM2020estimate_BKR.csv'
-parcels_for_allocation_filename = '2020_parcels_for_allocation_local_estimate_BKR.csv'
+acs_existing_control_file_name = r'ACS2016_controls_2018TFPsensitivity_estimate.csv'
+parcels_for_allocation_filename = '2018TFPSensitivity_parcels_for_allocation_local_estimate.csv'
 
 sf_occupancy_rate = 0.952  # from Gwen
 mf_occupancy_rate = 0.895  # from Gwen
@@ -65,7 +65,16 @@ new_local_estimate_df = new_local_estimate_df.merge(local_estimate_choice_df, ho
 new_local_estimate_df = new_local_estimate_df.loc[new_local_estimate_df['Use_Local'] == 'Y']
 
 # assign OFM estimate by blockgroup to control file
-OFM_estimate_df = pd.read_csv(os.path.join(working_folder, OFM_estimate_file), sep = ',')
+OFM_estimate_df = pd.read_csv(os.path.join(working_folder, OFM_estimate_file), sep = ',', index_col = 'GEOID10')
+
+#blockgroup 530619900020 and 530619901000 have no hhs and pop in 2016 ACS, but they have in 2035 PSRC's estimate
+#move these hhs and pops to blockgroup 530610521042.
+OFM_estimate_df.loc[530610521042] = OFM_estimate_df.loc[530610521042] + OFM_estimate_df.loc[530619900020] + OFM_estimate_df.loc[530619901000]
+OFM_estimate_df.loc[530619900020] = 0
+OFM_estimate_df.loc[530619901000] = 0
+
+OFM_estimate_df.reset_index(inplace = True)
+
 baseyear_control_df = pd.read_csv(os.path.join(working_folder, baseyear_control_file), sep = ',')
 print baseyear_control_df['hh_bg_weight'].sum(), ' hhs in old control file'
 print baseyear_control_df['pers_bg_weight'].sum(), ' persons in old control file'

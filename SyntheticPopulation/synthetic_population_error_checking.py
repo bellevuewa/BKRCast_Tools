@@ -8,8 +8,8 @@ import utility
 
 ############# confiuration ###############
 ## input files
-hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020'
-hh_person_file = '2020_hh_and_persons.h5'
+hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021Concurrency'
+hh_person_file = '2021_concurrency_hh_and_persons.h5'
 
 ## output files
 error_hhs_file = 'hhs.f'

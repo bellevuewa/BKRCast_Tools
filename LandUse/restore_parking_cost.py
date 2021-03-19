@@ -1,14 +1,15 @@
 import os, sys
 import pandas as pd
+import utility
 
 # copy parking cost data ['PARKDY_P', 'PARKHR_P', 'PPRICDYP', 'PPRICHRP'] from the Parking_Cost_Source to Original_ESD_Parcel_File_Name file.
 ############ configuration
 ### input files
-Project_Folder =  r"Z:\Modeling Group\BKRCast\LandUse\2020baseyear"
-Original_ESD_Parcel_File_Name = r"interpolated_parcel_file_2020.txt"
+Project_Folder =  r"Z:\Modeling Group\BKRCast\LandUse\TFP\2018TFP sensitivity"
+Original_ESD_Parcel_File_Name = r"interpolated_parcel_file_2030.txt"
 TAZ_Subarea_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 Parking_Cost_Source =  r"Z:\Modeling Group\BKRCast\LandUse\2019baseyear\parcels_urbansim.txt"
-Updated_Parcel_File_Name = r'interpolated_parcel_file_2020_with_half_Bellevue_parkingcost.txt'
+Updated_Parcel_File_Name = r'interpolated_parcel_file_2030_with_half_Bellevue_parkingcost.txt'
 
 Parking_Cost_Attributes = ['PARKDY_P', 'PARKHR_P', 'PPRICDYP', 'PPRICHRP']
 SET_BELLEVUE_PARKING_COST_HALF = False
@@ -38,6 +39,9 @@ if SET_BELLEVUE_PARKING_COST_HALF == True:
 
 print 'Exporting updated parcel file...'
 update_parcel_df.to_csv(os.path.join(Project_Folder, Updated_Parcel_File_Name), sep = " ")
+
+utility.backupScripts(__file__, os.path.join(Project_Folder, os.path.basename(__file__)))
+
 print 'Done'
 
 

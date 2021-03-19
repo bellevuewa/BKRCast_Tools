@@ -7,8 +7,8 @@ import utility
 # Summarize parcel urbansim file to TAZ, subarea and city level.
 
 ### Configuration
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\2035DTAccess"
-Original_ESD_Parcel_File_Name = r"2035_DTAccess_urbansim_Updated.txt"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\2020baseyear\temp"
+Original_ESD_Parcel_File_Name = r"interpolated_parcel_file_2020.txt"
 TAZ_Subarea_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
 
@@ -18,7 +18,7 @@ print "Loading input files ..."
 parcels = pd.read_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = ' ')
 taz_subarea = pd.read_csv(os.path.join(Original_Parcel_Folder, TAZ_Subarea_File_Name), sep = ',')
 
-parcels = parcels.merge(taz_subarea, how = 'left',  left_on = 'TAZ_P', right_on = 'TAZNUM')
+parcels = parcels.merge(taz_subarea, how = 'left',  left_on = 'TAZ_P', right_on = 'BKRCastTAZ')
 
 summary_by_jurisdiction = parcels.groupby('Jurisdiction')[Output_Field].sum()
 print "Exporting \"summary_by_jurisdiction.csv\""
