@@ -19,6 +19,9 @@ PSRC's control total, merged control file, and an error file with missing values
 to ensure the program is compatible with OFM estimate in other years, remove year number from column names from 
 OFM_estimate_file. For instance, OFM18_hhs now becomes OFM_hhs, OFM18_persons becomes OFM_persons.
 
+03/16/2021
+Add special treatment on blockgroup 530619900020,  530619901000, and 530610521042 so that this tool can be applied to future year synthetic population development.
+
 '''
 
 ########### configuration #########################

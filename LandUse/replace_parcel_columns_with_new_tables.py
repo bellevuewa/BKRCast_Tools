@@ -3,6 +3,7 @@ import h5py
 import numpy as np
 import random 
 import os
+import utility
 
 ###
 ### Since CD will provide numebr of jobs instead of sqft, we will use this sript to 
@@ -14,9 +15,9 @@ import os
 
 ###################### configuration
 ### inputs ###
-working_folder = r"Z:\Modeling Group\BKRCast\LandUse\2020baseyear"
-New_parcel_data_file_name = r"2020_BKR_Jobs.csv"
-Original_parcel_file_name = r"interpolated_parcel_file_2020_with_half_Bellevue_parkingcost.txt"
+working_folder = r"Z:\Modeling Group\BKRCast\LandUse\TFP\2018TFP sensitivity"
+New_parcel_data_file_name = r"2018TFPSensitivity_COB_Jobs.csv"
+Original_parcel_file_name = r"interpolated_parcel_file_2030_with_half_Bellevue_parkingcost.txt"
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
 Set_Jobs_to_Zeros_All_Bel_Parcels_Not_in_New_Parcel_Data_File = True
@@ -59,6 +60,9 @@ print 'total jobs before change: ' + str(original_parcel_data_df['EMPTOT_P'].sum
 print 'total jobs after change: ' + str(updated_parcel_df['EMPTOT_P'].sum())
 print 'Exporting parcel files...'
 updated_parcel_df.to_csv(os.path.join(working_folder, Updated_parcel_file_name), sep = ' ')
+
+utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
+
 
 print 'Done'
 
