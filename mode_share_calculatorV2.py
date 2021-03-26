@@ -14,17 +14,20 @@ import os
 #8/23/2019
 # fixed a bug in trips with both ends in subarea.
 # add trip distance calculation.
+
+# 3/26/2021
+# new feature: calculate total trips by HBW, HBSchool, HBO, and NHB 
 ##############################################################################################################
 # Below are inputs that need to modify
 
-trips_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\outputs\_trip.tsv'
+trips_file = r'D:\projects\2018baseyear\outputs\_trip.tsv'
 
 # enter a TAZ list if mode share for a specific subarea is desired. 
 # if the list is empty (with the header 'TAZ only), the mode share for the whole region will be calculated.
-subarea_taz_file = r'D:\BKR0V1-1\BellevueDTTAZ.txt'
-Output_file = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\2035_BelDT_trip_daily_mode_share.txt'
+subarea_taz_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\allregion.txt'
+Output_file = r'D:\projects\2018baseyear\2018_regional_trip_daily_mode_share.txt'
 
-Output_file_trip_dist = r'D:\2035BKRCastBaseline\2035BKRCastBaseline\2035_BelDT_daily_trip_distance.txt'
+Output_file_trip_dist = r'D:\projects\2018baseyear\2018_regionalT_daily_trip_distance.txt'
 
 # Below is the start and end time you want to query from daysim output. It is number of minutes after 12am. 
 # if you want 24hr data, set all to 0.
@@ -32,16 +35,16 @@ start_time = 0  # minutes starting from 12am
 end_time = 0   # minutes starting from 12am
 
 trips_from_only = True  # if true, trips only from the TAZ list
-trips_end_only = True    # if true, trips only to the TAZ list
+trips_end_only = False    # if true, trips only to the TAZ list
 #################################################################################################################
 
-total_trips_df = pd.DataFrame.from_csv(trips_file, sep = '\t')
+total_trips_df = pd.read_csv(trips_file, low_memory = False, sep = '\t')
 if (start_time == 0 and end_time == 0):
     trips_df = total_trips_df
 else:
     trips_df = total_trips_df.loc[(total_trips_df['deptm'] >= start_time) & (total_trips_df['arrtm'] <= end_time)]
 
-subarea_taz_df = pd.DataFrame.from_csv(subarea_taz_file)
+subarea_taz_df = pd.read_csv(subarea_taz_file)
 subarea_taz_df.reset_index(inplace = True)
 
 if subarea_taz_df.empty == False:
@@ -103,6 +106,30 @@ commute_trips = subarea_trips_df.loc[(subarea_trips_df['dpurp']==1) | (subarea_t
 commute_trips['share'] = commute_trips['trexpfac'] / commute_trips['trexpfac'].sum()
 commute_trips['avgdist'] = commute_trips['travdist'] / commute_trips['trexpfac']
 
+# NHB trips calculation
+nhb_df = subarea_trips_df[['oadtyp','dadtyp','otaz', 'dtaz', 'trexpfac', 'opurp', 'dpurp']]
+nhb_df = nhb_df.loc[(nhb_df['oadtyp'] != 1) & (nhb_df['dadtyp'] != 1)]
+nhb_counts = nhb_df['trexpfac'].sum()
+print 'Total NHB trips: ' + str(nhb_counts)
+
+# HBW trip calculation
+hbw_df = subarea_trips_df[['oadtyp','dadtyp','otaz', 'dtaz', 'trexpfac', 'opurp', 'dpurp']]
+hbw_df = hbw_df.loc[((hbw_df['oadtyp'] == 1) & (hbw_df['dadtyp'] == 2)) | ((hbw_df['oadtyp'] == 2) & (hbw_df['dadtyp'] == 1))]
+hbw_counts = hbw_df['trexpfac'].sum()
+print 'Total NBW trips: ' + str(hbw_counts)
+
+# HBSchool trip calculation
+hbsch_df = subarea_trips_df[['oadtyp','dadtyp','otaz', 'dtaz', 'trexpfac', 'opurp', 'dpurp']]
+hbsch_df = hbsch_df.loc[((hbsch_df['oadtyp'] == 1) & (hbsch_df['dadtyp'] == 3)) | ((hbsch_df['oadtyp'] == 3) & (hbsch_df['dadtyp'] == 1))]
+hbsch_counts = hbsch_df['trexpfac'].sum()
+print 'Total HBSchool trips: ' + str(hbsch_counts)
+
+# HBO trip calculation
+hbo_df = subarea_trips_df[['oadtyp','dadtyp','otaz', 'dtaz', 'trexpfac', 'opurp', 'dpurp']]
+hbo_df = hbo_df.loc[((hbo_df['oadtyp'] == 1) & (hbo_df['dadtyp'] > 3)) | ((hbo_df['oadtyp'] > 3) & (hbo_df['dadtyp'] == 1))]
+hbo_counts = hbo_df['trexpfac'].sum()
+print 'Total HBO trips: ' + str(hbo_counts)
+
 # output to file
 with open(Output_file_trip_dist, 'w') as f:
     f.write('Subarea: %s\n' % subarea_taz_file)
@@ -120,5 +147,10 @@ with open(Output_file_trip_dist, 'w') as f:
     f.write('\n\n')
     f.write("Distance of commute trips\n")
     f.write('%s' % commute_trips)
-
+    f.write('\n\n')
+    f.write('Total trips: %d\n' % subtotal_trips)
+    f.write('HBW trips: %d\n' % hbw_counts)
+    f.write('HBSchool trips: %d\n' % hbsch_counts)
+    f.write('HBO trips: %d\n' % hbo_counts)
+    f.write('NHB trips: %d\n' % nhb_counts)
 print 'Done'
