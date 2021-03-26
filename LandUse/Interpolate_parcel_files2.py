@@ -14,11 +14,11 @@ import utility
 parcel_file_name_ealier = r'Z:\Modeling Group\BKRCast\CommonData\original_2014_parcels_urbansim.txt'
 parcel_file_name_latter = r'Z:\Modeling Group\BKRCast\2035Parcel_fromPSRC\LUV2_2035SCinputs\LUV2_Refined_2035_SCInputs\parcels_bkr.txt'
 #parcel_file_name_latter = r'Z:\Modeling Group\BKRCast\Other ESD from PSRC\2020\2020_parcels_bkr.txt'
-working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2020Baseyear'
-new_parcel_file_name = 'interpolated_parcel_file_2020.txt'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\TFP\2018TFP sensitivity'
+new_parcel_file_name = 'interpolated_parcel_file_2030.txt'
 earlier_year = 2014
 latter_year = 2035
-horizon_year = 2020
+horizon_year = 2030
 ### Enf of inputs
 
 print 'Loading...'

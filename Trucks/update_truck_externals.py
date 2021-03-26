@@ -4,8 +4,10 @@ from datetime import date
 
 
 ###
-###This program is not working. A lot of things need to be done.  Do not run this program.
-## Need to manually process truck externals and special generators
+###This program is not working. A lot of things need to be redone.  Do not run this program.
+## Need to manually process truck externals and special generators.
+## The easiest way to update truck external is using Excel spreadsheet.
+##
 ## 
 
 truck_model_directory = r'D:\projects\2019baseyear\BKR0V2\inputs\2019\trucks'

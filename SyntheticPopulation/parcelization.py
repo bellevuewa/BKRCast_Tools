@@ -22,21 +22,21 @@ Always check the error file to make sure all households are allocated.
 '''
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020'
-synthetic_households_file_name = '2020_synthetic_households.csv'
-synthetic_population_file_name = '2020_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018TFPSensitivity'
+synthetic_households_file_name = '2018TFPSensitivity_synthetic_households.csv'
+synthetic_population_file_name = '2018TFPSensitivity_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 
 # dwelling units per parcel
-new_local_estimated_file_name = r'2020_COB_hhs_estimate_BKR.csv'
+new_local_estimated_file_name = r'2018TFPSensitivity_COB_hhs_estimate.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2020_parcels_for_allocation_local_estimate_BKR.csv'
+parcels_for_allocation_filename = r'2018TFPSensitivity_parcels_for_allocation_local_estimate.csv'
 
 ## output
 updated_hhs_file_name = 'updated_synthetic_households.csv'
 updated_persons_file_name = 'updated_synthetic_persons.csv'
-h5_file_name = '2020_hh_and_persons.h5'
+h5_file_name = '2018TFPSensitivity_hh_and_persons.h5'
 error_file_name = 'error.txt'
 
 

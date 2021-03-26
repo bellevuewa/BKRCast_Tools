@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>Future_parcel_file_creation_with_local_estimate.py</StartupFile>
+    <StartupFile>LandUse\restore_parking_cost.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -41,7 +41,7 @@
     </Compile>
     <Compile Include="future_land_use_creation.py" />
     <Compile Include="future_synthetic_pop_aggregate_by_blockgroup.py" />
-    <Compile Include="hh_and_person_summary.py" />
+    <Compile Include="SyntheticPopulation\hh_and_person_summary.py" />
     <Compile Include="hh_and_person_survey_summary.py" />
     <Compile Include="HH_ajustment_by_TAZ.py">
       <SubType>Code</SubType>
@@ -50,6 +50,9 @@
     <Compile Include="houshold_allocation.py" />
     <Compile Include="ImportAllAttributes.py" />
     <Compile Include="Create_parcel_TAZ_crosstable.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LandUse\replace_parcel_columns_with_new_tables.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LandUse\validate_parcel_data_from_local_jurisdiction.py">
@@ -83,13 +86,16 @@
     <Compile Include="Network\ExportAllAttributes.py" />
     <Compile Include="Network\PopulateNetwork2.py" />
     <Compile Include="SyntheticPopulation\generate_COB_local_hhs_estimate.py" />
+    <Compile Include="SyntheticPopulation\interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SyntheticPopulation\parcelization.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="PSRC2BKR\Convert_PSRC_TAZ_to_BKRCastTAZ_in_parcel.py" />
     <Compile Include="PSRC2BKR\Convert_PSRC_TAZ_to_BKRCastTAZ_pop.py" />
     <Compile Include="supplemental\update_externals.py" />
-    <Compile Include="sync_population_to_parcel.py">
+    <Compile Include="LandUse\sync_population_to_parcel.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SyntheticPopulation\Create_popsim_control_file_from_hhs_growth.py">
@@ -101,26 +107,28 @@
     <Compile Include="SyntheticPopulation\Prepare_household_for_concurrency.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="synthetic_population_error_checking.py">
+    <Compile Include="SyntheticPopulation\synthetic_population_error_checking.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="synthetic_population_to_shapefile.py">
+    <Compile Include="SyntheticPopulation\synthetic_population_to_shapefile.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SyntheticPopulation\baseyear_synthetic_pop_aggregate_by_blockgroup.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LandUse\prepare_land_use_step_1.py" />
     <Compile Include="TemoraryCode.py" />
-    <Compile Include="time_of_day_by_tours.py" />
+    <Compile Include="TOD\time_of_day_by_tours.py" />
+    <Compile Include="TOD\time_of_day_by_trips.py" />
     <Compile Include="tour_mode_share_calculator.py" />
-    <Compile Include="parcel_file_summary.py" />
+    <Compile Include="LandUse\parcel_file_summary.py" />
     <Compile Include="park_and_ride_usage.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SyntheticPopulation\Remove_Relocate_households.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="restore_parking_cost.py">
+    <Compile Include="LandUse\restore_parking_cost.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="test.py">
@@ -162,6 +170,7 @@
     <Folder Include="Locations\" />
     <Folder Include="LandUse\" />
     <Folder Include="Network\" />
+    <Folder Include="TOD\" />
     <Folder Include="Trucks\" />
     <Folder Include="SyntheticPopulation\" />
     <Folder Include="supplemental\" />

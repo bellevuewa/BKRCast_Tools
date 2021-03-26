@@ -14,18 +14,18 @@ file is an input file to populationSim.
 '''
 
 ### configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020Concurrency'
-permit_file = r'Z:\Modeling Group\BKRCast\LandUse\Concurrency\2020Concurrency\2020_permit_PSRCID.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021Concurrency'
+permit_file = r'Z:\Modeling Group\BKRCast\LandUse\Concurrency\2021Concurrency\2021Conrrency_COB_DU_growth.csv'
 bel_occ_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\Bellevue_occupancy_rates.csv'
-base_year_hhs_by_parcel = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2019\hh_summary_by_parcel.csv'
+base_year_hhs_by_parcel = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020\hh_summary_by_parcel.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-popsim_base_control_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2019\ACS2016_controls_OFM2019estimate.csv'
+popsim_base_control_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020\ACS2016_controls_OFM2020estimate_BKR.csv'
 
 ### output files
-popsim_control_output_file = 'popsim_control_for_growth_in_2020concurrency.csv'
-hhs_output_comparison_file = '2020concurrency_hhs_growth_comparison.csv'
-hhs_output_file = '2020concurrency_hhs_growth.csv'
-dwellingunits_outputs_file = '2020concurrency_units_growth.csv'
+popsim_control_output_file = 'popsim_control_for_growth_in_2021concurrency.csv'
+hhs_output_comparison_file = '2021concurrency_hhs_growth_comparison.csv'
+hhs_output_file = '2021concurrency_hhs_growth.csv'
+dwellingunits_outputs_file = '2021concurrency_units_growth.csv'
 
 avg_persons_per_sfhh =  2.82 # from Gwen
 avg_persons_per_mfhh =  2.03 # from Gwen
