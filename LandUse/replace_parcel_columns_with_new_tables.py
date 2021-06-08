@@ -15,7 +15,7 @@ import utility
 
 ###################### configuration
 ### inputs ###
-working_folder = r"Z:\Modeling Group\BKRCast\LandUse\TFP\2018TFP sensitivity"
+working_folder = r"Z:\Modeling Group\BKRCast\LandUse\TFP\2018TFP sensitivity-reducedLU"
 New_parcel_data_file_name = r"2018TFPSensitivity_COB_Jobs.csv"
 Original_parcel_file_name = r"interpolated_parcel_file_2030_with_half_Bellevue_parkingcost.txt"
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'

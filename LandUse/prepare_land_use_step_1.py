@@ -12,8 +12,8 @@ import utility
 # # summarize land use  on the same base data.
 
 ### input files
-working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2020baseyear-KC'
-kingcsqft = 'base_2020_0326.csv'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2020baseyear'
+kingcsqft = 'base_2020_0526.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
@@ -37,8 +37,9 @@ subset_area = []
 job_rename_dict = {'JOBS_EDU':'EMPEDU_P', 'JOBS_FOOD':'EMPFOO_P', 'JOBS_GOV':'EMPGOV_P', 'JOBS_IND':'EMPIND_P',
     'JOBS_MED':'EMPMED_P', 'JOBS_OFF':'EMPOFC_P', 'JOBS_RET':'EMPRET_P', 'JOBS_RSV':'EMPRSC_P', 'JOBS_SERV':'EMPSVC_P', 'JOBS_OTH':'EMPOTH_P',
     'JOBS_TOTAL':'EMPTOT_P'}
-sqft_rename_dict = {'EDU':'SQFT_EDU', 'FOOD':'SQFT_FOO', 'GOV':'SQFT_GOV', 'IND':'SQFT_IND','MED':'SQFT_MED', 'OFF':'SQFT_OFC',
-    'RET':'SQFT_RET', 'RSV':'SQFT_RSV', 'SERV':'SQFT_SVC', 'OTH': 'SQFT_OTH', 'TOTAL':'SQFT_TOT'}
+sqft_rename_dict = {'SQFT_EDU':'SQFT_EDU', 'SQFT_FOOD':'SQFT_FOO','SQFT_GOV':'SQFT_GOV','SQFT_IND':'SQFT_IND','SQFT_MED':'SQFT_MED', 'SQFT_OFF':'SQFT_OFC',
+    'SQFT_RET':'SQFT_RET', 'SQFT_RSV':'SQFT_RSV', 'SQFT_SERV':'SQFT_SVC', 'SQFT_OTH': 'SQFT_OTH', 'SQFT_NONE':'SQFT_NON', 
+    'SQFT_TOTAL':'SQFT_TOT'}
 du_rename_dict = {'UNITS_SF':'SFUnits', 'UNITS_MF':'MFUnits'}
 
 jobs_columns_List = ['PSRC_ID', 'EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPRET_P', 'EMPRSC_P', 'EMPSVC_P', 'EMPOTH_P', 'EMPTOT_P']
@@ -71,6 +72,7 @@ updated_sqft_kc.to_csv(os.path.join(working_folder, kc_SQFT_file), sep = ',', in
 
 print 'Exporting King County dwelling units...'
 du_kc = kc_df[dwellingunits_list].merge(lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'inner')
+du_kc = du_kc.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_on = 'BKRCastTAZ', right_on = 'BKRCastTAZ', how = 'left')
 if subset_area != []:
     du_kc = du_kc[du_kc['Jurisdiction'].isin(subset_area)]
 du_kc.to_csv(os.path.join(working_folder, kc_du_file), sep  = ',', index = False)

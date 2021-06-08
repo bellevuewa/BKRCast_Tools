@@ -41,6 +41,7 @@
     </Compile>
     <Compile Include="future_land_use_creation.py" />
     <Compile Include="future_synthetic_pop_aggregate_by_blockgroup.py" />
+    <Compile Include="mode_share_calculatorV2.py" />
     <Compile Include="SyntheticPopulation\hh_and_person_summary.py" />
     <Compile Include="hh_and_person_survey_summary.py" />
     <Compile Include="HH_ajustment_by_TAZ.py">
@@ -82,7 +83,7 @@
     <Compile Include="Locations\trip_destination_by_purpose.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="mode_share_calculatorV2.py" />
+    <Compile Include="mode_share_calculatorV3.py" />
     <Compile Include="Network\ExportAllAttributes.py" />
     <Compile Include="Network\PopulateNetwork2.py" />
     <Compile Include="SyntheticPopulation\generate_COB_local_hhs_estimate.py" />
@@ -120,6 +121,7 @@
     <Compile Include="TemoraryCode.py" />
     <Compile Include="TOD\time_of_day_by_tours.py" />
     <Compile Include="TOD\time_of_day_by_trips.py" />
+    <Compile Include="tour_mode_share_calculator.py" />
     <Compile Include="tour_mode_share_calculator.py" />
     <Compile Include="LandUse\parcel_file_summary.py" />
     <Compile Include="park_and_ride_usage.py">
