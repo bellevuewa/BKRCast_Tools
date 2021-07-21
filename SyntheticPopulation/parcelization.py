@@ -6,12 +6,13 @@ import h5py
 import utility
 
 '''
-This program takes output files, synthetic households and synthetic persons, from PopulationSim,
+This program takes synthetic households and synthetic persons( from PopulationSim),
 and allocate them to parcels. It also reformat household and person data columns to match
 BKRCast input requirement. The output, h5_file_name, can be directly loaded into BKRCast.
 
-Number of households per parcel should be consistent with parcel file. It can be done by calling 
+Number of households per parcel in synthetic population should be consistent with the parcel file. It can be done by calling 
 sync_population_parcel.py. 
+
 
 Date: 7/1/2019
 
@@ -22,21 +23,21 @@ Always check the error file to make sure all households are allocated.
 '''
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020-KC'
-synthetic_households_file_name = '2020_synthetic_households.csv'
-synthetic_population_file_name = '2020_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021Concurrency'
+synthetic_households_file_name = '2021Concurrency_growth_synthetic_households.csv'
+synthetic_population_file_name = '2021Concurrency_growth_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 
 # dwelling units per parcel
-new_local_estimated_file_name = r'2020_COB_hhs_estimate.csv'
+new_local_estimated_file_name = r'2021concurrency_units_growth.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2020_parcels_for_allocation_local_estimate.csv'
+parcels_for_allocation_filename = r'2021concurrency_hhs_growth.csv'
 
 ## output
-updated_hhs_file_name = 'updated_synthetic_households.csv'
-updated_persons_file_name = 'updated_synthetic_persons.csv'
-h5_file_name = '2020_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2021Concurrency_growth_synthetic_households.csv'
+updated_persons_file_name = 'updated_2021Concurrency_growth_synthetic_persons.csv'
+h5_file_name = '2021Concurrecy_growth_hh_and_persons.h5'
 error_file_name = 'error.txt'
 
 
@@ -52,6 +53,10 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
         Household allocation method (by priority):
         1. one household goes to each single family parcel. 
         2. the remainning households go to multiple family parcel following the proportion given in parcel data.
+        3. the remaining hhs go to mixed use parcels and vacant parcels.
+        4. Make SF parcels to MF 
+        5. evenly assign remaining to all parcels.
+
         hhs_control: the forecast number of households in a block group 
         hhs_blkgrp_df: forecast households dataframe (in a blockgroup)
         parcel_df: parcel dataframe. (all parcels) 
@@ -70,7 +75,8 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
     sfHhs = pd.DataFrame()
     mfparcels = pd.DataFrame()
 
-    if hhs_control <= numSFparcels:        
+    if hhs_control <= numSFparcels: 
+        # all households are assigned to SF parcels       
         sfHhs = hhs_blkgrp_df.sample(n = int(hhs_control))
         sfparcels = sfparcelids.sample(n = int(hhs_control))
         for i in range(int(hhs_control)):
@@ -78,39 +84,52 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
         updatedHHs = updatedHHs.append(sfHhs)
         return updatedHHs
     
-    # hhs_control > numSFparcels. assign one hh to each SF parcel   
+    # if hhs_control > numSFparcels. assign one hh to each SF parcel   
     sfHhs = hhs_blkgrp_df.sample(n = int(numSFparcels))
     for i in range(int(numSFparcels)):
         sfHhs['hhparcel'].iat[i] = sfparcelids['PSRC_ID'].iat[i]
     updatedHHs = updatedHHs.append(sfHhs)  
-      
+    
+    # leftover hhs and number of leftover  
     remainHhs_df = hhs_blkgrp_df[~hhs_blkgrp_df['household_id'].isin(sfHhs['household_id'])]
     remainHhs = remainHhs_df['hhexpfac'].sum()
 
+    ### below is to decide how many hhs  should be assigned to what parcels. save the planned number of hhs
+    ### to forecastedHhs attribute. The numbers are rough because they are fractions. 
+    # existing (has mf in 2014) multi-family parcels have higher priority to receive mf hhs.
+    # eligible parcels is named mfparcels.
     sum = parcels.loc[parcels['HousingUnits2014'] >= 2, 'HousingUnits2014'].sum()
-    if sum > 0: 
+    if sum > 0: # has existing mf parcels
         mfparcels = parcels.loc[parcels['HousingUnits2014'] >= 2] 
         mfparcels.loc[:, 'forecastedHhs'] = remainHhs * 1.0 * mfparcels['HousingUnits2014'] / sum
     else:
+        # no existing mf parcels. use mixed land use (LUTYPE 30) or vacant land (LUTYPE 26)
         mfparcels = parcels.loc[(parcels['LUTYPE_P'] == 26) | (parcels['LUTYPE_P'] == 30)]
         if mfparcels.shape[0] > 0:
+            # has mixed use or vacant land, evenly distribute leftover to these parcels.
             mfparcels.loc[:, 'forecastedHhs'] = remainHhs * 1.0 / mfparcels.shape[0]
         else:
+            # neither mixed use nor vacant land is available. 
+            # evenly distribute to SF parcels (make them MF)
             if numSFparcels > 0:
                 mfparcels = sfparcelids
                 mfparcels.loc[:, 'forecastedHhs'] = remainHhs * 1.0 / numSFparcels
             else:
+                # otherwise, evely distribute hhs to all parcels.
                 mfparcels = parcels
                 n = parcels.shape[0]
                 mfparcels.loc[:, 'forecastedHhs'] = remainHhs / n * 1.0 
                 
 
-    # decide in each mf parcel, how many hhs should be allocated
+    # decide in each mf parcel, how many hhs (in integer) should be allocated  Eventually planned (forecasedHhs) should equal leftover(remainHhs)
     if (remainHhs >= mfparcels['forecastedHhs'].apply(np.floor).sum()):
+        #
+        # Round forecastedHhs to integer. Arbitrarily put the difference to the first parcel of the elligible parcel dataframe 
         mfparcels.loc[:, 'forecastedHhs'] = mfparcels['forecastedHhs'].apply(np.floor)
         diff = remainHhs - mfparcels['forecastedHhs'].sum()
         mfparcels.loc[:, 'forecastedHhs'].iat[0] = mfparcels['forecastedHhs'].iat[0] + diff  
     else:
+        # total planned-hhs is more than leftover. Evenly distribute leftover to eligible parcels.
         tot_mfparcels = mfparcels.shape[0]
         iat = 0
         while (remainHhs > 0):
@@ -118,7 +137,8 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
             mfparcels.loc[:, 'forecastedHhs'].iat[index] = mfparcels['forecastedHhs'].iat[index] + 1 
             remainHhs = remainHhs - 1
             iat = iat + 1
-    
+   
+    # now planned hhs == leftover, random draw planned number of hhs from the pool and assign them to the parcel. 
     mfhhs = pd.DataFrame()    
     for row in mfparcels.itertuples():
         if remainHhs_df.shape[0] == 0:
@@ -134,7 +154,14 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
 
 def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, blcgrpid, new_local_estimate_df, parcels_available_for_alloc):
     '''
-        allocate households to match local estimate.
+        assign households to parcels by matching local estimate. Local estimate data are used. 
+
+        hhs_control: the forecast number of households in a block group
+        hhs_blkgrp_df: forecast households dataframe (in a blockgroup)
+        parcel_df: parcel dataframe (all parcels)
+        blcgrpid: block group id
+        new_local_estimate_df:
+        parcels_available_for_alloc:
     '''
 
     parcels = parcel_df.loc[parcel_df['GEOID10'] == blcgrpid]
@@ -143,6 +170,7 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
         return None
     
     # assign SF first
+    # local estimate decides that which parcel has SF units. So all SFUnits will be filled, to the max extent.
     sfparcels_df = new_local_estimate_df.loc[new_local_estimate_df['SFUnits'] == 1]
     numSFparcels = sfparcels_df.shape[0]
     mfparcels_df = parcels_available_for_alloc.loc[~parcels_available_for_alloc['PSRC_ID'].isin(sfparcels_df['PSRC_ID'])]    
@@ -155,15 +183,19 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
     mfhhs_sum = mfhhs_blkgrp_df['hhexpfac'].sum()
 
     #always to fill SF parcels first
-    if sfhhs_sum >= numSFparcels:        
+    if (sfhhs_sum > 0 and (sfhhs_sum >= numSFparcels)):        
+        # assign SF to SF parcels.
         sfHhs = sfhhs_blkgrp_df.sample(n = int(numSFparcels))
         for i in range(int(numSFparcels)):
             sfHhs['hhparcel'].iat[i] = sfparcels_df['PSRC_ID'].iat[i]
         updatedHHs = updatedHHs.append(sfHhs)
+        # leftover of SF are moved to mf dataframe 
         sfhhs_blkgrp_df = sfhhs_blkgrp_df.loc[~sfhhs_blkgrp_df['household_id'].isin(sfHhs['household_id'])]
         mfhhs_blkgrp_df = mfhhs_blkgrp_df.append(sfhhs_blkgrp_df)
     else:
         # sfHhs_sum < numSFparcels
+        # try to assign hhs to SFUnits as many as possible. If SFUnits (SF parcels) are more than SF (from the synthetic hhs), 
+        # MF will be used to fill SFUnits.
         diff = numSFparcels - sfhhs_sum
         if (mfhhs_sum >= diff):
             mfhhs = mfhhs_blkgrp_df.sample(n = int(diff))
@@ -172,9 +204,11 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
                 combined['hhparcel'].iat[i] = sfparcels_df['PSRC_ID'].iat[i]
         else:
             if mfhhs_blkgrp_df.shape[0] != 0:
+                # if MF hhs are still available but not enough to fill SFUnits, use all of them.
                 mfhhs = mfhhs_blkgrp_df.sample(n = mfhhs_sum)
                 combined = pd.concat([sfhhs_blkgrp_df, mfhhs])
             else:
+                # if MF hhs are not available
                 combined = pd.concat([sfhhs_blkgrp_df])
             total = int(combined['hhexpfac'].sum())
             for i in range(total):
@@ -182,6 +216,7 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
         updatedHHs = updatedHHs.append(combined)
         if mfhhs_blkgrp_df.shape[0] != 0:
             mfhhs_blkgrp_df = mfhhs_blkgrp_df[~mfhhs_blkgrp_df['household_id'].isin(mfhhs['household_id'])]
+
     if mfhhs_blkgrp_df.shape[0] != 0:
         mfhhs_sum = mfhhs_blkgrp_df['hhexpfac'].sum() 
     else:
@@ -190,6 +225,7 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
     if mfhhs_sum == 0:
         return updatedHHs
 
+    ## Now all SFUnits are occupied by single families. Need to assign mf to eligible parcels.
     mfhhs = pd.DataFrame()
     tot_sum = mfparcels_df['total_hhs'].sum()
     allocated = 0
