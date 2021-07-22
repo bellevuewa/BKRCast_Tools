@@ -13,6 +13,8 @@ BKRCast input requirement. The output, h5_file_name, can be directly loaded into
 Number of households per parcel in synthetic population should be consistent with the parcel file. It can be done by calling 
 sync_population_parcel.py. 
 
+Two algorithms are available for allocating households to parcels. If no housing units estimate from local jurisdiction, 
+use assign_hhs_to_parcels_by_blkgrp(), otherwise use assign_hhs_parcels_by_local_estimate().
 
 Date: 7/1/2019
 
@@ -50,6 +52,11 @@ avg_persons_per_mfhh =  2.03 # from Gwen
 
 def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgrpid):
     '''
+        Households by blockgroup (from populationsim) are derived from source other than local estimate. The source are: 
+            * OFM SAEP program
+            * PSRC's synthetic population hhs_and_persons.h5
+        In general, households are assigned to parcels in proportion to 2014 housing units.
+
         Household allocation method (by priority):
         1. one household goes to each single family parcel. 
         2. the remainning households go to multiple family parcel following the proportion given in parcel data.
@@ -154,8 +161,11 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
 
 def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, blcgrpid, new_local_estimate_df, parcels_available_for_alloc):
     '''
-        assign households to parcels by matching local estimate. Local estimate data are used. 
-
+        assign households to parcels by matching local estimate. Housing units by block group are replaced by local estimate.  
+        Local estimate knows exactly where the SFUnits and MFunits are located and how many. Therefore the algorithm is different from assign_hhs_to_parcels_by_blkgrp()            1. Fill all SFUnits with single families (from synthetic households)
+                if necesssary, use multi-families to fill SFUnits.
+            2. Fill MFunits with multi-families (from synthetic households). 
+        
         hhs_control: the forecast number of households in a block group
         hhs_blkgrp_df: forecast households dataframe (in a blockgroup)
         parcel_df: parcel dataframe (all parcels)
