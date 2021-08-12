@@ -25,21 +25,21 @@ Always check the error file to make sure all households are allocated.
 '''
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021Concurrency'
-synthetic_households_file_name = '2021Concurrency_growth_synthetic_households.csv'
-synthetic_population_file_name = '2021Concurrency_growth_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021Concurrency_sensitivity_test'
+synthetic_households_file_name = '2021Concurrency_growth_sensitivity_test_synthetic_households.csv'
+synthetic_population_file_name = '2021Concurrency_growth_sensitivity_test_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 
 # dwelling units per parcel
-new_local_estimated_file_name = r'2021concurrency_units_growth.csv'
+new_local_estimated_file_name = r'2021concurrency_sensitivity_test_units_growth.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2021concurrency_hhs_growth.csv'
+parcels_for_allocation_filename = r'2021concurrency_sensitivity_test_hhs_growth.csv'
 
 ## output
-updated_hhs_file_name = 'updated_2021Concurrency_growth_synthetic_households.csv'
-updated_persons_file_name = 'updated_2021Concurrency_growth_synthetic_persons.csv'
-h5_file_name = '2021Concurrecy_growth_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2021Concurrency_growth_sensitivity_test_synthetic_households.csv'
+updated_persons_file_name = 'updated_2021Concurrency_growth_sensitivity_test_synthetic_persons.csv'
+h5_file_name = '2021Concurrecy_growth_sensitivity_test_hh_and_persons.h5'
 error_file_name = 'error.txt'
 
 
@@ -125,7 +125,7 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
                 # otherwise, evely distribute hhs to all parcels.
                 mfparcels = parcels
                 n = parcels.shape[0]
-                mfparcels.loc[:, 'forecastedHhs'] = remainHhs / n * 1.0 
+                mfparcels.loc[:, 'forecastedHhs'] = remainHhs / (n * 1.0) 
                 
 
     # decide in each mf parcel, how many hhs (in integer) should be allocated  Eventually planned (forecasedHhs) should equal leftover(remainHhs)
@@ -162,7 +162,8 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
 def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, blcgrpid, new_local_estimate_df, parcels_available_for_alloc):
     '''
         assign households to parcels by matching local estimate. Housing units by block group are replaced by local estimate.  
-        Local estimate knows exactly where the SFUnits and MFunits are located and how many. Therefore the algorithm is different from assign_hhs_to_parcels_by_blkgrp()            1. Fill all SFUnits with single families (from synthetic households)
+        Local estimate knows exactly where the SFUnits and MFunits are located and how many. Therefore the algorithm is different from assign_hhs_to_parcels_by_blkgrp()           
+            1. Fill all SFUnits with single families (from synthetic households)
                 if necesssary, use multi-families to fill SFUnits.
             2. Fill MFunits with multi-families (from synthetic households). 
         
@@ -248,7 +249,7 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
         if numHhs == 0:
             continue
         pid = parcel.PSRC_ID
-        proportion = numHhs / tot_sum * 1.0
+        proportion = numHhs / (tot_sum * 1.0)
         selected = int(total_mfhhs * proportion)
         allocated = allocated + selected
         mfhhs = mfhhs_blkgrp_df.sample(n = selected)
@@ -302,7 +303,7 @@ id = 0
 for blcgrpid in all_blcgrp_ids:
     hhs_new = hhs_by_blkgrp.loc[hhs_by_blkgrp.index == blcgrpid].iloc[0]['hhexpfac']
     if hhs_new > 0:
-        #if blcgrpid != 530330249014:
+        #if blcgrpid == 530330238043:
         #    a = 0
         #    continue
             
