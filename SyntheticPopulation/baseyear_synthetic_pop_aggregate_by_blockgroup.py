@@ -26,17 +26,17 @@ Add special treatment on blockgroup 530619900020,  530619901000, and 53061052104
 
 ########### configuration #########################
 ## input files
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020-KC'   
-new_local_estimated_file_name = r'2020_COB_hhs_estimate.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2044'   
+new_local_estimated_file_name = r'2044_COB_hhs_estimate.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 baseyear_control_file = 'acecon0403.csv'
-local_estimate_by_GOEID10_file_name = '2020_COB_hh_estimate_by_GEOID10.csv';
+local_estimate_by_GOEID10_file_name = '2044_COB_hh_estimate_by_GEOID10.csv';
 local_estimate_choice_file_name = 'Local_estimate_choice.csv'
-OFM_estimate_file = '2020_OFM_estimate.csv'
+OFM_estimate_file = '2040_OFM_estimate.csv'
 
 ## output files
-acs_existing_control_file_name = r'ACS2016_controls_2020_estimate.csv'
-parcels_for_allocation_filename = '2020_parcels_for_allocation_local_estimate.csv'
+acs_existing_control_file_name = r'ACS2016_controls_2044_estimate.csv'
+parcels_for_allocation_filename = '2044_parcels_for_allocation_local_estimate.csv'
 
 sf_occupancy_rate = 0.952  # from Gwen
 mf_occupancy_rate = 0.895  # from Gwen
@@ -102,6 +102,7 @@ baseyear_control_df.drop(new_local_estimate_df[['GEOID10', 'total_hhs', 'total_p
 print int(baseyear_control_df['hh_bg_weight'].sum()), ' hhs in final control file (after local estimate is incorporated).'
 print int(baseyear_control_df['pers_bg_weight'].sum()), ' persons in final control file (after local estimate is incorporated).'
 
+baseyear_control_df.fillna(0, inplace = True)
 baseyear_control_df.to_csv(os.path.join(working_folder, acs_existing_control_file_name), sep = ',')
 new_local_estimate_by_parcel_df.to_csv(os.path.join(working_folder, parcels_for_allocation_filename), sep = ',')
 
