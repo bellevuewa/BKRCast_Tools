@@ -10,7 +10,8 @@ This tool is used to change some workers, defined by a percet in each TAZ, from 
 The percent of full time workers is set in adjustment_factor_name file.
 
 In each TAZ, it randomly draws a certain percent of fulltime workers from the list and change their full time status to non-worker
-status. The updated synthetic population are then exported to h5 file.
+status. The percent, associated with individual tazs, is specified in an external file. The updated synthetic population are
+ then exported to h5 file. The converted nonworkers are also exported as well.
 '''
 
 ### input configuration
@@ -22,6 +23,7 @@ adjustment_factor_name = r"TAZ_subarea_worker_adjustment.csv"
 
 ### output configuration
 updated_h5_file_name = 'updated_hh_and_persons.h5'
+converted_nonworker_file_name = 'converted_non_workers.csv'
 
 
 print 'Loading hh and person file...'
@@ -29,13 +31,15 @@ hdf_file = h5py.File(os.path.join(working_folder, original_h5_file_name), "r")
 person_df = utility.h5_to_df(hdf_file, 'Person')
 hhs_df = utility.h5_to_df(hdf_file, 'Household')
 adjustment_factor_df = pd.read_csv(os.path.join(working_folder, adjustment_factor_name), sep = ',')
-person_df = pd.merge(person_df, hhs_df[['hhno', 'hhtaz']], on = 'hhno')
+person_df = pd.merge(person_df, hhs_df[['hhno', 'hhtaz', 'hhparcel']], on = 'hhno')
 person_df['pid'] = person_df.index
 print 'hhs: '  + str(hhs_df.shape)
 print 'persons: ' + str(person_df.shape)
 
 updated_person_df = pd.DataFrame()
 total_adjusted = 0
+converted_df = pd.DataFrame()
+
 for taz in adjustment_factor_df.itertuples():
     rate = taz.WorkerAdjFactor
     persons_in_taz = person_df.loc[(person_df['hhtaz'] == taz.BKRCastTAZ)]
@@ -48,6 +52,7 @@ for taz in adjustment_factor_df.itertuples():
         total_adjusted += selected.shape[0]
         updated_person_df = updated_person_df.append(not_selected)
         updated_person_df = updated_person_df.append(selected)
+        converted_df = converted_df.append(selected)
         print 'taz ' + str(taz.BKRCastTAZ)  + ': ' + str(selected.shape[0]) + ' full time workers are changed to non-worker.'
 
 updated_person_df = updated_person_df.append(person_df.loc[person_df['pwtyp'] <> 1])
@@ -62,6 +67,7 @@ updated_person_df.drop(columns = ['pid'], axis = 1, inplace = True)
 output_h5_file = h5py.File(os.path.join(working_folder, updated_h5_file_name), 'w')
 utility.df_to_h5(hhs_df, output_h5_file, 'Household')
 utility.df_to_h5(updated_person_df, output_h5_file, 'Person')
+converted_df[['hhno','pno', 'hhtaz', 'hhparcel']].to_csv(os.path.join(working_folder, converted_nonworker_file_name), index = False)
 output_h5_file.close()
 
 print 'Done'             
