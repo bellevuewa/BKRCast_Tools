@@ -45,7 +45,7 @@ def trip_filter(start_time, end_time, total_trips_df, subarea_taz_df, trips_from
         else:
             subarea_trips_df = pd.concat([to_subarea_trips_df])
     else:
-        print 'No subarea is defined. Use the whole trip table.'
+        print('No subarea is defined. Use the whole trip table.')
         subarea_trips_df = trips_df
     return subarea_trips_df
 
@@ -97,4 +97,4 @@ TOD2_by_departure['share'] = TOD2_by_departure['trexpfac'] / TOD2_by_departure['
 
 TOD_by_arrival = TOD1_by_arrival.merge(TOD2_by_arrival, on = 'arrhr')
 
-print 'Done.'
+print('Done.')

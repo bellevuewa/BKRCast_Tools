@@ -2,6 +2,10 @@ import h5py
 import numpy as np
 import pandas as pd
 
+#2/3/2022
+# upgrade to python 3.7
+
+
 def h5_to_df(h5_file, group_name):
     """
     Converts the arrays in a H5 store to a Pandas DataFrame. 
@@ -22,11 +26,11 @@ def df_to_h5(df, h5_store, group_name):
     if group_name in h5_store:
         del h5_store[group_name]
         my_group = h5_store.create_group(group_name)
-        print "Group Skims Exists. Group deleSted then created"
+        print("Group Skims Exists. Group deleSted then created")
         #If not there, create the group
     else:
         my_group = h5_store.create_group(group_name)
-        print "Group Skims Created"
+        print("Group Skims Created")
     for col in df.columns:
         h5_store[group_name].create_dataset(col, data=df[col], dtype = 'int', compression = 'gzip')
 

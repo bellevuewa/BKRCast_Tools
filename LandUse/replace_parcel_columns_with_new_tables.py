@@ -12,17 +12,19 @@ import utility
 ### preparation process becomes more straightforward and clean.
 ### 2/10/2021
 
+## 3/9/2022
+## upgraded to python 3.7
 
 ###################### configuration
 ### inputs ###
-working_folder = r"Z:\Modeling Group\BKRCast\LandUse\2044Test"
-New_parcel_data_file_name = r"2044Test_COB_Jobs.csv"
-Original_parcel_file_name = r"2040_SC_parcels_urbansim_bkr.txt"
+working_folder = r"Z:\Modeling Group\BKRCast\LandUse\TFP\2033_horizonyear_TFP"
+New_parcel_data_file_name = r"2033TFP_COB_Jobs.csv"
+Original_parcel_file_name = r"2033_parcel_file_after_scaled_up_to_old_BKRTAZ_control_total.txt"
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
 Set_Jobs_to_Zeros_All_Bel_Parcels_Not_in_New_Parcel_Data_File = True
 ### output files ###
-Updated_parcel_file_name =  r"2044_parcels_urbansim_with_COB_estimate.txt"
+Updated_parcel_file_name =  r"2033TFP_parcels_urbansim.txt"
 Old_Subset_parcel_file_name = r"Old_parcels_subset.txt"
 
 Columns_List = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPRET_P', 'EMPRSC_P', 'EMPSVC_P', 'EMPOTH_P', 'EMPTOT_P']
@@ -39,32 +41,32 @@ missing_bellevue_parcels_df.to_csv(os.path.join(working_folder, 'missing_bellevu
 not_in_full_bellevue_parcels.to_csv(os.path.join(working_folder, 'not_valid_bellevue_parcels.csv'), sep = ',', index = False)
 
 newjobs = new_parcel_data_df['EMPTOT_P'].sum() 
-print 'new parcel data file has ' + str(newjobs)  + ' jobs.'
+print('new parcel data file has ' + str(newjobs)  + ' jobs.')
 new_parcel_data_df = new_parcel_data_df.set_index('PSRC_ID')
 updated_parcel_df = original_parcel_data_df.copy()
 updated_parcel_df = updated_parcel_df.set_index('PARCELID')
 oldjobs = updated_parcel_df.loc[updated_parcel_df.index.isin(new_parcel_data_df.index), 'EMPTOT_P'].sum()
-print 'parcels to be replaced have ' + str(oldjobs) + ' jobs'
-print 'jobs gained ' + str(newjobs - oldjobs)
+print('parcels to be replaced have ' + str(oldjobs) + ' jobs')
+print('jobs gained ' + str(newjobs - oldjobs))
 updated_parcel_df.loc[updated_parcel_df.index.isin(new_parcel_data_df.index), Columns_List] = new_parcel_data_df[Columns_List]
 
 if Set_Jobs_to_Zeros_All_Bel_Parcels_Not_in_New_Parcel_Data_File == True:
     jobs_to_be_zeroed_out = updated_parcel_df.loc[updated_parcel_df.index.isin(missing_bellevue_parcels_df['PARCELID']), 'EMPTOT_P'].sum()
     updated_parcel_df.loc[updated_parcel_df.index.isin(missing_bellevue_parcels_df['PARCELID']), Columns_List] = 0
-    print '-----------------------------------------'   
-    print 'Some COB parcels are not provided in the ' + New_parcel_data_file_name + '.'
-    print 'But they exist in ' + Original_parcel_file_name + '.'
-    print 'Number of jobs in these parcels are now zeroed out: ' + str(jobs_to_be_zeroed_out)
+    print('-----------------------------------------')
+    print('Some COB parcels are not provided in the ' + New_parcel_data_file_name + '.')
+    print('But they exist in ' + Original_parcel_file_name + '.')
+    print('Number of jobs in these parcels are now zeroed out: ' + str(jobs_to_be_zeroed_out))
 
-print 'total jobs before change: ' + str(original_parcel_data_df['EMPTOT_P'].sum())
-print 'total jobs after change: ' + str(updated_parcel_df['EMPTOT_P'].sum())
-print 'Exporting parcel files...'
+print('total jobs before change: ' + str(original_parcel_data_df['EMPTOT_P'].sum()))
+print('total jobs after change: ' + str(updated_parcel_df['EMPTOT_P'].sum()))
+print('Exporting parcel files...')
 updated_parcel_df.to_csv(os.path.join(working_folder, Updated_parcel_file_name), sep = ' ')
 
 utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
 
 
-print 'Done'
+print('Done')
 
 
 

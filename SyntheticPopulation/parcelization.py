@@ -7,7 +7,7 @@ import utility
 
 '''
 This program takes synthetic households and synthetic persons( from PopulationSim),
-and allocate them to parcels. It also reformat household and person data columns to match
+and allocates them to parcels. It also reformats household and person data columns to match
 BKRCast input requirement. The output, h5_file_name, can be directly loaded into BKRCast.
 
 Number of households per parcel in synthetic population should be consistent with the parcel file. It can be done by calling 
@@ -22,24 +22,28 @@ Date: 7/1/2019
 fixed a minor bug that could drop some households under certain occasions. 
 Will export a list of blockgroups if their new generated number of households do not match control totals.
 Always check the error file to make sure all households are allocated.
+
+3/9/2022
+upgrade to python 3.7
 '''
 
+
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\test\2044test'
-synthetic_households_file_name = '2044test_synthetic_households.csv'
-synthetic_population_file_name = '2044test_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\TFP\2033_horizon_year'
+synthetic_households_file_name = '2033TFP_synthetic_households.csv'
+synthetic_population_file_name = '2033TFP_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 
 # dwelling units per parcel
-new_local_estimated_file_name = r'2044Test_COB_hhs_estimate.csv'
+new_local_estimated_file_name = r'2033TFP_COB_du.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2044_parcels_for_allocation_local_estimate.csv'
+parcels_for_allocation_filename = r'2033TFP_parcels_for_allocation_local_estimate.csv'
 
 ## output
-updated_hhs_file_name = 'updated_2044_synthetic_households.csv'
-updated_persons_file_name = 'updated_2044_synthetic_persons.csv'
-h5_file_name = '2044_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2033TFP_synthetic_households.csv'
+updated_persons_file_name = 'updated_2033TFP_synthetic_persons.csv'
+h5_file_name = '2033TFP_hh_and_persons.h5'
 error_file_name = 'error.txt'
 
 
@@ -71,7 +75,7 @@ def assign_hhs_to_parcels_by_blkgrp(hhs_control, hhs_blkgrp_df, parcel_df, blkgr
     '''
     parcels = parcel_df.loc[parcel_df['GEOID10'] == blcgrpid]
     if parcels.shape[0] == 0:
-        print 'blockgroup ', blcgrpid, ' has no parcels'
+        print('blockgroup ', blcgrpid, ' has no parcels')
         return None
     
     # assign SF first
@@ -177,7 +181,7 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
 
     parcels = parcel_df.loc[parcel_df['GEOID10'] == blcgrpid]
     if parcels.shape[0] == 0:
-        print 'blockgroup ', blcgrpid, ' has no parcels'
+        print('blockgroup ', blcgrpid, ' has no parcels')
         return None
     
     # assign SF first
@@ -266,7 +270,7 @@ def assign_hhs_parcels_by_local_estimate(hhs_control, hhs_blkgrp_df, parcel_df, 
 try:
     error_f = open(os.path.join(working_folder, error_file_name), 'w')
 except:
-    print 'Error open cannot be opened. Close it and try it again.'
+    print('Error open cannot be opened. Close it and try it again.')
     exit(-1)
 
 ###
@@ -314,7 +318,7 @@ for blcgrpid in all_blcgrp_ids:
             updatedHhs = assign_hhs_parcels_by_local_estimate(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid, local_estimate_df, parcels_available_for_alloc_df)
             if updatedHhs is not None:
                 msg = '{4:d}: blocgroup {0:d}: allocated by local estimate. total hhs: {1:.0f},  allocated: {2:d}, local estimate: {3:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum(), int(local_estimate_df['SF'].sum() + local_estimate_df['MF'].sum()), id) 
-                print msg
+                print(msg)
             else: 
                 id += 1
                 continue
@@ -322,19 +326,19 @@ for blcgrpid in all_blcgrp_ids:
             updatedHhs = assign_hhs_to_parcels_by_blkgrp(hhs_new, hhs_blkgrp_df, parcel_df, blcgrpid)
             if updatedHhs is not None:
                 msg = '{3:d}: blocgroup {0:d}: total hhs: {1:.0f},  allocated: {2:d}'.format(blcgrpid, hhs_new, updatedHhs['hhexpfac'].sum(), id) 
-                print msg
+                print(msg)
             else:
                 id += 1
                 continue
         if (hhs_new != updatedHhs['hhexpfac'].sum()):
-            print '******************** blockgroup ', blcgrpid, ': total hhs does not match control total.'           
+            print('******************** blockgroup ', blcgrpid, ': total hhs does not match control total.')           
             error_f.write(msg+'\n')
         final_hhs_df = final_hhs_df.append(updatedHhs) 
         id = id + 1  
         if len(final_hhs_df.loc[final_hhs_df['household_id'].duplicated()]) > 0:
-            print 'duplicated households found in block group ', blcgrpid
+            print('duplicated households found in block group ', blcgrpid)
     else:
-        print 'no household in block_group ', blcgrpid 
+        print('no household in block_group ', blcgrpid) 
     
 final_hhs_df.rename(columns = {'household_id':'hhno'}, inplace = True)
 final_hhs_df = final_hhs_df.merge(parcel_df[['PSRC_ID', 'BKRCastTAZ']], how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
@@ -390,11 +394,11 @@ lastHhno = -1
 personid = 0
 for i in range(lenpersons):
     if i % 100000 == 0:
-        print i, ' persons processed.'
+        print(i, ' persons processed.')
 
     # assign pno
     curHhno = pop_df['hhno'].iat[i]
-    if curHhno <> lastHhno:
+    if curHhno != lastHhno:
         personid = 1
     else:
         personid = personid + 1
@@ -454,7 +458,7 @@ output_h5_file = h5py.File(os.path.join(working_folder, h5_file_name), 'w')
 utility.df_to_h5(final_hhs_df, output_h5_file, 'Household')
 utility.df_to_h5(pop_df, output_h5_file, 'Person')
 output_h5_file.close()
-print 'H5 exported.'
+print('H5 exported.')
 
 pop_df.to_csv(os.path.join(working_folder, updated_persons_file_name), sep = ',')  
 final_hhs_df.to_csv(os.path.join(working_folder, updated_hhs_file_name), sep = ',')
@@ -462,6 +466,6 @@ error_f.close()
 
 utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
 
-print 'Total census block groups: ', len(all_blcgrp_ids)
-print 'Final number of households: ', final_hhs_df.shape[0]
-print 'Final number of persons: ', pop_df.shape[0]
+print('Total census block groups: ', len(all_blcgrp_ids))
+print('Final number of households: ', final_hhs_df.shape[0])
+print('Final number of persons: ', pop_df.shape[0])

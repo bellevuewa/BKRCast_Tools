@@ -3,7 +3,6 @@ import inro.modeller as _modeller
 import inro.emme.desktop.app as _app
 import inro.emme.core.exception as _exception
 import itertools as _itertools
-import traceback as _traceback
 import datetime
 import os
 from shutil import copyfile
@@ -17,11 +16,12 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
         export @rdly to four time periods. No need to mannually copy and rename to different time periods.
     1.03:
         export @biketype and @slope to emme_attr.in
+    1.1.0: upgrade to python 3.7, compatible with EMME 4.5.1
     '''
     version = "1.0.3" # this is the version
     default_path = ""
     tool_run_message = ""
-    outputFolder = _modeller.Attribute(_modeller.InstanceType)
+    outputFolder = _modeller.Attribute(object)
 
     def page(self):
         pb = _modeller.ToolPageBuilder(self, title="BKRCast Network Interface",
@@ -34,7 +34,7 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
 
         return pb.render()
 
-    @_modeller.method(return_type=_modeller.UnicodeType)
+    @_modeller.method(return_type=str)
     def tool_run_msg_status(self):
         return self.tool_run_message
 
@@ -52,8 +52,8 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
             self.__call__()
             run_message = "All attributes exported"
             self.tool_run_message += _modeller.PageBuilder.format_info(run_message)
-        except Exception, e:
-            self.tool_run_message += _modeller.PageBuilder.format_exception(e, _traceback.format_exc(e))
+        except Exception as e:
+            self.tool_run_message += _modeller.PageBuilder.format_exception(exception = e, chain = False)
 
     @_modeller.logbook_trace(name="BKRCast Export All Attributes", save_arguments=True)
     def __call__(self):
@@ -86,7 +86,7 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
         export_attribute = _modeller.Modeller().tool(NAMESPACE)
         export_attribute(extra_attributes = attr, export_path = path, scenario=scen)
         type = attribute.type
-        print type
+        print(type)
         default_name = ""
         if type == "NODE":
             default_name = "extra_nodes_" + scen.id + ".txt"
@@ -105,7 +105,7 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
         new_name = attr + ".txt"
         new_name = os.path.join(path, new_name)
         os.rename(default_name, new_name)
-        print attr + " exported"
+        print(attr + " exported")
     
     def exportExtraAttributeDefinition(self, path, scen):
         filename = "extra_attribute_definitions.txt"
@@ -113,7 +113,7 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
         file = open(outputfile, 'w')
         for extra_attr in scen.extra_attributes():
             record = extra_attr.type + "," + extra_attr.name + "," + extra_attr.description + "," + str(extra_attr.default_value)
-            print record
+            print(record)
             file.write(record)
             file.write("\n")
 

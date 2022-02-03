@@ -5,14 +5,13 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>Network\bkr_slope_step2.py</StartupFile>
+    <StartupFile>SyntheticPopulation\parcelization.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>
-    </InterpreterId>
+    <InterpreterId>MSBuild|BKRCastVE1|$(MSBuildProjectFullPath)</InterpreterId>
     <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
@@ -45,6 +44,7 @@
     <Compile Include="LandUse\adjust_jobs_by_ratio.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LandUse\adjust_parcel_jobs_by_TAZ_control_total.py" />
     <Compile Include="LandUse\aggregate_parcel_file_to_old_BKRTAZ.py">
       <SubType>Code</SubType>
     </Compile>
@@ -54,7 +54,6 @@
     <Compile Include="LandUse\update_total_jobs.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="mode_share_calculatorV2.py" />
     <Compile Include="SyntheticPopulation\adjust_fulltime_worker_status.py">
       <SubType>Code</SubType>
     </Compile>
@@ -87,9 +86,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Network\SOLA_assignment_on_multiple_scenarios.py" />
-    <Compile Include="supplemental\Create_tazdata_in.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="LandUse\Find_PSRCID_from_PIN.py">
       <SubType>Code</SubType>
     </Compile>
@@ -102,7 +98,6 @@
     <Compile Include="Locations\trip_destination_by_purpose.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="mode_share_calculatorV3.py" />
     <Compile Include="Network\ExportAllAttributes.py" />
     <Compile Include="Network\PopulateNetwork2.py" />
     <Compile Include="SyntheticPopulation\generate_COB_local_hhs_estimate.py" />
@@ -124,6 +119,7 @@
     <Compile Include="SyntheticPopulation\merge_two_synthetic_populations.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SyntheticPopulation\Prepare_Hhs_for_future_using_KR_oldTAZ_COB_parcel_forecast.py" />
     <Compile Include="SyntheticPopulation\Prepare_household_for_concurrency.py">
       <SubType>Code</SubType>
     </Compile>
@@ -140,8 +136,6 @@
     <Compile Include="TemoraryCode.py" />
     <Compile Include="TOD\time_of_day_by_tours.py" />
     <Compile Include="TOD\time_of_day_by_trips.py" />
-    <Compile Include="tour_mode_share_calculator.py" />
-    <Compile Include="tour_mode_share_calculator.py" />
     <Compile Include="LandUse\parcel_file_summary.py" />
     <Compile Include="park_and_ride_usage.py">
       <SubType>Code</SubType>
@@ -196,6 +190,17 @@
     <Folder Include="SyntheticPopulation\" />
     <Folder Include="supplemental\" />
     <Folder Include="PSRC2BKR\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Interpreter Include="..\..\BKRCastVE\">
+      <Id>BKRCastVE1</Id>
+      <Version>3.7</Version>
+      <Description>BKRCastVE (Python 3.7 (64-bit))</Description>
+      <InterpreterPath>Scripts\python.exe</InterpreterPath>
+      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
+      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
+      <Architecture>X64</Architecture>
+    </Interpreter>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

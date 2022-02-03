@@ -3,7 +3,6 @@ import inro.modeller as _modeller
 import inro.emme.desktop.app as _app
 import inro.emme.core.exception as _exception
 import itertools as _itertools
-import traceback as _traceback
 import datetime
 import os
 from shutil import copyfile
@@ -17,11 +16,12 @@ class BKRCastExportNetwork(_modeller.Tool()):
     1.1.0: populate vdf functions for four TOD.
     1.1.1: populate sc_headway.csv
     1.1.2: remove future bike links with modes == "wk" and @biketype == 0
+    1.3.0: upgrade to python 3.7, compatible with EMME 4.5.1
     '''
-    version = "1.1.2" # this is the version
+    version = "1.3.0" # this is the version
     default_path = ""
     tool_run_message = ""
-    outputFolder = _modeller.Attribute(_modeller.InstanceType)
+    outputFolder = _modeller.Attribute(object)
 
     def page(self):
         pb = _modeller.ToolPageBuilder(self, title="BKRCast Network Interface",
@@ -34,7 +34,7 @@ class BKRCastExportNetwork(_modeller.Tool()):
 
         return pb.render()
 
-    @_modeller.method(return_type=_modeller.UnicodeType)
+    @_modeller.method(return_type=str)
     def tool_run_msg_status(self):
         return self.tool_run_message
 
@@ -52,8 +52,8 @@ class BKRCastExportNetwork(_modeller.Tool()):
             self.__call__()
             run_message = "Network exported"
             self.tool_run_message += _modeller.PageBuilder.format_info(run_message)
-        except Exception, e:
-            self.tool_run_message += _modeller.PageBuilder.format_exception(e, _traceback.format_exc(e))
+        except Exception as e:
+            self.tool_run_message += _modeller.PageBuilder.format_exception(exception = e, chain = False)
 
     @_modeller.logbook_trace(name="BKRCast Export Network", save_arguments=True)
     def __call__(self):
@@ -70,8 +70,8 @@ class BKRCastExportNetwork(_modeller.Tool()):
         num_scns = 0;
         for scen in scens:
            num_scns = num_scns + 1
-        print "Total allowed scenarios " + str(tot_scn_spaces)
-        print "Total scenarios " + str(num_scns)
+        print("Total allowed scenarios " + str(tot_scn_spaces))
+        print("Total scenarios " + str(num_scns))
 
         if tot_scn_spaces < num_scns + 4:
             self.tool_run_message += _modeller.PageBuilder.format_info("Does not have enough space for scenarios. Please increase dimension to accommodate at least three more scenarios")
@@ -285,7 +285,7 @@ class BKRCastExportNetwork(_modeller.Tool()):
         with open(extraBikeLinks, mode = 'w') as f:
             for link in links: 
                 if (link.modes == bikemodeset) and (link['@biketype'] == 0):
-                    print 'link ', link.id, ' is removed from network'
+                    print('link ', link.id, ' is removed from network')
                     f.write('link {0} is removed from network\n'.format(link.id))
                     network.delete_link(link.i_node, link.j_node)
 

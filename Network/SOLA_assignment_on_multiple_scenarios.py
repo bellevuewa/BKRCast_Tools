@@ -3,20 +3,19 @@ import inro.modeller as _modeller
 import inro.emme.desktop.app as _app
 import inro.emme.core.exception as _exception
 import itertools as _itertools
-import traceback as _traceback
 import datetime
 import os
 import json as _json
 
 class BKRCastExportAllAttributes(_modeller.Tool()):
     '''
-    
+    1.1: upgrade to python 3.7, compatible with EMME 4.5.1
     '''
-    version = "1.0" # this is the version
+    version = "1.1" # this is the version
     default_path = ""
     tool_run_message = ""
-    scenarios_list = _modeller.Attribute(_modeller.ListType)
-    sola_specs_box = _modeller.Attribute(_modeller.StringType)
+    scenarios_list = _modeller.Attribute(list)
+    sola_specs_box = _modeller.Attribute(str)
 
     def page(self):
         pb = _modeller.ToolPageBuilder(self, title="BKRCast Network Interface",
@@ -30,7 +29,7 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
 
         return pb.render()
 
-    @_modeller.method(return_type=_modeller.UnicodeType)
+    @_modeller.method(return_type=str)
     def tool_run_msg_status(self):
         return self.tool_run_message
 
@@ -54,8 +53,8 @@ class BKRCastExportAllAttributes(_modeller.Tool()):
             self.__call__()
             run_message = "All attributes exported"
             self.tool_run_message += _modeller.PageBuilder.format_info(run_message)
-        except Exception, e:
-            self.tool_run_message += _modeller.PageBuilder.format_exception(e, _traceback.format_exc(e))
+        except Exception as e:
+            self.tool_run_message += _modeller.PageBuilder.format_exception(exception = e, chain = False)
 
     @_modeller.logbook_trace(name="BKRCast Export All Attributes", save_arguments=True)
     def __call__(self):
