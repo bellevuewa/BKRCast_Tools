@@ -45,7 +45,7 @@ def tours_filter(start_time, end_time, total_tours_df, subarea_taz_df, tours_fro
         else:
             subarea_tours_df = pd.concat([to_subarea_tours_df])
     else:
-        print 'No subarea is defined. Use the whole tours table.'
+        print('No subarea is defined. Use the whole tours table.')
         subarea_tours_df = tours_df
 
     # get the work tours only
@@ -102,4 +102,4 @@ TOD_by_arrival = TOD1_by_arrival.merge(TOD2_by_arrival, on = 'arrhr')
 TOD_by_departure = TOD1_by_departure.merge(TOD2_by_departure, on = 'dephr')
 
 
-print 'Done.'
+print('Done.')
