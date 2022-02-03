@@ -12,11 +12,11 @@ import numpy as np
 import csv
 
 # inputs
-wd = r"Z:\Modeling Group\BKRCast\Other ESD from PSRC\2020"
-parcel_file_name = '2020_parcels.dat'
+wd = r"Z:\Modeling Group\BKRCast\Other ESD from PSRC\2040\landuse"
+parcel_file_name = '2040_SC_parcels_urbansim.txt'
 
 # correspondence file
-parcel_bkr_taz_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel2014_BKRTAZ.csv"
+parcel_bkr_taz_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel2014_BKRCastTAZ.csv"
 
 #read parcel file
 parcels_psrc_df = pd.read_csv(os.path.join(wd, parcel_file_name), sep = " ")

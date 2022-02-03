@@ -12,17 +12,17 @@ import utility
 # # summarize land use  on the same base data.
 
 ### input files
-working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2020baseyear'
-kingcsqft = 'base_2020_0526.csv'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\TFP\2033_horizonyear_TFP'
+kingcsqft = '2033_horizon_year_TFP_luchanges_2022_0114.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
 
 ### Output fiels
-kc_job_file = '2020_KC_Jobs.csv'
-kc_SQFT_file = '2020_KC_Sqft.csv'
+kc_job_file = '2033TFP_COB_Jobs.csv'
+kc_SQFT_file = '2033TFP_COB_Sqft.csv'
 error_parcel_file = 'parcels_not_in_2014_PSRC_parcels.csv'
-kc_du_file = '2020_KC_housingunits.csv'
+kc_du_file = '2033TFP_COB_housingunits.csv'
 ###
 
 ##
@@ -30,9 +30,9 @@ kc_du_file = '2020_KC_housingunits.csv'
 # 'Rest of KC','External','BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'
 # if it is empty, means all parcels in kingcsqft file   
 ##
-#subset_area = ['BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'] 
+subset_area = ['BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'] 
 #subset_area = ['BELLEVUE']
-subset_area = [] 
+#subset_area = [] 
 
 job_rename_dict = {'JOBS_EDU':'EMPEDU_P', 'JOBS_FOOD':'EMPFOO_P', 'JOBS_GOV':'EMPGOV_P', 'JOBS_IND':'EMPIND_P',
     'JOBS_MED':'EMPMED_P', 'JOBS_OFF':'EMPOFC_P', 'JOBS_RET':'EMPRET_P', 'JOBS_RSV':'EMPRSC_P', 'JOBS_SERV':'EMPSVC_P', 'JOBS_OTH':'EMPOTH_P',

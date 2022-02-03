@@ -5,13 +5,14 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>LandUse\restore_parking_cost.py</StartupFile>
+    <StartupFile>Network\bkr_slope_step2.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>Global|ContinuumAnalytics|Anaconda27-64</InterpreterId>
+    <InterpreterId>
+    </InterpreterId>
     <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
@@ -41,7 +42,25 @@
     </Compile>
     <Compile Include="future_land_use_creation.py" />
     <Compile Include="future_synthetic_pop_aggregate_by_blockgroup.py" />
+    <Compile Include="LandUse\adjust_jobs_by_ratio.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LandUse\aggregate_parcel_file_to_old_BKRTAZ.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LandUse\Allocate_TAZ_jobs_to_parcels.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LandUse\update_total_jobs.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="mode_share_calculatorV2.py" />
+    <Compile Include="SyntheticPopulation\adjust_fulltime_worker_status.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="SyntheticPopulation\Compare_GEOID10_hhs.py">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="SyntheticPopulation\hh_and_person_summary.py" />
     <Compile Include="hh_and_person_survey_summary.py" />
     <Compile Include="HH_ajustment_by_TAZ.py">
@@ -177,9 +196,6 @@
     <Folder Include="SyntheticPopulation\" />
     <Folder Include="supplemental\" />
     <Folder Include="PSRC2BKR\" />
-  </ItemGroup>
-  <ItemGroup>
-    <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda27-64" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

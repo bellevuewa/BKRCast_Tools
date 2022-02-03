@@ -98,13 +98,13 @@ with arcpy.da.SearchCursor(in_fc,["SHAPE@",'ID'], spatial_reference=sr) as curso
             for i in range(split_count):
                 point = row[0].positionAlongLine(i*segment_len)
                 points.append(point)
-                x = point.firstPoint.X
-                y = point.firstPoint.Y
-                point_list = []
-                point_list.append(x)
-                point_list.append(y)
-                output = (str(row[1]), (x, y))
-                final_result.append(output)
+                #x = point.firstPoint.X
+                #y = point.firstPoint.Y
+                #point_list = []
+                #point_list.append(x)
+                #point_list.append(y)
+                #output = (str(row[1]), (x, y))
+                #final_result.append(output)
     print count
     print 'All lines are split into points.'
 

@@ -1,6 +1,7 @@
 import pandas as pd
 import arcpy
 import os
+import time
 
 # Primary geodatabase for inputs and outputs
 geodb = r'V:\TransDeptGIS\GeoDB\Planning\Modeling\BKRCast_BikeNetwork.gdb'
@@ -25,28 +26,34 @@ out_point_features = geodb + r'\link_components_elevation'
 in_point_features = geodb + r'\link_components_full'
 
 
-print 'start to pull elevation'
+#print 'start to pull elevation'
 
-if arcpy.Exists(out_point_features):
-    arcpy.Delete_management(out_point_features)
+#if arcpy.Exists(out_point_features):
+#    arcpy.Delete_management(out_point_features)
 
-try:    
-    if arcpy.CheckOutExtension("Spatial") == 'CheckedOut':
-        print 'Spatial Analyst license is checked out'
-        print in_point_features
-        print out_point_features
-        print in_raster
-        arcpy.sa.ExtractValuesToPoints(in_point_features, in_raster, out_point_features)
-    else:
-        print 'Spatial Analyst is required. Tool is terminated'
-except Exception as e:
-    print(e)
+#try:    
+#    if arcpy.CheckOutExtension("Spatial") == 'CheckedOut':
+#        print 'Spatial Analyst license is checked out'
+#        print in_point_features
+#        print out_point_features
+#        print in_raster
+#        arcpy.sa.ExtractValuesToPoints(in_point_features, in_raster, out_point_features)
+#    else:
+#        print 'Spatial Analyst is required. Tool is terminated'
+#except Exception as e:
+#    print(e)
 
 
 print 'load points to numpy...'
 # Read resulting intersection of points with elevation into numpy/pandas
-elevation_shp = arcpy.da.FeatureClassToNumPyArray(out_point_features, ('RASTERVALU','ID','LENGTH','INODE','JNODE'))
-df = pd.DataFrame(elevation_shp)
+# because the MemoryError from FeatureClasstoNumpyArray is frequently popped up, load part of featureclass one time and combine them together later. 
+elevation_shp1 = arcpy.da.FeatureClassToNumPyArray(out_point_features, ('RASTERVALU','ID','LENGTH', 'INODE','JNODE'), where_clause = '"RASTERVALU" <= 400')
+elevation_shp2 = arcpy.da.FeatureClassToNumPyArray(out_point_features, ('RASTERVALU','ID','LENGTH', 'INODE','JNODE'), where_clause = '"RASTERVALU" > 400')
+df1 = pd.DataFrame(elevation_shp1)
+df2 = pd.DataFrame(elevation_shp2)
+
+df = pd.concat([df1, df2])
+df.set_index('ID', inplace = True)
 
 # List of links IDs
 link_list = df.groupby('ID').min().index
@@ -60,24 +67,29 @@ print 'calculating slops'
 upslope_ij = {}
 upslope_ji = {}
 count = 0
-for link in link_list: 
-    link_df = df[df['ID'] == link]
-    count += 1
+link_list_values = link_list.values
+
+for link in link_list_values: 
+    link_df = df.loc[[link]]  # use [link] to gurantee a dataframe is returned. 
     if count % 1000 == 0:
         print count
+    i_j  = 0
+    j_i = 0
     # Extract the elevation data to numPy because it's faster to loop over
     elev_data = link_df['RASTERVALU'].values
-
     # Loop through each point in each edge
-    upslope_ij[link] = 0
-    upslope_ji[link] = 0
     for point in xrange(len(elev_data)-1):  # stop short of the list because we only want to compare the 2nd to last to last
         elev_diff = elev_data[point+1] - elev_data[point]
-        if elev_diff > 0:
-            upslope_ij[link] += elev_diff
-        elif elev_diff < 0:
-            upslope_ji[link] += abs(elev_diff)      # since we know it will be "negative" for the JI direction when calculated
-                                                    # in references to the IJ direction
+        i_j += abs(elev_diff)
+        j_i += abs(elev_diff)
+        #if elev_diff > 0:
+        #    i_j += elev_diff
+        #elif elev_diff < 0:
+        #    j_i += abs(elev_diff)      # since we know it will be "negative" for the JI direction when calculated
+        #                                            # in references to the IJ direction
+    upslope_ij[link] = i_j
+    upslope_ji[link] = j_i
+    count += 1
 
 # Import dictionary to a series and attach upslope back on the original dataframe
 upslope_ij_s = pd.Series(upslope_ij, name='elev_gain_ij')
@@ -122,10 +134,6 @@ emme_attr.rename(columns={'INODE':'inode','JNODE':'jnode','F_biketype':'@bkfac',
                 inplace=True)
 
 emme_attr.drop(['LENGTH','elev_gain'], axis=1, inplace=True)
-
-# add bike facility of 0
-# emme_attr['@bkfac'] = 0
-
 
 # - some very short links are not processed
 # - assume zero elevation change for these

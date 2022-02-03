@@ -8,9 +8,9 @@ This program is used to pass number of households by parcel from synthetic popul
 the households in parcel file is consistent with synthetic population file.
 '''
 
-Hh_and_person_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2018TFPSensitivity-reducedMF\2018tFPSensitivity_reducedMF_hh_and_persons.h5"
-parcel_folder = r'Z:\Modeling Group\BKRCast\LandUse\TFP\2018TFP sensitivity-reducedSQFT&MF'
-input_parcel_file = 'parcels_urbansim.txt'
+Hh_and_person_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021Concurrency\2021_concurrency_hh_and_persons.h5"
+parcel_folder = r'Z:\Modeling Group\BKRCast\LandUse\test\2021Concurrency_TAZjobs'
+input_parcel_file = 'reallocated_taz_jobs_to_parcels.txt'
 output_parcel_file = 'parcels_urbansim.txt'
 
 print 'Loading hh_and_persons.h5...'

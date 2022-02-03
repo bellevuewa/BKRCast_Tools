@@ -10,8 +10,8 @@ import utility
 
 ### configuration
 working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021Concurrency'
-base_syn_pop_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020\2020_hh_and_persons.h5'
-growth_syn_pop_file = '2021concurrency_growth_hh_and_persons.h5'
+base_syn_pop_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020-BKR\2020_hh_and_persons.h5'
+growth_syn_pop_file = '2021Concurrecy_growth_hh_and_persons.h5'
 
 # output
 final_output_pop_file = '2021_concurrency_hh_and_persons.h5'
@@ -35,7 +35,7 @@ for hhno in growth_hh_df['hhno']:
     growth_hh_df.loc[growth_hh_df['hhno'] == hhno, 'hhno'] = next_hhno
     growth_person_df.loc[growth_person_df['hhno'] == hhno, 'hhno'] = next_hhno
 
-    print 'household ', hhno, ' in the growth dataset is now changed to ', next_hhno
+    #print 'household ', hhno, ' in the growth dataset is now changed to ', next_hhno
 
 final_hhs_df = base_hh_df.append(growth_hh_df)
 final_persons_df = base_person_df.append(growth_person_df)

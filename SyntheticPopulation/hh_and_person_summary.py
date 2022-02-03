@@ -12,19 +12,18 @@ sys.path.append(os.getcwd())
 import utility
 
 ### inputs
-hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2020-KC'
-hh_person_file = '2020_hh_and_persons.h5'
+hh_person_folder = r'D:\BKRCastCodeandTestBed\BKRCast\inputs'                                       
+hh_person_file = 'hh_and_persons.h5'
 TAZ_Subarea_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv'
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
 
 print 'Loading hh and person file...'
 hdf_file = h5py.File(os.path.join(hh_person_folder, hh_person_file), "r")
-taz_subarea = pd.read_csv(TAZ_Subarea_File_Name, sep = ",", index_col = "BKRCastTAZ")
-
-
 person_df = utility.h5_to_df(hdf_file, 'Person')
 hh_df = utility.h5_to_df(hdf_file, 'Household')
+hdf_file.close()
+taz_subarea = pd.read_csv(TAZ_Subarea_File_Name, sep = ",", index_col = "BKRCastTAZ")
 
 hh_taz = hh_df.join(taz_subarea, on = 'hhtaz')
 hh_taz['total_persons'] = hh_taz['hhexpfac'] * hh_taz['hhsize']

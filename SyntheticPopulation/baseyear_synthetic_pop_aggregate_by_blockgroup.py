@@ -27,10 +27,10 @@ Add special treatment on blockgroup 530619900020,  530619901000, and 53061052104
 ########### configuration #########################
 ## input files
 working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2044'   
-new_local_estimated_file_name = r'2044_COB_hhs_estimate.csv'
+new_local_estimated_file_name = r'2044Test_COB_hhs_estimate.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 baseyear_control_file = 'acecon0403.csv'
-local_estimate_by_GOEID10_file_name = '2044_COB_hh_estimate_by_GEOID10.csv';
+local_estimate_by_GOEID10_file_name = '2044Test_COB_hh_estimate_by_GEOID10.csv';
 local_estimate_choice_file_name = 'Local_estimate_choice.csv'
 OFM_estimate_file = '2040_OFM_estimate.csv'
 

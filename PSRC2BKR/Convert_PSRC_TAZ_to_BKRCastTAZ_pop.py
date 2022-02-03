@@ -10,9 +10,9 @@ import numpy as np
 from utility import *
 
 #input settings
-wd = r"Z:\Modeling Group\BKRCast\Other ESD from PSRC\2020"
-popsynFileName = "hh_and_persons.h5"
-parcel_bkr_taz_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel2014_BKRTAZ.csv"
+wd = r"Z:\Modeling Group\BKRCast\Other ESD from PSRC\2040\landuse"
+popsynFileName = "2040_SC_hh_and_persons.h5"
+parcel_bkr_taz_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel2014_BKRCastTAZ.csv"
 
 
 #read popsyn file

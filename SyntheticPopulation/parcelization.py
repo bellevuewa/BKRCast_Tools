@@ -25,21 +25,21 @@ Always check the error file to make sure all households are allocated.
 '''
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021Concurrency_sensitivity_test'
-synthetic_households_file_name = '2021Concurrency_growth_sensitivity_test_synthetic_households.csv'
-synthetic_population_file_name = '2021Concurrency_growth_sensitivity_test_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\test\2044test'
+synthetic_households_file_name = '2044test_synthetic_households.csv'
+synthetic_population_file_name = '2044test_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
 
 # dwelling units per parcel
-new_local_estimated_file_name = r'2021concurrency_sensitivity_test_units_growth.csv'
+new_local_estimated_file_name = r'2044Test_COB_hhs_estimate.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2021concurrency_sensitivity_test_hhs_growth.csv'
+parcels_for_allocation_filename = r'2044_parcels_for_allocation_local_estimate.csv'
 
 ## output
-updated_hhs_file_name = 'updated_2021Concurrency_growth_sensitivity_test_synthetic_households.csv'
-updated_persons_file_name = 'updated_2021Concurrency_growth_sensitivity_test_synthetic_persons.csv'
-h5_file_name = '2021Concurrecy_growth_sensitivity_test_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2044_synthetic_households.csv'
+updated_persons_file_name = 'updated_2044_synthetic_persons.csv'
+h5_file_name = '2044_hh_and_persons.h5'
 error_file_name = 'error.txt'
 
 

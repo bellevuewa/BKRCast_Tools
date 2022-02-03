@@ -7,7 +7,7 @@ import utility
 # Summarize parcel urbansim file to TAZ, subarea and city level.
 
 ### Configuration
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\TFP\2018TFP sensitivity-reducedSQFTOnly"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\test\2021Concurrency_TAZjobs"
 Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
 TAZ_Subarea_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
