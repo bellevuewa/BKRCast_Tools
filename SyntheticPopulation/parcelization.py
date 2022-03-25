@@ -29,7 +29,7 @@ upgrade to python 3.7
 
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\TFP\2033_horizon_year'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\TFP\2033_horizon_year_old_approach'
 synthetic_households_file_name = '2033TFP_synthetic_households.csv'
 synthetic_population_file_name = '2033TFP_synthetic_persons.csv'
 parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.csv'
@@ -38,7 +38,7 @@ parcel_filename = 'I:/psrcpopsim/popsimproject/parcelize/parcel_TAZ_2014_lookup.
 new_local_estimated_file_name = r'2033TFP_COB_du.csv'
 block_group_list_for_local_estimate_name = r'Local_estimate_choice.csv' 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2033TFP_parcels_for_allocation_local_estimate.csv'
+parcels_for_allocation_filename = r'2033_horizon_TFP_parcels_for_allocation_local_estimate.csv'
 
 ## output
 updated_hhs_file_name = 'updated_2033TFP_synthetic_households.csv'

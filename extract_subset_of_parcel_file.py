@@ -9,15 +9,15 @@ import numpy as np
 ### Configuration
 SELECT_BY_TAZ = True
 SELECT_BY_PARCEL = False
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\Concurrency\2021Concurrency"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\2019baseyear"
 Common_Data_Folder = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData'
 Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Subset_definition_file = r"customized.csv"   # TAZ list or ParcelID list
-Outputfile = 'selected_parcels.csv'
+Outputfile = 'spring_district_2019_selected_parcels.csv'
 ###
 
-print "Loading input files ..."
+print("Loading input files ...")
 parcels_df = pd.read_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = " ")
 taz_subarea_df = pd.read_csv(os.path.join(Common_Data_Folder, TAZ_Subarea_File_Name), sep = ",")
 subset_def_df = pd.read_csv(os.path.join(Original_Parcel_Folder, Subset_definition_file), sep = ',')
@@ -30,5 +30,5 @@ elif SELECT_BY_PARCEL:
 
 parcels_selected_df.to_csv(os.path.join(Original_Parcel_Folder, Outputfile), sep =',')
 
-print "Parcel subset is exported."
+print("Parcel subset is exported.")
 

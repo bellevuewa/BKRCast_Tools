@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>SyntheticPopulation\parcelization.py</StartupFile>
+    <StartupFile>SyntheticPopulation\parcelizationV2.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -60,6 +60,7 @@
     <Compile Include="SyntheticPopulation\Compare_GEOID10_hhs.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SyntheticPopulation\create_hhs_by_parcel_file_from_synth_pop.py" />
     <Compile Include="SyntheticPopulation\hh_and_person_summary.py" />
     <Compile Include="hh_and_person_survey_summary.py" />
     <Compile Include="HH_ajustment_by_TAZ.py">
@@ -104,6 +105,7 @@
     <Compile Include="SyntheticPopulation\interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SyntheticPopulation\parcelizationV2.py" />
     <Compile Include="SyntheticPopulation\parcelization.py">
       <SubType>Code</SubType>
     </Compile>
@@ -119,6 +121,7 @@
     <Compile Include="SyntheticPopulation\merge_two_synthetic_populations.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SyntheticPopulation\prepare_hhs_for_baseyear_using_ofm.py" />
     <Compile Include="SyntheticPopulation\Prepare_Hhs_for_future_using_KR_oldTAZ_COB_parcel_forecast.py" />
     <Compile Include="SyntheticPopulation\Prepare_household_for_concurrency.py">
       <SubType>Code</SubType>

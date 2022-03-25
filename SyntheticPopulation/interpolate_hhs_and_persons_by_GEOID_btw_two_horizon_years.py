@@ -11,23 +11,23 @@ as input files, and parcel lookup table and ofm_estimate_template_file as well.
 The output file is an input to generate_COB_local_hhs_estimate.py.
 
 03/03/2022
-export total_hhs by parcel to file.
+now it also exports total_hhs_by_parcel and total_persons_by_parcel to file.   Both households and persons have decimal points. 
 The output file is an input to Prepare_Hhs_for_future_using_KR_oldTAZ_COB_parcel_forecast.py
 '''
 
 ### Configurations ######
 ## input files
-future_year_synpop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\PSRC\2050_PSRC_hh_and_persons_bkr.h5"
+future_year_synpop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\PSRC\2035_PSRC_hh_and_persons_bkr.h5"
 base_year_synpop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\PSRC\2014_PSRC_hh_and_persons.h5"
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 ofm_estimate_template_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\OFM_estimate_template.csv"
-target_year = 2033
-future_year =2050
+target_year = 2019
+future_year =2035
 base_year = 2014
 
 ## Output files
-interploated_ofm_estimate_by_GEOID = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\TFP\2033_horizon_year\2033_ofm_estimate_from_PSRC_2014_2050.csv"
-hhs_by_parcel_filename = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\TFP\2033_horizon_year\2033_hhs_by_parcels_from_PSRC_2014_2050.csv'
+interploated_ofm_estimate_by_GEOID = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2019\new allocation approach\2019_ofm_estimate_from_PSRC_2014_2035.csv"
+hhs_by_parcel_filename = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2019\new allocation approach\2019_hhs_by_parcels_from_PSRC_2014_2035.csv'
 ### end of configuration
 print('Loading synthetic populations...')
 future_hdf_file = h5py.File(future_year_synpop_file, "r")
