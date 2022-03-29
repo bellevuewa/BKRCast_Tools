@@ -121,8 +121,7 @@
     <Compile Include="SyntheticPopulation\merge_two_synthetic_populations.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SyntheticPopulation\prepare_hhs_for_baseyear_using_ofm.py" />
-    <Compile Include="SyntheticPopulation\Prepare_Hhs_for_future_using_KR_oldTAZ_COB_parcel_forecast.py" />
+    <Compile Include="SyntheticPopulation\Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast.py" />
     <Compile Include="SyntheticPopulation\Prepare_household_for_concurrency.py">
       <SubType>Code</SubType>
     </Compile>
