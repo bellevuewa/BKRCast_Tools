@@ -22,8 +22,9 @@ class BKRCastExportNetwork(_modeller.Tool()):
     1.2.3  remove links modes including w and vdf=24. Otherwise transit only links would be removed. This is still a temporary fix. Eventually we need to add 
             @exist_modes and @imp_modes 
     1.3.0 upgrade to python 3.7, compatible with EMME4.5.1
+    1.3.1 add existing and improved turn penalty, turn lane, and turn adjustment factor. @exist_tpf, @imp_tpf, @exist_turn_lane, @imp_turn_lane, @exist_turn_factor, @imp_turn_factor
     '''
-    version = "1.3.0" # this is the version
+    version = "1.3.1" # this is the version
     default_path = ""
     tool_run_message = ""
     outputFolder = _modeller.Attribute(object)
@@ -111,6 +112,9 @@ class BKRCastExportNetwork(_modeller.Tool()):
             self.copyAttribute('@exist_speed', 'ul2', horizon_scen)
             self.copyAttribute('@exist_hot', '@tolllane', horizon_scen)
             self.copyAttribute('@exist_biketype', '@biketype', horizon_scen)
+            self.copyAttribute('@exist_tpf', 'tpf', horizon_scen)
+            self.copyAttribute('@exist_turn_lanes', 'up1', horizon_scen)
+            self.copyAttribute('@exist_turn_factor', 'up2', horizon_scen)
 
             # copy improved networks for active projects
             selection = {}
@@ -123,6 +127,13 @@ class BKRCastExportNetwork(_modeller.Tool()):
             self.copyAttribute('@imp_hot', '@tolllane', horizon_scen, selection)
             selection['link'] = '@bike_year = 0,' + str(self.horizon_year)
             self.copyAttribute('@imp_biketype', '@biketype', horizon_scen, selection)
+
+            expression = '(@turn_project_year > 2000 && @turn_project_year <= ' + str(self.horizon_year)+ ') * @imp_tpf + (@turn_project_year > ' + str(self.horizon_year)+ ') * @exist_tpf + (@turn_project_year < 2000) * @exist_tpf' 
+            self.turnNetCalculator('tpf', expression) 
+            expression = '(@turn_project_year > 2000 && @turn_project_year <= ' + str(self.horizon_year)+ ') * @imp_turn_lanes + (@turn_project_year > ' + str(self.horizon_year)+ ') * @exist_turn_lanes + (@turn_project_year < 2000) * @exist_turn_lanes' 
+            self.turnNetCalculator('up1', expression) 
+            expression = '(@turn_project_year > 2000 && @turn_project_year <= ' + str(self.horizon_year)+ ') * @imp_turn_factor + (@turn_project_year > ' + str(self.horizon_year)+ ') * @exist_turn_factor + (@turn_project_year < 2000) * @exist_turn_factor' 
+            self.turnNetCalculator('up2', expression) 
 
             # set link modes for HOV if @tolllane==5 HOT 2 Plus if @tolllane=6, HOT 3 Plus if @tolllane=1..4
             NAMESPACE = "inro.emme.data.network.base.change_link_modes"
@@ -323,6 +334,33 @@ class BKRCastExportNetwork(_modeller.Tool()):
                 "expression": expression,
                 "selections": {
                     "link": selectors }
+                }
+
+        netCalc = _modeller.Modeller().tool(NAMESPACE)
+        report = netCalc(specs)
+        return report
+
+    def turnNetCalculator(self, result, expression):
+        NAMESPACE = "inro.emme.network_calculation.network_calculator"
+        if result is None:
+            specs = {
+                "type": "NETWORK_CALCULATION",
+                "result": None,
+                "expression": expression,
+                "selections": {
+                    "incoming_link": "all",
+                    "outgoing_link": "all"
+                    },
+                }
+        else:
+            specs = {
+                "type": "NETWORK_CALCULATION",
+                "result": result,
+                "expression": expression,
+                "selections": {
+                    "incoming_link": "all",
+                    "outgoing_link": "all"
+                    },
                 }
 
         netCalc = _modeller.Modeller().tool(NAMESPACE)
