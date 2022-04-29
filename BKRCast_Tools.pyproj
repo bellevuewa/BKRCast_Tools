@@ -22,7 +22,6 @@
   <ItemGroup>
     <Compile Include="adjacent_nodes.py" />
     <Compile Include="Adjust_Employment_by_tract_contral_total.py" />
-    <Compile Include="BKRNGM_Tools.py" />
     <Compile Include="commercial_parcels.py">
       <SubType>Code</SubType>
     </Compile>
@@ -174,14 +173,6 @@
     <Compile Include="walk_trips.py" />
     <Compile Include="workers_taz.py" />
     <Compile Include="__init__.py" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="BKRCast_Conversion_rate.csv" />
-    <Content Include="BKRCast_Conversion_rate_test.csv" />
-    <Content Include="original_TAZ11.csv" />
-    <Content Include="TAZ11.csv" />
-    <Content Include="TAZ41_parcels.csv" />
-    <Content Include="TAZ_subarea.csv" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Locations\" />
