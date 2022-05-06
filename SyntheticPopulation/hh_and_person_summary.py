@@ -6,6 +6,7 @@
 # upgrade to python 3.7
 
 
+from math import exp
 import os
 import pandas as pd
 import h5py
@@ -15,11 +16,11 @@ sys.path.append(os.getcwd())
 import utility
 
 ### inputs
-hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\TFP\2033_horizon_year'                                       
-hh_person_file = '2033TFP_hh_and_persons.h5'
+hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021baseyear'                                       
+hh_person_file = '2021_hh_and_persons.h5'
 TAZ_Subarea_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv'
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-
+export_parcel_level_dataset = False
 
 print('Loading hh and person file...')
 hdf_file = h5py.File(os.path.join(hh_person_folder, hh_person_file), "r")
@@ -58,7 +59,10 @@ summary_by_geoid10 = hh_taz.groupby('GEOID10')['total_hhs', 'total_persons'].sum
 print('exporting summary by block groups...')
 summary_by_geoid10.to_csv(os.path.join(hh_person_folder, 'hh_summary_by_geoid10.csv'), header = True)
 
-hh_df.to_csv(os.path.join(hh_person_folder, 'households.csv'), header = True)
-person_df.to_csv(os.path.join(hh_person_folder, 'persons.csv'), header = True)
+if export_parcel_level_dataset == True:
+    print('exporting households and persons by parcel...')
+    hh_df.to_csv(os.path.join(hh_person_folder, 'households.csv'), header = True)
+    person_df.to_csv(os.path.join(hh_person_folder, 'persons.csv'), header = True)
+
 print('done.')
 
