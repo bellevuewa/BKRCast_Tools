@@ -21,21 +21,22 @@ A control file for populationsim is generated as well.
 '''
 ### configuration #####
 ### input files
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\TFP\2033_horizon_year' 
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021baseyear' 
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-hhs_by_parcel = '2033_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
-cob_du_file = '2033TFP_COB_housingunits.csv'
+hhs_by_parcel = '2021_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
+cob_du_file = '2021_COB_housingunits.csv'
 popsim_control_file = 'acecon0403.csv'
 
 # TAZ level control total (households) from Kirkland and Redmond. (can be any TAZ)
 # if there is no local estimate from Redmond/Kirkland, set it to ''. 
-hhs_control_total_by_TAZ = r"Z:\Modeling Group\BKRCast\LandUse\TFP\2033_horizonyear_TFP\Redmond_Kirkland_2033_jobs_hhs_by_tripmodel_TAZ.csv"
+hhs_control_total_by_TAZ = ''
 
 # output files
-hhs_by_taz_comparison_file = '2033_PSRC_hhs_and_forecast_from_kik_Red_by_trip_model_TAZ_comparison.csv'
-adjusted_hhs_by_parcel_file = '2033_final_hhs_by_parcel.csv'
-popsim_control_output_file = r'ACS2016_controls_2033TFP_estimate.csv'
-parcels_for_allocation_filename = '2033_horizon_TFP_parcels_for_allocation_local_estimate.csv'
+hhs_by_taz_comparison_file = '2021_PSRC_hhs_and_forecast_from_kik_Red_by_trip_model_TAZ_comparison.csv'
+adjusted_hhs_by_parcel_file = '2021_final_hhs_by_parcel.csv'
+popsim_control_output_file = r'ACS2016_controls_2021TFP_estimate.csv'
+parcels_for_allocation_filename = '2021_baseyear_parcels_for_allocation_local_estimate.csv'
+summary_by_jurisdiction_filename = '2021_summary_by_jurisdiction.csv'
 #maybe we do not need this file. we can use an output file from prepare_land_use_step_1.py
 
 ####
@@ -243,6 +244,8 @@ else:
     # export adjusted hhs by parcel to file
     adjusted_hhs_by_parcel_df[['PSRC_ID', 'GEOID10', 'BKRCastTAZ', 'adj_hhs_by_parcel']].rename(columns = {'adj_hhs_by_parcel':'total_hhs'}).to_csv(os.path.join(working_folder, adjusted_hhs_by_parcel_file), index = False)
         
+sum_hhs_by_jurisdiction = adjusted_hhs_by_parcel_df[['Jurisdiction', 'adj_hhs_by_parcel', 'adj_persons_by_parcel']] .groupby('Jurisdiction').sum()
+sum_hhs_by_jurisdiction.to_csv(os.path.join(working_folder,  summary_by_jurisdiction_filename))
 
 ### Create control file for PopulationSim
 popsim_control_df = pd.read_csv(os.path.join(working_folder, popsim_control_file), sep = ',')
