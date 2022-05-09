@@ -24,7 +24,7 @@ if duplicated_parcels_df.shape[0] != 0:
     duplicated_parcels_df.to_csv(os.path.join(working_folder, 'duplicated_parcels.csv'))
     # export cleaned copy, only keep the first one if duplicated.
     parcels_df = parcels_df[~parcels_df.duplicated('PSRC_ID', keep = 'first')]
-    parcels_df.to_csv(os.path.join(working_folder, 'cleaned_' + parcel_data_file_name))
+    parcels_df.to_csv(os.path.join(working_folder, 'cleaned_' + parcel_data_file_name), index = False)
 else:
     print('No parcels with duplicated PSRC_ID is found. ')
 
