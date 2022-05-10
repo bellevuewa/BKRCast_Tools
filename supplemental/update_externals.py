@@ -14,17 +14,17 @@ College FTE (column 121) and group quarters (column 122-124) do not change (alwa
     upgrade to python 3.7.
 '''
 # configuration
-external_file = r"D:\TFP\2033TFP\Full 2033 TFP\BKR2-19-T33\inputs\2033\supplemental\generation\externals-2014.csv"
-landuse_file = r"D:\TFP\2033TFP\Full 2033 TFP\BKR2-19-T33\inputs\2033\supplemental\generation\landuse\tazdata_2014.csv"
-updated_hhs = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\TFP\2033_horizon_year\hh_summary_by_taz.csv"
-new_jobs_file = r"Z:\Modeling Group\BKRCast\LandUse\TFP\2033_horizonyear_TFP\summary_by_TAZ.csv"
+external_file = r"D:\base_year_models\2021baseyear\BKR2-21\inputs\2021\supplemental\generation\externals-2014.csv"
+landuse_file = r"D:\base_year_models\2021baseyear\BKR2-21\inputs\2021\supplemental\generation\landuse\tazdata_2014.csv"
+updated_hhs = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021baseyear\hh_summary_by_taz.csv"
+new_jobs_file = r"Z:\Modeling Group\BKRCast\LandUse\2021baseyear\summary_by_TAZ.csv"
 
 ## output files
-external_output_file = r"D:\TFP\2033TFP\Full 2033 TFP\BKR2-19-T33\inputs\2033\supplemental\generation\externals.csv"
-updated_landuse_file = r"D:\TFP\2033TFP\Full 2033 TFP\BKR2-19-T33\inputs\2033\supplemental\generation\landuse\tazdata.in"
+external_output_file = r"D:\base_year_models\2021baseyear\BKR2-21\inputs\2021\supplemental\generation\externals.csv"
+updated_landuse_file = r"D:\base_year_models\2021baseyear\BKR2-21\inputs\2021\supplemental\generation\landuse\tazdata.in"
 
 original_year = 2014
-target_year = 2033
+target_year = 2021
 
 annual_rate1 = 0.0114   # 2014 to 2025
 annual_rate2 = 0.0077   # 2025 to 2040
@@ -38,6 +38,8 @@ if target_year > 2040:
     exit()
 elif target_year > 2025:
     growth_percet = math.pow((1 + annual_rate1), 2025 - 2014) * math.pow((1 + annual_rate2), target_year - 2025)
+else:
+    growth_percet = math.pow((1 + annual_rate1), 2025 - 2014) 
 
 
 
