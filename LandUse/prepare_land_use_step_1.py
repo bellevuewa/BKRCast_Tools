@@ -15,17 +15,18 @@ import utility
 # upgrade to Python 3.7
 
 ### input files
-working_folder = r'Z:\Modeling Group\BKRCast\LandUse\TFP\2033_horizonyear_TFP'
-kingcsqft = '2033_horizon_year_TFP_luchanges_2022_0303.csv'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2021baseyear'
+kingcsqft = 'cleaned_base_04292021.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
 
 ### Output fiels
-kc_job_file = '2033TFP_COB_Jobs.csv'
-kc_SQFT_file = '2033TFP_COB_Sqft.csv'
+kc_job_file = '2021_BKR_Jobs.csv'
+kc_SQFT_file = '2021_BKR_Sqft.csv'
 error_parcel_file = 'parcels_not_in_2014_PSRC_parcels.csv'
-kc_du_file = '2033TFP_COB_housingunits.csv'
+kc_du_file = '2021_BKR_housingunits.csv'
+cob_du_file = '2021_COB_housingunits.csv'
 ###
 
 ##
@@ -79,6 +80,11 @@ du_kc = du_kc.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_o
 if subset_area != []:
     du_kc = du_kc[du_kc['Jurisdiction'].isin(subset_area)]
 du_kc.to_csv(os.path.join(working_folder, kc_du_file), sep  = ',', index = False)
+
+du_cob = kc_df[dwellingunits_list].merge(lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'inner')
+du_cob = du_kc.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_on = 'BKRCastTAZ', right_on = 'BKRCastTAZ', how = 'left')
+du_cob = du_cob[du_cob['Jurisdiction'] == 'BELLEVUE']
+du_cob.to_csv(os.path.join(working_folder, cob_du_file), sep = ',', index = False)
 
 print('Exporting error file...')
 error_parcels = kc_df[~kc_df['PSRC_ID'].isin(lookup_df['PSRC_ID'])]
