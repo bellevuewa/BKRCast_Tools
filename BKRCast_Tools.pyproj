@@ -53,6 +53,7 @@
     <Compile Include="LandUse\update_total_jobs.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Network\TM611Util.py" />
     <Compile Include="SyntheticPopulation\adjust_fulltime_worker_status.py">
       <SubType>Code</SubType>
     </Compile>
