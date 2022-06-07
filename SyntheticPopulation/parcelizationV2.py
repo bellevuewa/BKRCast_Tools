@@ -20,17 +20,17 @@ upgrade to python 3.7
 
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2019\new_allocation_approach'
-synthetic_households_file_name = '2019_newapproach_synthetic_households.csv'
-synthetic_population_file_name = '2019_newapproach_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021baseyear'
+synthetic_households_file_name = '2021_synthetic_households.csv'
+synthetic_population_file_name = '2021_synthetic_persons.csv'
 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2019_final_hhs_by_parcel.csv'
+parcels_for_allocation_filename = r'2021_final_hhs_by_parcel.csv'
 
 ## output
-updated_hhs_file_name = 'updated_2019_synthetic_households.csv'
-updated_persons_file_name = 'updated_2019_synthetic_persons.csv'
-h5_file_name = '2019_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2021_synthetic_households.csv'
+updated_persons_file_name = 'updated_2021_synthetic_persons.csv'
+h5_file_name = '2021_hh_and_persons.h5'
 
 ############## End of configuration
    

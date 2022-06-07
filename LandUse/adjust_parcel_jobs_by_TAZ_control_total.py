@@ -5,7 +5,7 @@ import utility
 
 
 
-working_folder = r'Z:\Modeling Group\BKRCast\LandUse\TFP\2033_horizonyear_TFP'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\TFP\2033_horizonyear_TFP\New_Kirkland_LU_test'
 job_file_by_taz = 'Redmond_Kirkland_2033_jobs_hhs_by_tripmodel_TAZ.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
@@ -28,7 +28,7 @@ jobs_scale_rate_by_TAZ = pd.merge(jobs_by_trip_model_TAZ, job_by_taz_df[['BKRTMT
 # find out TAZ that EMPTOT_P == 0  but total_jobs > 0
 problematic_TAZ = jobs_scale_rate_by_TAZ.loc[(jobs_scale_rate_by_TAZ['EMPTOT_P'] == 0) & (jobs_scale_rate_by_TAZ['total_jobs'] > 0)]
 if problematic_TAZ.shape[0] > 0:
-    print('Please check the error file (error_taz.txt) before moving one')
+    print('Please check the error file (error_taz.txt) before moving on')
     with open(os.path.join(working_folder, 'error_taz.txt'), 'w') as output:
         output.write('Jobs in the TAZs below cannot be scaled up to match TAZ control total because of zero jobs in their parels.\n')
         output.write('%s' % problematic_TAZ)

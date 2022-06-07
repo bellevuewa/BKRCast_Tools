@@ -16,7 +16,7 @@ import utility
 
 ### input files
 working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2021baseyear'
-kingcsqft = 'cleaned_base_04292021.csv'
+kingcsqft = 'base_2021_countyfix_05202022.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
