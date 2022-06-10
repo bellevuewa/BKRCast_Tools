@@ -154,9 +154,11 @@
     <Compile Include="tour_analysis.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Soundcast\tour_mode_share_calculator_PSRC.py" />
     <Compile Include="transfer_parcel_attributes.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Soundcast\trip_mode_share_calculator_PSRC.py" />
     <Compile Include="Trucks\update_truck_externals.py">
       <SubType>Code</SubType>
     </Compile>
@@ -179,6 +181,8 @@
     <Folder Include="Locations\" />
     <Folder Include="LandUse\" />
     <Folder Include="Network\" />
+    <Folder Include="Soundcast\" />
+    <Folder Include="Soundcast\subarea_definition\" />
     <Folder Include="TOD\" />
     <Folder Include="Trucks\" />
     <Folder Include="SyntheticPopulation\" />
@@ -195,6 +199,11 @@
       <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
       <Architecture>X64</Architecture>
     </Interpreter>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Soundcast\subarea_definition\BellevueDTTAZ_PSRC.txt" />
+    <Content Include="Soundcast\subarea_definition\Bellevue_TAZ_PSRC.txt" />
+    <Content Include="Soundcast\subarea_definition\Regional_PSRC.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>
