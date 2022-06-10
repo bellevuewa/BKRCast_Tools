@@ -10,3 +10,5 @@
 /Performance.pyperf
 *.py
 /env
+/.vs
+/.vs
