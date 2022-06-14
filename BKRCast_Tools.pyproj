@@ -53,7 +53,6 @@
     <Compile Include="LandUse\update_total_jobs.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Network\TM611Util.py" />
     <Compile Include="SyntheticPopulation\adjust_fulltime_worker_status.py">
       <SubType>Code</SubType>
     </Compile>
@@ -79,14 +78,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Network\bkr_slope.py" />
-    <Compile Include="Network\PopulateNetwork.py" />
     <Compile Include="Network\bkr_slope_step2.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Network\Pathbased_assignment_on_multiple_scenarios.py">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Network\SOLA_assignment_on_multiple_scenarios.py" />
     <Compile Include="LandUse\Find_PSRCID_from_PIN.py">
       <SubType>Code</SubType>
     </Compile>
@@ -99,8 +93,6 @@
     <Compile Include="Locations\trip_destination_by_purpose.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Network\ExportAllAttributes.py" />
-    <Compile Include="Network\PopulateNetwork2.py" />
     <Compile Include="SyntheticPopulation\generate_COB_local_hhs_estimate.py" />
     <Compile Include="SyntheticPopulation\interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py">
       <SubType>Code</SubType>
