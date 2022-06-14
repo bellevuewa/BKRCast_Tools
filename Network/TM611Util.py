@@ -234,7 +234,7 @@ class EMMELinkFile:
             lines = fp.readlines()
             lines = lines[3:]   # delete the first three rows (header)
             for line in lines:
-                items = line.split('\t')
+                items = line.split(' ')
                 intersection = EMMEAjacentNode(int(items[0]), int(items[1]), int(items[2]), int(items[3]), int(items[4]), int(items[5]))
                 intersection.output()
                 self.intersections.append(intersection)
