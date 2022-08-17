@@ -11,7 +11,8 @@
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>MSBuild|BKRCastVE1|$(MSBuildProjectFullPath)</InterpreterId>
+    <InterpreterId>
+    </InterpreterId>
     <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
@@ -180,17 +181,6 @@
     <Folder Include="SyntheticPopulation\" />
     <Folder Include="supplemental\" />
     <Folder Include="PSRC2BKR\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Interpreter Include="..\..\BKRCastVE\">
-      <Id>BKRCastVE1</Id>
-      <Version>3.7</Version>
-      <Description>BKRCastVE (Python 3.7 (64-bit))</Description>
-      <InterpreterPath>Scripts\python.exe</InterpreterPath>
-      <WindowsInterpreterPath>Scripts\pythonw.exe</WindowsInterpreterPath>
-      <PathEnvironmentVariable>PYTHONPATH</PathEnvironmentVariable>
-      <Architecture>X64</Architecture>
-    </Interpreter>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Soundcast\subarea_definition\BellevueDTTAZ_PSRC.txt" />
