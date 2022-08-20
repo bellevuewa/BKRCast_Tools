@@ -32,7 +32,13 @@ def df_to_h5(df, h5_store, group_name):
         my_group = h5_store.create_group(group_name)
         print("Group Skims Created")
     for col in df.columns:
-        h5_store[group_name].create_dataset(col, data=df[col], dtype = 'int64', compression = 'gzip')
+        if col == 'block_group_id':
+            # int64 cannot be read into daysim appropriately through hdf5dotnet interface,because the read function will read it as int32 which will
+            # generate a memory access error. But it is fine to keep it in int64 in h5.
+            h5_store[group_name].create_dataset(col, data=df[col], dtype = 'int64', compression = 'gzip')
+        else:
+            h5_store[group_name].create_dataset(col, data=df[col], dtype = 'int', compression = 'gzip')
+            
 
 def backupScripts(source, dest):
     import os
