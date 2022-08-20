@@ -22,7 +22,7 @@ hh_df = utility.h5_to_df(hdf_file, 'Household')
 hh_df.set_index('hhparcel', inplace = True)
 
 print('Updating number of households...')
-hhs = hh_df.groupby('hhparcel')['hhexpfac', 'hhsize'].sum()
+hhs = hh_df.groupby('hhparcel')[['hhexpfac', 'hhsize']].sum()
 parcel_df = pd.read_csv(os.path.join(parcel_folder, input_parcel_file), sep = ' ')
 parcel_df.set_index('PARCELID', inplace = True)
 parcel_df = parcel_df.join(hhs, how = 'left')

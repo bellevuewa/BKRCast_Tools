@@ -32,16 +32,16 @@ taz_subarea = pd.read_csv(TAZ_Subarea_File_Name, sep = ",", index_col = "BKRCast
 hh_taz = hh_df.join(taz_subarea, on = 'hhtaz')
 hh_taz['total_persons'] = hh_taz['hhexpfac'] * hh_taz['hhsize']
 hh_taz['total_hhs'] = hh_taz['hhexpfac']
-summary_by_jurisdiction = hh_taz.groupby('Jurisdiction')['total_hhs', 'total_persons'].sum()   
-summary_by_mma = hh_taz.groupby('Subarea')['total_hhs', 'total_persons'].sum()
-summary_by_parcels = hh_taz.groupby('hhparcel')['total_hhs', 'total_persons'].sum()
+summary_by_jurisdiction = hh_taz.groupby('Jurisdiction')[['total_hhs', 'total_persons']].sum()   
+summary_by_mma = hh_taz.groupby('Subarea')[['total_hhs', 'total_persons']].sum()
+summary_by_parcels = hh_taz.groupby('hhparcel')[['total_hhs', 'total_persons']].sum()
 
 taz_subarea.reset_index()
 subarea_def = taz_subarea[['Subarea', 'SubareaName']]
 subarea_def = subarea_def.drop_duplicates(keep = 'first')
 subarea_def.set_index('Subarea', inplace = True)
 summary_by_mma = summary_by_mma.join(subarea_def)
-summary_by_taz = hh_taz.groupby('hhtaz')['total_hhs', 'total_persons'].sum()
+summary_by_taz = hh_taz.groupby('hhtaz')[['total_hhs', 'total_persons']].sum()
 
 
 print('exporting summary by Jurisdiction ... ')
@@ -55,7 +55,7 @@ summary_by_parcels.to_csv(os.path.join(hh_person_folder, 'hh_summary_by_parcel.c
 
 parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
 hh_taz = hh_taz.merge(parcel_df, how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
-summary_by_geoid10 = hh_taz.groupby('GEOID10')['total_hhs', 'total_persons'].sum()
+summary_by_geoid10 = hh_taz.groupby('GEOID10')[['total_hhs', 'total_persons']].sum()
 print('exporting summary by block groups...')
 summary_by_geoid10.to_csv(os.path.join(hh_person_folder, 'hh_summary_by_geoid10.csv'), header = True)
 

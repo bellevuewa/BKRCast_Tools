@@ -18,7 +18,7 @@ The output file is an input to Prepare_Hhs_for_future_using_KR_oldTAZ_COB_parcel
 ### Configurations ######
 ## input files
 future_year_synpop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\PSRC\2050_PSRC_hh_and_persons_bkr.h5"
-base_year_synpop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\PSRC\2014_PSRC_hh_and_persons.h5"
+base_year_synpop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\PSRC\2014_psrc_hh_and_persons.h5"
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 ofm_estimate_template_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\OFM_estimate_template.csv"
 target_year = 2021
@@ -44,9 +44,9 @@ base_hh_df['base_total_hhs'] = base_hh_df['hhexpfac']
 
 parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
 future_hh_df = future_hh_df.merge(parcel_df, how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
-future_hhs_by_geoid10 = future_hh_df.groupby('GEOID10')['future_total_hhs', 'future_total_persons'].sum()
+future_hhs_by_geoid10 = future_hh_df.groupby('GEOID10')[['future_total_hhs', 'future_total_persons']].sum()
 base_hh_df = base_hh_df.merge(parcel_df, how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
-base_hhs_by_geoid10 = base_hh_df.groupby('GEOID10')['base_total_hhs', 'base_total_persons'].sum()
+base_hhs_by_geoid10 = base_hh_df.groupby('GEOID10')[['base_total_hhs', 'base_total_persons']].sum()
 
 print('Future total hhs: ' + str(future_hh_df['future_total_hhs'].sum()))
 print('Future total persons: '  + str(future_hh_df['future_total_persons'].sum()))

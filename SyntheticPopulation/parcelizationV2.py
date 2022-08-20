@@ -46,7 +46,7 @@ all_blcgrp_ids = hhs_df['block_group_id'].unique()
 mask = np.isnan(all_blcgrp_ids)
 all_blcgrp_ids = all_blcgrp_ids[~mask]
 
-hhs_by_blkgrp_popsim = hhs_df.groupby('block_group_id')['hhexpfac', 'hhsize'].sum()
+hhs_by_blkgrp_popsim = hhs_df.groupby('block_group_id')[['hhexpfac', 'hhsize']].sum()
 hhs_by_blkgrp_parcel = parcels_for_allocation_df.groupby('GEOID10')[['total_hhs']].sum()
 final_hhs_df = pd.DataFrame()
 for blcgrpid in all_blcgrp_ids:
@@ -54,23 +54,23 @@ for blcgrpid in all_blcgrp_ids:
         print(f"GEOID10 {blcgrpid}:  popsim: {hhs_by_GEOID10.loc[blcgrpid, 'hhexpfac']}, parcel: {hhs_by_blkgrp_parcel.loc[blcgrpid, 'total_hhs']}")
         print('popsim should equal parcel. You need to fix this issue before moving forward.')
         exit(-1)
-
     num_parcels = 0 
     num_hhs = 0
     parcels_in_GEOID10_df = parcels_for_allocation_df.loc[(parcels_for_allocation_df['GEOID10'] == blcgrpid) & (parcels_for_allocation_df['total_hhs'] > 0)]
     subtotal_parcels = parcels_in_GEOID10_df.shape[0]
     selected_hhs_df = hhs_df.loc[(hhs_df['block_group_id'] == blcgrpid) & (hhs_df['hhparcel'] == 0)]
     j_start_index = 0
+    index_hhparcel = selected_hhs_df.columns.get_loc('hhparcel')
     for i in range(subtotal_parcels):
         numHhs = parcels_in_GEOID10_df['total_hhs'].iat[i]
         parcelid = parcels_in_GEOID10_df['PSRC_ID'].iat[i]
         for j in range(int(numHhs)):
-            selected_hhs_df['hhparcel'].iat[j + j_start_index] = parcelid 
+            selected_hhs_df.iat[j + j_start_index, index_hhparcel] = parcelid 
             num_hhs += 1          
         num_parcels += 1
         j_start_index += int(numHhs)
 
-    final_hhs_df = final_hhs_df.append(selected_hhs_df)
+    final_hhs_df = pd.concat([final_hhs_df, selected_hhs_df])
    
     ## process sf parcel in batch, to save some computer time
     #sf_parcels_df = parcels_for_allocation_df.loc[(parcels_for_allocation_df['GEOID10'] == blcgrpid) & (parcels_for_allocation_df['total_hhs'] == 1)]
