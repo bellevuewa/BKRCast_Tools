@@ -5,14 +5,13 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>SyntheticPopulation\parcelizationV2.py</StartupFile>
+    <StartupFile>Soundcast\export_soundcast_input_db_to_tables.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>
-    </InterpreterId>
+    <InterpreterId>Global|ContinuumAnalytics|Anaconda37-64</InterpreterId>
     <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
@@ -54,6 +53,7 @@
     <Compile Include="LandUse\update_total_jobs.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Soundcast\export_soundcast_input_db_to_tables.py" />
     <Compile Include="SyntheticPopulation\adjust_fulltime_worker_status.py">
       <SubType>Code</SubType>
     </Compile>
@@ -114,6 +114,7 @@
     <Compile Include="SyntheticPopulation\merge_two_synthetic_populations.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SyntheticPopulation\prepare_hhs_for_baseyear_using_ofm.py" />
     <Compile Include="SyntheticPopulation\Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast.py" />
     <Compile Include="SyntheticPopulation\Prepare_household_for_concurrency.py">
       <SubType>Code</SubType>
@@ -186,6 +187,10 @@
     <Content Include="Soundcast\subarea_definition\BellevueDTTAZ_PSRC.txt" />
     <Content Include="Soundcast\subarea_definition\Bellevue_TAZ_PSRC.txt" />
     <Content Include="Soundcast\subarea_definition\Regional_PSRC.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <InterpreterReference Include="CondaEnv|CondaEnv|BKRCast" />
+    <InterpreterReference Include="Global|ContinuumAnalytics|Anaconda37-64" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>
