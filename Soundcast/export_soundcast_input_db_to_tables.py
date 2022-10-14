@@ -1,4 +1,5 @@
 from configparser import ConverterMapping
+from pickle import TRUE
 from re import T
 from this import d
 import pandas as pd
@@ -8,7 +9,8 @@ import os
 from sqlalchemy import create_engine
 
 '''
-    Soundcast starts to use light sql DATABASE (datafile: soundcast_inputs.db in inputs/db folder) to manage a number of input files. BKRCast does not do that. 
+10/14/2022  
+   Soundcast starts to use light sql DATABASE (datafile: soundcast_inputs.db in inputs/db folder) to manage a number of input files. BKRCast does not do that. 
     In order to keep consistent with Soundcast in supplemental module, we need to read each individual input file.
 
     All tables inside the db are exported to csv file, each table in one csv. 
@@ -16,6 +18,18 @@ from sqlalchemy import create_engine
     The following tables are also converted to meet BKRCast input format.
         enlisted_personnel
         external_trip_distribution
+        psrc_zones.csv
+        auto_externals.csv
+        group_quarters.csv
+        heavy_trucks.csv
+        seatac.csv
+        special_generators.csv
+        external_unadjusted.csv
+
+        time_of_day_factors.csv
+
+ 
+
 '''
 
 input_db_file = r"D:\Soundcast\soundcast\inputs\db\soundcast_inputs.db"
@@ -92,7 +106,140 @@ def convert_work_trip_ixxi_to_bkr(folder, filename):
     fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
 
     work_ixxi_grp_bkr_df.to_csv(os.path.join(output_folder, fn), index = True)
+ 
+def convert_PSRC_zones_to_BKR(folder, filename):
+    '''
+       convert PSRC_zones.csv to BKR_zones.csv. 
+    '''
+    PSRC_zones_df = pd.read_csv(os.path.join(folder, filename))
+    tazshare_df = pd.read_table(tazSharesFileName)
+    BKR_zones_df = pd.merge(PSRC_zones_df, tazshare_df, left_on = 'taz', right_on = 'psrc_zone_id', how = 'left')
+    BKR_zones_df = BKR_zones_df.groupby('bkr_zone_id').agg({'county':'first', 'jblm':'first', 'external':'first'}).reset_index()
+    BKR_zones_df.rename(columns = {'bkr_zone_id':'BKRCastTAZ'}, inplace = True)
+    BKR_zones_df.loc[BKR_zones_df['BKRCastTAZ'] == 1319, 'jblm'] = 1
     
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
+    BKR_zones_df.to_csv(os.path.join(output_folder, 'bkr_zones.csv'), index = False)
+
+def convert_auto_externals_to_BKR(folder, filename):
+    auto_externals_df = pd.read_csv(os.path.join(folder, filename))
+    tazshare_df = pd.read_table(tazSharesFileName)
+    auto_externals_df = pd.merge(auto_externals_df, tazshare_df, left_on = 'taz', right_on = 'psrc_zone_id', how = 'left')
+    auto_externals_df.drop(['percent', 'psrc_zone_id', 'taz'], axis = 1, inplace = True)
+    auto_externals_df.rename(columns = {'bkr_zone_id':'BKRCastTAZ'}, inplace = True)
+    
+    agg_op = {}
+    for name in auto_externals_df.columns:
+        if name == 'year' or name == 'record':
+            agg_op[name] = 'first'
+        elif name == 'BKRCastTAZ':
+            continue
+        else:
+            agg_op[name] = 'sum'
+            
+    auto_externals_df = auto_externals_df.groupby('BKRCastTAZ').agg(agg_op).reset_index()
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
+    auto_externals_df.to_csv(os.path.join(output_folder, fn), index = False)
+ 
+def convert_group_quarters_to_bkr(folder, filename):
+    group_quarters_df = pd.read_csv(os.path.join(folder, filename))
+    tazshare_df = pd.read_table(tazSharesFileName)
+    group_quarters_df = pd.merge(group_quarters_df, tazshare_df, left_on = 'taz', right_on = 'psrc_zone_id', how = 'left')
+    group_quarters_df['group_quarters'] = group_quarters_df['group_quarters'] * group_quarters_df['percent']
+    group_quarters_df.drop(['percent', 'psrc_zone_id', 'taz'], axis = 1, inplace = True)
+    group_quarters_df.rename(columns={'bkr_zone_id':'BKRCastTAZ'}, inplace = True)
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
+    group_quarters_df.to_csv(os.path.join(output_folder, fn), index = False)
+
+
+def convert_jblm_trips_to_bkr(folder, filename):
+    jblm_trips_df = pd.read_csv(os.path.join(folder, filename))
+    tazshare_df = pd.read_table(tazSharesFileName)
+    jblm_trips_df = pd.merge(jblm_trips_df, tazshare_df[['psrc_zone_id', 'bkr_zone_id', 'percent']], left_on = 'origin_zone', right_on = 'psrc_zone_id', how = 'left')
+    jblm_trips_df['trips'] = jblm_trips_df['trips'] * jblm_trips_df['percent']
+    jblm_trips_df.drop(['origin_zone', 'psrc_zone_id', 'percent'], axis = 1, inplace = True)
+    jblm_trips_df.rename(columns = {'bkr_zone_id':'origin_zone'}, inplace = True)
+
+    jblm_trips_df = pd.merge(jblm_trips_df, tazshare_df[['psrc_zone_id', 'bkr_zone_id', 'percent']], left_on = 'destination_zone', right_on = 'psrc_zone_id', how = 'left')
+    jblm_trips_df['trips'] = jblm_trips_df['trips'] * jblm_trips_df['percent']
+    jblm_trips_df.drop(['destination_zone', 'psrc_zone_id', 'percent'], axis = 1, inplace = True)
+    jblm_trips_df.rename(columns = {'bkr_zone_id':'destination_zone'}, inplace = True)
+
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
+    jblm_trips_df.to_csv(os.path.join(output_folder, fn), index = False)
+
+def convert_heavy_trucks_to_bkr(folder, filename):
+    heavy_trucks_df = pd.read_csv(os.path.join(folder, filename))
+    tazshare_df = pd.read_table(tazSharesFileName)
+    heavy_trucks_df = pd.merge(heavy_trucks_df, tazshare_df, left_on = 'taz', right_on = 'psrc_zone_id', how = 'left')
+    heavy_trucks_df['htkpro'] *= heavy_trucks_df['percent']
+    heavy_trucks_df['htkatt'] *= heavy_trucks_df['percent']
+    heavy_trucks_df.drop(['atri_zone', 'taz', 'psrc_zone_id', 'percent'], axis = 1, inplace = True)
+    heavy_trucks_df.rename(columns = {'bkr_zone_id':'BKRCastTAZ'}, inplace = True)
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
+    heavy_trucks_df.to_csv(os.path.join(output_folder, fn), index = False)
+
+def convert_seatac_to_bkr(folder, filename):
+    seatac_df = pd.read_csv(os.path.join(folder, filename))
+    seatac_df.loc[seatac_df['taz'] == 983, 'taz'] = 1356
+    seatac_df.rename(columns = {'taz':'BKRCastTAZ'}, inplace = True)
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
+    seatac_df.to_csv(os.path.join(output_folder, fn), index = False)
+
+def convert_special_generator_to_bkr(folder, filename):
+    sp_df = pd.read_csv(os.path.join(folder, filename))
+    sp_df.loc[sp_df['taz'] == 438, 'taz'] = 1358  # Seattle center
+    sp_df.loc[sp_df['taz'] == 631, 'taz'] = 1359  # exibition center
+    sp_df.loc[sp_df['taz'] == 3110, 'taz'] = 1357 # Tacoma Dome
+    sp_df.rename(columns = {'taz':'BKRCastTAZ'}, inplace = True)
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
+    sp_df.to_csv(os.path.join(output_folder, fn), index = False)
+
+def convert_externals_unadjusted_to_bkr(folder, filename):
+    external_unadjusted_df = pd.read_csv(os.path.join(folder, filename))
+    cols = external_unadjusted_df.columns.drop('taz')
+    tazshare_df = pd.read_table(tazSharesFileName)
+    external_unadjusted_df = pd.merge(external_unadjusted_df, tazshare_df, left_on = 'taz', right_on = 'psrc_zone_id', how = 'left')
+    for col in cols:
+        external_unadjusted_df[col] = external_unadjusted_df[col] * external_unadjusted_df['percent']
+    external_unadjusted_df.drop(['psrc_zone_id', 'taz', 'percent'], axis = 1, inplace = True)
+    external_unadjusted_df.rename(columns = {'bkr_zone_id':'BKRCastTAZ'}, inplace = True)
+    external_unadjusted_df = external_unadjusted_df.groupby('BKRCastTAZ').sum().reset_index()
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
+    external_unadjusted_df.to_csv(os.path.join(output_folder, fn), index = False)
+
+def convert_tod_factors_to_bkr(folder, filename):
+    tod_factors_df = pd.read_csv(os.path.join(folder, filename))
+    tod_mapping = {'5to6' : '1830to6', '6to7' : '6to9', '7to8' : '6to9', '8to9' : '6to9', 
+                       '9to10' : '9to1530', '10to14' : '9to1530', '14to15' : '9to1530', '15to1530':'9to1530',
+                       '1530to16' : '1530to1830', '16to17' : '1530to1830', '17to18' : '1530to1830', '18to1830':'1530to1830',
+                       '1830to20' : '1830to6', '20to5' : '1830to6'}
+
+    # create factors to split 15to16.
+    temp_df = tod_factors_df.loc[tod_factors_df['time_of_day'] == '15to16'].copy()
+    temp_df['time_of_day'] = '15to1530'
+    temp_df['value'] *= 0.5
+    tod_factors_df.drop(tod_factors_df[tod_factors_df['time_of_day']  == '15to16'].index, inplace = True)
+    tod_factors_df = pd.concat([tod_factors_df, temp_df]).reset_index(drop = True)
+    temp_df['time_of_day'] = '1530to16'
+    tod_factors_df = pd.concat([tod_factors_df, temp_df]).reset_index(drop = True)
+
+    # create factors to split 18to20
+    temp_df = tod_factors_df.loc[tod_factors_df['time_of_day'] == '18to20'].copy()
+    temp_df['time_of_day'] = '18to1830'
+    temp_df['value'] *= 0.25
+    tod_factors_df = pd.concat([tod_factors_df, temp_df]).reset_index(drop = True)
+    temp_df = tod_factors_df.loc[tod_factors_df['time_of_day'] == '18to20'].copy()
+    temp_df['time_of_day'] = '1830to20'
+    temp_df['value'] *= 0.75
+    tod_factors_df = pd.concat([tod_factors_df, temp_df]).reset_index(drop = True)
+
+    tod_factors_df.drop(tod_factors_df[tod_factors_df['time_of_day'] == '18to20'].index, inplace = True)
+
+    tod_factors_df.replace({'time_of_day':tod_mapping}, inplace = True)
+    tod_factors_df = tod_factors_df.groupby(['time_of_day', 'mode']).sum().reset_index()
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
+    tod_factors_df.to_csv(os.path.join(output_folder, fn), index = False)
 
 def main():
 
@@ -102,8 +249,16 @@ def main():
 
     convert_military_jobs_to_bkr(output_folder, 'enlisted_personnel.csv')
     convert_work_trip_ixxi_to_bkr(output_folder, 'external_trip_distribution.csv')
+    convert_PSRC_zones_to_BKR(output_folder, 'psrc_zones.csv')
+    convert_auto_externals_to_BKR(output_folder, 'auto_externals.csv')
+    convert_group_quarters_to_bkr(output_folder, 'group_quarters.csv')
+    convert_heavy_trucks_to_bkr(output_folder, 'heavy_trucks.csv')
+    convert_seatac_to_bkr(output_folder, 'seatac.csv')
+    convert_special_generator_to_bkr(output_folder, 'special_generator.csv')
+    convert_externals_unadjusted_to_bkr(output_folder, 'externals_unadjusted.csv')
 
-    
+    convert_tod_factors_to_bkr(output_folder, 'time_of_day_factors.csv')
+
     print('Done')
 
 if __name__ == '__main__':
