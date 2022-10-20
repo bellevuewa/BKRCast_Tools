@@ -241,6 +241,15 @@ def convert_tod_factors_to_bkr(folder, filename):
     fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
     tod_factors_df.to_csv(os.path.join(output_folder, fn), index = False)
 
+def convert_truck_tod_to_bkr(output_folder, filename):
+    truck_tod_df = pd.read_csv(os.path.join(output_folder, filename))
+    truck_tod_bkr_df = truck_tod_df.loc[truck_tod_df['time_period'].isin(['am','md', 'pm'])]
+    truck_ni_df =  truck_tod_df.loc[truck_tod_df['time_period'].isin(['ev','ni'])].groupby('truck_type').sum().reset_index()
+    truck_ni_df['time_period'] = 'ni'
+    truck_tod_bkr_df = pd.concat([truck_tod_bkr_df, truck_ni_df]).sort_values('truck_type')
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
+    truck_tod_bkr_df.to_csv(os.path.join(output_folder, fn), index = False)
+
 def main():
 
     if to_export_tables == True:
