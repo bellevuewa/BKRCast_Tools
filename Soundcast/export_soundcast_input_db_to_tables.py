@@ -25,8 +25,9 @@ from sqlalchemy import create_engine
         seatac.csv
         special_generators.csv
         external_unadjusted.csv
-
+        jblm_trips.csv
         time_of_day_factors.csv
+        truck_time_of_day_factors.csv
 
  
 
@@ -265,8 +266,10 @@ def main():
     convert_seatac_to_bkr(output_folder, 'seatac.csv')
     convert_special_generator_to_bkr(output_folder, 'special_generator.csv')
     convert_externals_unadjusted_to_bkr(output_folder, 'externals_unadjusted.csv')
-
+    convert_jblm_trips_to_bkr(output_folder, 'jblm_trips.csv')
     convert_tod_factors_to_bkr(output_folder, 'time_of_day_factors.csv')
+    convert_truck_tod_to_bkr(output_folder, 'truck_time_of_day_factors.csv')
+
 
     print('Done')
 
