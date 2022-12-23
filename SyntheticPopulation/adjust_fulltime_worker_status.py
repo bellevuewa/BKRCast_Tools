@@ -15,14 +15,14 @@ status. The percent, associated with individual tazs, is specified in an externa
 '''
 
 ### input configuration
-working_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\WFHTesting\2nd_round_test\2019-test1"
-original_h5_file_name = '2019_hh_and_persons.h5'
+working_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\WFH\NA"
+original_h5_file_name = '2044complan_NA_hh_and_persons.h5'
 TAZ_Subarea_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 # percent of workers to be adjusted
 adjustment_factor_name = r"TAZ_subarea_worker_adjustment.csv"
 
 ### output configuration
-updated_h5_file_name = 'updated_2019_hh_and_persons_forWFH.h5'
+updated_h5_file_name = '2044complan_NA_hh_and_persons_forWFH.h5'
 converted_nonworker_file_name = 'converted_non_workers.csv'
 report_file_name = 'workers_conversion_report.txt'
 
@@ -52,7 +52,7 @@ for taz in adjustment_factor_df.itertuples():
         not_selected = fulltime_workers_in_taz.loc[~fulltime_workers_in_taz['pid'].isin(selected['pid'])]
         # change the worker type from full time (1) to non-worker (0)
         selected['pwtyp'] = 0 
-        selected['pptyp'] = 0
+        selected['pptyp'] = 4 # 4 got other non-worker
         total_adjusted += selected.shape[0]
         updated_person_df = pd.concat([updated_person_df, not_selected])
         updated_person_df = pd.concat([updated_person_df, selected])
