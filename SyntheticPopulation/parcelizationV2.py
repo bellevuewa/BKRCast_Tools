@@ -1,3 +1,4 @@
+from xml.dom import HIERARCHY_REQUEST_ERR
 import pandas as pd
 import numpy as np
 import os
@@ -6,7 +7,7 @@ import h5py
 import utility
 
 '''
-This program takes synthetic households and synthetic persons( from PopulationSim),
+This program takes synthetic households and synthetic persons( from PopulationSim) as inputs,
 and allocates them to parcels, under the guidance of parcels_for_allocation_filename which is an output file from 
 Prepare_Hhs_for_future_using_KR_oldTAZ_COB_parcel_forecast.py or prepare_hhs_for_baseyear_using_ofm.py. It also reformats household and person
 data columns to match BKRCast input requirement. The output, h5_file_name, can be directly loaded into BKRCast.
@@ -20,17 +21,17 @@ upgrade to python 3.7
 
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021baseyear'
-synthetic_households_file_name = '2021_synthetic_households.csv'
-synthetic_population_file_name = '2021_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\Alt3'
+synthetic_households_file_name = 'complan_alt3_synthetic_households.csv'
+synthetic_population_file_name = 'complan_alt3_synthetic_persons.csv'
 
 # number of hhs per parcel
-parcels_for_allocation_filename = r'2021_final_hhs_by_parcel.csv'
+parcels_for_allocation_filename = r"2044complan_alt3_final_hhs_by_parcel.csv"
 
 ## output
-updated_hhs_file_name = 'updated_2021_synthetic_households.csv'
-updated_persons_file_name = 'updated_2021_synthetic_persons.csv'
-h5_file_name = '2021_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_complan_alt3_synthetic_households.csv'
+updated_persons_file_name = 'updated_complan_alt3_synthetic_persons.csv'
+h5_file_name = 'complan_alt3_hh_and_persons.h5'
 
 ############## End of configuration
    
@@ -71,7 +72,8 @@ for blcgrpid in all_blcgrp_ids:
         j_start_index += int(numHhs)
 
     final_hhs_df = pd.concat([final_hhs_df, selected_hhs_df])
-   
+    #hhs_df = hhs_df.loc[~hhs_df['household_id'].isin(selected_hhs_df['household_id'])]
+ 
     ## process sf parcel in batch, to save some computer time
     #sf_parcels_df = parcels_for_allocation_df.loc[(parcels_for_allocation_df['GEOID10'] == blcgrpid) & (parcels_for_allocation_df['total_hhs'] == 1)]
     #sf_parcels_count = sf_parcels_df.shape[0]

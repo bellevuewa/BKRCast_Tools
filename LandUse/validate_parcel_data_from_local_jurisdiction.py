@@ -8,9 +8,9 @@ This program validates the input parcel land use data file provided by community
     2. parcels in lookup file but missing in the land use data file. 
     3. parcels in land use data file but not in lookup file. 
 '''
-working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2021baseyear'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\LU_alt3'
 parcel_lookup_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-parcel_data_file_name = r'base_2021_countyfix_05202022.csv'
+parcel_data_file_name = r'2044Alt3_MaxDevelopment_1215.csv'
 
 # Juridisction = Rest of KC, External, BELLEVUE, BellevueFringe, KIRKLAND, REDMOND, RedmondFridge, KirklandFringe, 
 # only look into this subset of parcel_lookup_df if Jurisdiction is not set to None. Otherwise use the whole set of parcel_lookup_df,

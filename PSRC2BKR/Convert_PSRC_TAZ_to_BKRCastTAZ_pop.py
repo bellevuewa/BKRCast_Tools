@@ -13,9 +13,9 @@ import numpy as np
 from utility import *
 
 #input settings
-wd = r"Z:\Modeling Group\BKRCast\SoundCast\2050_Inputs"
-popsynFileName = "2050_SC_hh_and_persons.h5"
-parcel_bkr_taz_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel2014_BKRCastTAZ.csv"
+wd = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2014"
+popsynFileName = "2014_psrc_hh_and_persons.h5"
+parcel_bkr_taz_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData_for_zone_split_test\parcel_TAZ_2014_lookup.csv"
 
 
 #read popsyn file
@@ -29,14 +29,14 @@ parcel_bkr_taz = pd.read_csv(parcel_bkr_taz_file, sep = ',')
 
 #merge to households
 print('assign bkr tazs')
-households = pd.merge(hh_df, parcel_bkr_taz, left_on = "hhparcel", right_on = "PARCELID")
+households = pd.merge(hh_df, parcel_bkr_taz, left_on = "hhparcel", right_on = "PSRC_ID")
     
 households["hhtaz"] = households["BKRCastTAZ"].astype(np.int32)
 households.drop(parcel_bkr_taz.columns, inplace=True, axis=1)
 households = households.sort_values("hhno")
 
 #write result file by copying input file and writing over arrays
-popsynOutFileName = popsynFileName.split(".")[0]+ "_bkr.h5"
+popsynOutFileName = popsynFileName.split(".")[0]+ "_bkr_zone_split_test.h5"
 out_h5_file = h5py.File(os.path.join(wd, popsynOutFileName), 'w')
 print('Export households and persons...')
 df_to_h5(households, out_h5_file, 'Household')

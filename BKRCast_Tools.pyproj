@@ -5,13 +5,13 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>Soundcast\export_soundcast_input_db_to_tables.py</StartupFile>
+    <StartupFile>BikeCounts\WSDOT_bike_counts_processor.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
     <ProjectTypeGuids>{888888a0-9f3d-457c-b088-3a5042f75d52}</ProjectTypeGuids>
     <LaunchProvider>Standard Python launcher</LaunchProvider>
-    <InterpreterId>CondaEnv|CondaEnv|BKRCast</InterpreterId>
+    <InterpreterId>Global|VisualStudio|BKRCast</InterpreterId>
     <TestFramework>unittest</TestFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'" />
@@ -22,6 +22,7 @@
   <ItemGroup>
     <Compile Include="adjacent_nodes.py" />
     <Compile Include="Adjust_Employment_by_tract_contral_total.py" />
+    <Compile Include="BikeCounts\WSDOT_bike_counts_processor.py" />
     <Compile Include="commercial_parcels.py">
       <SubType>Code</SubType>
     </Compile>
@@ -98,6 +99,8 @@
     <Compile Include="SyntheticPopulation\interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SyntheticPopulation\keep_non_Bel_pop_workers_consistent.py" />
+    <Compile Include="SyntheticPopulation\merge_two_synthetic_populations.py" />
     <Compile Include="SyntheticPopulation\parcelizationV2.py" />
     <Compile Include="SyntheticPopulation\parcelization.py">
       <SubType>Code</SubType>
@@ -111,7 +114,7 @@
     <Compile Include="SyntheticPopulation\Create_popsim_control_file_from_hhs_growth.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SyntheticPopulation\merge_two_synthetic_populations.py">
+    <Compile Include="SyntheticPopulation\merge_two_synthetic_populations_for_complan.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SyntheticPopulation\prepare_hhs_for_baseyear_using_ofm.py" />
@@ -119,6 +122,7 @@
     <Compile Include="SyntheticPopulation\Prepare_household_for_concurrency.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="SyntheticPopulation\Renumber_hhs_id.py" />
     <Compile Include="SyntheticPopulation\synthetic_population_error_checking.py">
       <SubType>Code</SubType>
     </Compile>
@@ -175,6 +179,7 @@
     <Folder Include="Locations\" />
     <Folder Include="LandUse\" />
     <Folder Include="Network\" />
+    <Folder Include="BikeCounts\" />
     <Folder Include="Soundcast\" />
     <Folder Include="Soundcast\subarea_definition\" />
     <Folder Include="TOD\" />
@@ -190,6 +195,7 @@
   </ItemGroup>
   <ItemGroup>
     <InterpreterReference Include="CondaEnv|CondaEnv|BKRCast" />
+    <InterpreterReference Include="Global|VisualStudio|BKRCast" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
 </Project>

@@ -21,10 +21,10 @@ A control file for populationsim is generated as well.
 '''
 ### configuration #####
 ### input files
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021baseyear' 
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\Alt3' 
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-hhs_by_parcel = '2021_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
-cob_du_file = '2021_COB_housingunits.csv'
+hhs_by_parcel = '2044_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
+cob_du_file = '2044Alt3_COB_housingunits.csv'
 popsim_control_file = 'acecon0403.csv'
 
 # TAZ level control total (households) from Kirkland and Redmond. (can be any TAZ)
@@ -32,11 +32,11 @@ popsim_control_file = 'acecon0403.csv'
 hhs_control_total_by_TAZ = ''
 
 # output files
-hhs_by_taz_comparison_file = '2021_PSRC_hhs_and_forecast_from_kik_Red_by_trip_model_TAZ_comparison.csv'
-adjusted_hhs_by_parcel_file = '2021_final_hhs_by_parcel.csv'
-popsim_control_output_file = r'ACS2016_controls_2021TFP_estimate.csv'
-parcels_for_allocation_filename = '2021_baseyear_parcels_for_allocation_local_estimate.csv'
-summary_by_jurisdiction_filename = '2021_summary_by_jurisdiction.csv'
+hhs_by_taz_comparison_file = '2044complan_Alt3_PSRC_hhs_and_forecast_from_kik_Red_by_trip_model_TAZ_comparison.csv'
+adjusted_hhs_by_parcel_file = '2044complan_Alt3_final_hhs_by_parcel.csv'
+popsim_control_output_file = r'ACS2016_controls_2044_Alt3_estimate.csv'
+parcels_for_allocation_filename = '2044complan_Alt3_baseyear_parcels_for_allocation_local_estimate.csv'
+summary_by_jurisdiction_filename = '2044complan_Alt3_summary_by_jurisdiction.csv'
 #maybe we do not need this file. we can use an output file from prepare_land_use_step_1.py
 
 ####
@@ -165,7 +165,7 @@ for row in special_hhs_by_TAZ.itertuples():
 
 
 adj_hhs_by_BKRCastTAZ = adjusted_hhs_by_parcel_df[['BKRCastTAZ', 'adj_hhs_by_parcel']].groupby('BKRCastTAZ').sum().round(0).astype(int)
-controlled_taz_hhs = adj_hhs_by_BKRCastTAZ.reset_index().to_dict('record')
+controlled_taz_hhs = adj_hhs_by_BKRCastTAZ.reset_index().to_dict('records')
 
 for record in controlled_taz_hhs:
     adjusted_hhs_by_parcel_df.loc[adjusted_hhs_by_parcel_df['BKRCastTAZ'] == record['BKRCastTAZ'], 'adj_hhs_by_parcel'] = adjusted_hhs_by_parcel_df['adj_hhs_by_parcel'].round(0)

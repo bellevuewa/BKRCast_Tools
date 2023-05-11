@@ -14,14 +14,14 @@ College FTE (column 121) and group quarters (column 122-124) do not change (alwa
     upgrade to python 3.7.
 '''
 # configuration
-external_file = r"D:\base_year_models\2021baseyear\BKR2-21\inputs\2021\supplemental\generation\externals-2014.csv"
-landuse_file = r"D:\base_year_models\2021baseyear\BKR2-21\inputs\2021\supplemental\generation\landuse\tazdata_2014.csv"
+external_file = r"D:\base_year_models\2021baseyear\BKR3-21\inputs\2021\supplemental\generation\externals-2014.csv"
+landuse_file = r"D:\base_year_models\2021baseyear\BKR3-21\inputs\2021\supplemental\generation\landuse\tazdata_2014.csv"
 updated_hhs = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021baseyear\hh_summary_by_taz.csv"
 new_jobs_file = r"Z:\Modeling Group\BKRCast\LandUse\2021baseyear\summary_by_TAZ.csv"
 
 ## output files
-external_output_file = r"D:\base_year_models\2021baseyear\BKR2-21\inputs\2021\supplemental\generation\externals.csv"
-updated_landuse_file = r"D:\base_year_models\2021baseyear\BKR2-21\inputs\2021\supplemental\generation\landuse\tazdata.in"
+external_output_file = r"D:\base_year_models\2021baseyear\BKR3-21\inputs\2021\supplemental\generation\externals.csv"
+updated_landuse_file = r"D:\base_year_models\2021baseyear\BKR3-21\inputs\2021\supplemental\generation\landuse\tazdata.in"
 
 original_year = 2014
 target_year = 2021

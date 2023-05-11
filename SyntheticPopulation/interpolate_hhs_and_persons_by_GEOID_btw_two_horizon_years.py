@@ -21,13 +21,15 @@ future_year_synpop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\
 base_year_synpop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\PSRC\2014_psrc_hh_and_persons.h5"
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 ofm_estimate_template_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\OFM_estimate_template.csv"
-target_year = 2021
+target_year = 2044
 future_year =2050
 base_year = 2014
 
 ## Output files
-interploated_ofm_estimate_by_GEOID = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021baseyear\2021_ofm_estimate_from_PSRC_2014_2050.csv"
-hhs_by_parcel_filename = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021baseyear\2021_hhs_by_parcels_from_PSRC_2014_2050.csv'
+interploated_ofm_estimate_by_GEOID = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\Alt3\2044_ofm_estimate_from_PSRC_2014_2050.csv"
+hhs_by_parcel_filename = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\Alt3\2044_hhs_by_parcels_from_PSRC_2014_2050.csv'
+final_output_pop_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\Alt3\2044_interpolated_synthetic_population_from_SC.h5'
+
 ### end of configuration
 print('Loading synthetic populations...')
 future_hdf_file = h5py.File(future_year_synpop_file, "r")
@@ -43,7 +45,7 @@ base_hh_df['base_total_persons'] = base_hh_df['hhexpfac'] * base_hh_df['hhsize']
 base_hh_df['base_total_hhs'] = base_hh_df['hhexpfac']
 
 parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
-future_hh_df = future_hh_df.merge(parcel_df, how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
+future_hh_df = future_hh_df.merge(parcel_df[['PSRC_ID', 'GEOID10', 'BKRCastTAZ']], how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
 future_hhs_by_geoid10 = future_hh_df.groupby('GEOID10')[['future_total_hhs', 'future_total_persons']].sum()
 base_hh_df = base_hh_df.merge(parcel_df, how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
 base_hhs_by_geoid10 = base_hh_df.groupby('GEOID10')[['base_total_hhs', 'base_total_persons']].sum()
@@ -88,6 +90,34 @@ target_hhs_by_parcel.to_csv(hhs_by_parcel_filename, index = False)
 avg_person_per_hhs_df = target_hhs_by_parcel[['Jurisdiction', 'total_hhs_by_parcel', 'total_persons_by_parcel']].groupby('Jurisdiction').sum()
 avg_person_per_hhs_df['avg_persons_per_hh'] = avg_person_per_hhs_df['total_persons_by_parcel'] / avg_person_per_hhs_df['total_hhs_by_parcel']
 print('%s' % avg_person_per_hhs_df)
+
+print('Generating households... ')
+target_hhs_by_taz = target_hhs_by_parcel[['BKRCastTAZ', 'total_hhs_by_parcel']].groupby('BKRCastTAZ').sum().reset_index()
+target_hhs_by_taz = target_hhs_by_taz.loc[target_hhs_by_taz['total_hhs_by_parcel'] > 0]
+future_hh_df.drop(['PSRC_ID', 'future_total_persons', 'future_total_hhs', 'GEOID10', 'BKRCastTAZ'], axis = 1, inplace=True)
+target_hhs_df = pd.DataFrame()
+
+for taz in target_hhs_by_taz['BKRCastTAZ'].tolist():
+    hhs_in_taz = future_hh_df.loc[future_hh_df['hhtaz'] == taz]
+    num_hhs_popsim = hhs_in_taz['hhexpfac'].sum()
+    num_hhs = int(target_hhs_by_taz.loc[target_hhs_by_taz['BKRCastTAZ'] == taz, 'total_hhs_by_parcel'].tolist()[0])
+    if num_hhs_popsim > num_hhs:
+        target_hhs_df = pd.concat([target_hhs_df, hhs_in_taz.sample(n = num_hhs)])
+    else:
+        target_hhs_df = pd.concat([target_hhs_df, hhs_in_taz.sample(n = num_hhs_popsim)])
+print(f"total hhs: {target_hhs_df['hhexpfac'].sum()}")
+
+print('Generating persons...')
+future_persons_df = utility.h5_to_df(future_hdf_file, 'Person')
+target_persons_df = future_persons_df.loc[future_persons_df['hhno'].isin(target_hhs_df['hhno'])]
+print(f"total persons: {target_persons_df['psexpfac'].sum()}")
+print('Exporting .h5...')
+output_h5_file = h5py.File(final_output_pop_file, 'w')
+utility.df_to_h5(target_hhs_df, output_h5_file, 'Household')
+utility.df_to_h5(target_persons_df, output_h5_file, 'Person')
+
+output_h5_file.close()
+
 
 
 utility.backupScripts(__file__, os.path.join(os.path.dirname(interploated_ofm_estimate_by_GEOID), os.path.basename(__file__)))

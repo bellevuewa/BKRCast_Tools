@@ -11,10 +11,10 @@ the households in parcel file is consistent with synthetic population file.
 upgraded to python 3.7
 '''
 
-Hh_and_person_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2021baseyear\2021_hh_and_persons.h5"
-parcel_folder = r'Z:\Modeling Group\BKRCast\LandUse\2021baseyear'
-input_parcel_file = '2021_parcels_urbansim.txt'
-output_parcel_file = '2021_final_parcels_urbansim.txt'
+Hh_and_person_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\WFH\Alt3-30%WFH\final_combined_complan_alt3_hh_and_persons_forWFH_30%_outside_bel_consistent_with_NA.h5"
+parcel_folder = r'Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\LU_alt3'
+input_parcel_file = 'complan_alt3_parcels_urbansim.txt'
+output_parcel_file = 'updated_alt3_parcels_urbansim.txt'
 
 print('Loading hh_and_persons.h5...')
 hdf_file = h5py.File(Hh_and_person_file, "r")

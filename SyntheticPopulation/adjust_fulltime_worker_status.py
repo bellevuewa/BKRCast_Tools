@@ -6,23 +6,23 @@ import h5py
 import utility
 
 '''
-This tool is used to change some workers, defined by a percet in each TAZ, from full time status to non-worker status.
+This tool is used to change some workers, defined by a percent in each TAZ, from worker (fulltime or part time) status to non-worker status.
 The percent of full time workers is set in adjustment_factor_name file.
 
-In each TAZ, it randomly draws a certain percent of fulltime workers from the list and change their full time status to non-worker
+In each TAZ, it randomly draws a certain percent of workers from the list and change their full time status to non-worker
 status. The percent, associated with individual tazs, is specified in an external file. The updated synthetic population are
  then exported to h5 file. The converted nonworkers are also exported as well.
 '''
 
 ### input configuration
-working_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\WFH\NA"
-original_h5_file_name = '2044complan_NA_hh_and_persons.h5'
+working_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\TFP\2033_horizon_year\WFH_30%"
+original_h5_file_name = '2033TFP_hh_and_persons.h5'
 TAZ_Subarea_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 # percent of workers to be adjusted
 adjustment_factor_name = r"TAZ_subarea_worker_adjustment.csv"
 
 ### output configuration
-updated_h5_file_name = '2044complan_NA_hh_and_persons_forWFH.h5'
+updated_h5_file_name = '2033TFP_hh_and_persons_forWFH_30%.h5'
 converted_nonworker_file_name = 'converted_non_workers.csv'
 report_file_name = 'workers_conversion_report.txt'
 
@@ -46,13 +46,15 @@ report = []
 for taz in adjustment_factor_df.itertuples():
     rate = taz.WorkerAdjFactor
     persons_in_taz = person_df.loc[(person_df['hhtaz'] == taz.BKRCastTAZ)]
-    fulltime_workers_in_taz = persons_in_taz.loc[persons_in_taz['pwtyp'] == 1]
+    fulltime_workers_in_taz = persons_in_taz.loc[persons_in_taz['pwtyp'] > 0]
     if fulltime_workers_in_taz.shape[0] > 0:
         selected = fulltime_workers_in_taz.sample(frac = rate, random_state = 1)
         not_selected = fulltime_workers_in_taz.loc[~fulltime_workers_in_taz['pid'].isin(selected['pid'])]
         # change the worker type from full time (1) to non-worker (0)
         selected['pwtyp'] = 0 
-        selected['pptyp'] = 4 # 4 got other non-worker
+        selected.loc[selected['pptyp'] == 1, 'pptyp'] = 0 # do not set to 4 otherwise shadow pricing won't converge.
+        selected.loc[selected['pptyp'] == 2, 'pptyp'] = 0 #
+        #selected['pptyp'] = 0 
         total_adjusted += selected.shape[0]
         updated_person_df = pd.concat([updated_person_df, not_selected])
         updated_person_df = pd.concat([updated_person_df, selected])
@@ -61,9 +63,9 @@ for taz in adjustment_factor_df.itertuples():
         report.append(msg)
         print(msg)
 
-updated_person_df = pd.concat([updated_person_df, person_df.loc[person_df['pwtyp'] != 1]])
-total_workers_before = person_df.loc[person_df['pwtyp'] == 1, 'psexpfac'].sum()
-total_workers_after = updated_person_df.loc[updated_person_df['pwtyp'] == 1, 'psexpfac'].sum()
+updated_person_df = pd.concat([updated_person_df, person_df.loc[person_df['pwtyp'] == 0]])
+total_workers_before = person_df.loc[person_df['pwtyp'] > 0, 'psexpfac'].sum()
+total_workers_after = updated_person_df.loc[updated_person_df['pwtyp'] > 0, 'psexpfac'].sum()
 
 print(str(total_workers_before) + ' workers before the change.' )
 print(str(total_workers_after) + ' workders after the change.')

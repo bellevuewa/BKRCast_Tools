@@ -8,8 +8,8 @@ import utility
 
 ############# confiuration ###############
 ## input files
-hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2019-test\new_allocation_approach'
-hh_person_file = '2019_hh_and_persons.h5'
+hh_person_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\WFH\Alt2-30%WFH"
+hh_person_file = 'final_combined_complan_alt2_hh_and_persons_forWFH_30%_outside_bel_consistent_with_NA.h5'
 
 ## output files
 error_hhs_file = 'hhs.f'

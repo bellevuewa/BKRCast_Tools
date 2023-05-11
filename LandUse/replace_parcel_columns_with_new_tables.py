@@ -17,14 +17,14 @@ import utility
 
 ###################### configuration
 ### inputs ###
-working_folder = r"Z:\Modeling Group\BKRCast\LandUse\2021baseyear"
-New_parcel_data_file_name = r"2021_BKR_Jobs.csv"
-Original_parcel_file_name = r"interpolated_parcel_file_2021_from_PSRC_2014_2050.txt"
+working_folder = r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\LU_alt3"
+New_parcel_data_file_name = r"2044alt3_COB_Jobs.csv"
+Original_parcel_file_name = r"interpolated_parcel_file_2044complan_from_PSRC_2014_2050.txt"
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
 Set_Jobs_to_Zeros_All_Bel_Parcels_Not_in_New_Parcel_Data_File = True
 ### output files ###
-Updated_parcel_file_name =  r"2021_parcels_urbansim.txt"
+Updated_parcel_file_name =  r"complan_alt3_parcels_urbansim.txt"
 Old_Subset_parcel_file_name = r"Old_parcels_subset.txt"
 
 Columns_List = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPRET_P', 'EMPRSC_P', 'EMPSVC_P', 'EMPOTH_P', 'EMPTOT_P']

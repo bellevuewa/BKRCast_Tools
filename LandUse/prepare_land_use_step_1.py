@@ -15,18 +15,18 @@ import utility
 # upgrade to Python 3.7
 
 ### input files
-working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2021baseyear'
-kingcsqft = 'base_2021_countyfix_05202022.csv'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\LU_alt3'
+kingcsqft = 'Complan_Alt3_MaxDevelopment_0129_2.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
 
 ### Output fiels
-kc_job_file = '2021_BKR_Jobs.csv'
-kc_SQFT_file = '2021_BKR_Sqft.csv'
+kc_job_file = '2044alt3_COB_Jobs.csv'
+kc_SQFT_file = '2044alt3_COB_Sqft.csv'
 error_parcel_file = 'parcels_not_in_2014_PSRC_parcels.csv'
-kc_du_file = '2021_BKR_housingunits.csv'
-cob_du_file = '2021_COB_housingunits.csv'
+kc_du_file = '2044alt3_KC_housingunits.csv'
+cob_du_file = '2044alt3_COB_housingunits.csv'
 ###
 
 ##
@@ -34,8 +34,8 @@ cob_du_file = '2021_COB_housingunits.csv'
 # 'Rest of KC','External','BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'
 # if it is empty, means all parcels in kingcsqft file   
 ##
-subset_area = ['BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'] 
-#subset_area = ['BELLEVUE']
+#subset_area = ['BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'] 
+subset_area = ['BELLEVUE']
 #subset_area = [] 
 
 job_rename_dict = {'JOBS_EDU':'EMPEDU_P', 'JOBS_FOOD':'EMPFOO_P', 'JOBS_GOV':'EMPGOV_P', 'JOBS_IND':'EMPIND_P',
@@ -81,9 +81,9 @@ if subset_area != []:
     du_kc = du_kc[du_kc['Jurisdiction'].isin(subset_area)]
 du_kc.to_csv(os.path.join(working_folder, kc_du_file), sep  = ',', index = False)
 
-du_cob = kc_df[dwellingunits_list].merge(lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'inner')
-du_cob = du_kc.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_on = 'BKRCastTAZ', right_on = 'BKRCastTAZ', how = 'left')
-du_cob = du_cob[du_cob['Jurisdiction'] == 'BELLEVUE']
+#du_cob = kc_df[dwellingunits_list].merge(lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'inner')
+#du_cob = du_kc.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_on = 'BKRCastTAZ', right_on = 'BKRCastTAZ', how = 'left')
+du_cob = du_kc[du_kc['Jurisdiction'] == 'BELLEVUE']
 du_cob.to_csv(os.path.join(working_folder, cob_du_file), sep = ',', index = False)
 
 print('Exporting error file...')

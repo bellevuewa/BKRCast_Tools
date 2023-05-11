@@ -9,8 +9,8 @@ import utility
 # upgrade to python 3.7
 
 ### Configuration
-Original_Parcel_Folder = r"D:\Soundcast\SC2035\soundcast-2.1\inputs\scenario\landuse"
-Original_ESD_Parcel_File_Name = r"parcels_urbansim_bkr.txt"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\NA"
+Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
 TAZ_Subarea_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
 
