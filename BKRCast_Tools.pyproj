@@ -5,7 +5,8 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>BikeCounts\WSDOT_bike_counts_processor.py</StartupFile>
+    <StartupFile>
+    </StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -73,7 +74,7 @@
     <Compile Include="Create_parcel_TAZ_crosstable.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LandUse\replace_parcel_columns_with_new_tables.py">
+    <Compile Include="LandUse\replace_parcel_columns_with_new_tables_for_Kirkland_only.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LandUse\validate_parcel_data_from_local_jurisdiction.py">
@@ -96,11 +97,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SyntheticPopulation\generate_COB_local_hhs_estimate.py" />
-    <Compile Include="SyntheticPopulation\interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="SyntheticPopulation\keep_non_Bel_pop_workers_consistent.py" />
     <Compile Include="SyntheticPopulation\merge_two_synthetic_populations.py" />
+    <Compile Include="SyntheticPopulation\merge_two_synthetic_populations_for_complan.py" />
     <Compile Include="SyntheticPopulation\parcelizationV2.py" />
     <Compile Include="SyntheticPopulation\parcelization.py">
       <SubType>Code</SubType>
@@ -114,10 +113,11 @@
     <Compile Include="SyntheticPopulation\Create_popsim_control_file_from_hhs_growth.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="SyntheticPopulation\merge_two_synthetic_populations_for_complan.py">
+    <Compile Include="SyntheticPopulation\for Kirkland Support only\merge_two_synthetic_populations_for_complan_for_kirkland_only.py">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SyntheticPopulation\prepare_hhs_for_baseyear_using_ofm.py" />
+    <Compile Include="SyntheticPopulation\for Kirkland Support only\Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast_for_Kirkland_only.py" />
     <Compile Include="SyntheticPopulation\Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast.py" />
     <Compile Include="SyntheticPopulation\Prepare_household_for_concurrency.py">
       <SubType>Code</SubType>
@@ -182,6 +182,7 @@
     <Folder Include="BikeCounts\" />
     <Folder Include="Soundcast\" />
     <Folder Include="Soundcast\subarea_definition\" />
+    <Folder Include="SyntheticPopulation\for Kirkland Support only\" />
     <Folder Include="TOD\" />
     <Folder Include="Trucks\" />
     <Folder Include="SyntheticPopulation\" />
@@ -194,7 +195,6 @@
     <Content Include="Soundcast\subarea_definition\Regional_PSRC.txt" />
   </ItemGroup>
   <ItemGroup>
-    <InterpreterReference Include="CondaEnv|CondaEnv|BKRCast" />
     <InterpreterReference Include="Global|VisualStudio|BKRCast" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
