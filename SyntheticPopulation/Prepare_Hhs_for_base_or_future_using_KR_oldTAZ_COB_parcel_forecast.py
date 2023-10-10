@@ -21,31 +21,44 @@ A control file for populationsim is generated as well.
 '''
 ### configuration #####
 ### input files
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\Alt3' 
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2022baseyear_with_KirkData' 
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-hhs_by_parcel = '2044_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
-cob_du_file = '2044Alt3_COB_housingunits.csv'
+hhs_by_parcel = '2022_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
+cob_du_file = '2022_COB_housingunits.csv'
 popsim_control_file = 'acecon0403.csv'
 
 # TAZ level control total (households) from Kirkland and Redmond. (can be any TAZ)
 # if there is no local estimate from Redmond/Kirkland, set it to ''. 
-hhs_control_total_by_TAZ = ''
+hhs_control_total_by_TAZ = '2022_Kirkland_DU.csv'
 
 # output files
-hhs_by_taz_comparison_file = '2044complan_Alt3_PSRC_hhs_and_forecast_from_kik_Red_by_trip_model_TAZ_comparison.csv'
-adjusted_hhs_by_parcel_file = '2044complan_Alt3_final_hhs_by_parcel.csv'
-popsim_control_output_file = r'ACS2016_controls_2044_Alt3_estimate.csv'
-parcels_for_allocation_filename = '2044complan_Alt3_baseyear_parcels_for_allocation_local_estimate.csv'
-summary_by_jurisdiction_filename = '2044complan_Alt3_summary_by_jurisdiction.csv'
+hhs_by_taz_comparison_file = '2022_PSRC_hhs_and_forecast_from_kik_Red_by_trip_model_TAZ_comparison.csv'
+adjusted_hhs_by_parcel_file = '2022_final_hhs_by_parcel.csv'
+popsim_control_output_file = r'ACS2016_controls_2022_w_kirk_data_estimate.csv'
+parcels_for_allocation_filename = '2022_baseyear_parcels_for_allocation_local_estimate.csv'
+summary_by_jurisdiction_filename = '2022_summary_by_jurisdiction.csv'
 #maybe we do not need this file. we can use an output file from prepare_land_use_step_1.py
 
 ####
 
-avg_person_per_hh_Redmond = 2.3146
-avg_person_per_hh_Kirkland = 2.2576
+# avg_person_per_hh_Redmond = 2.3146
+# avg_person_per_hh_Kirkland = 2.2576
+
+avg_persons_per_sfhh_Kirkland =  2.82 
+avg_persons_per_mfhh_Kirkland =  2.03
+
+avg_persons_per_sfhh_Redmond =  2.82 
+avg_persons_per_mfhh_Redmond =  2.03
+
+sf_occupancy_rate_Kirkland = 0.952
+mf_occupancy_rate_Kirkland = 0.895
+
+sf_occupancy_rate_Redmond = 0.952
+mf_occupancy_rate_Redmond = 0.895
 
 sf_occupancy_rate = 0.952  # from Gwen
 mf_occupancy_rate = 0.895  # from Gwen
+
 avg_persons_per_sfhh =  2.82 # from Gwen
 avg_persons_per_mfhh =  2.03 # from Gwen
 
@@ -61,12 +74,24 @@ adjusted_hhs_by_parcel_df = hhs_by_parcel_df.copy()
 adjusted_hhs_by_parcel_df = adjusted_hhs_by_parcel_df.rename(columns = {'total_hhs_by_parcel': 'adj_hhs_by_parcel', 'total_persons_by_parcel':'adj_persons_by_parcel'})
 
 if hhs_control_total_by_TAZ != '':
-    hhs_control_total_by_TAZ_df = pd.read_csv(hhs_control_total_by_TAZ)
+    print(f'A hh control file by TAZ is provided: {hhs_control_total_by_TAZ}')    
+    hhs_control_total_by_TAZ_df = pd.read_csv(os.path.join(working_folder, hhs_control_total_by_TAZ))
+    juris_list = hhs_control_total_by_TAZ_df['Jurisdiction'].unique()
+    print(f'The following jurisdictions are included: {juris_list}')    
 
     hhs_control_total_by_TAZ_df['total_persons'] = 0
-    hhs_control_total_by_TAZ_df.loc[hhs_control_total_by_TAZ_df['Jurisdiction'] == 'Kirkland', 'total_persons'] = hhs_control_total_by_TAZ_df['total_hhs'] * avg_person_per_hh_Kirkland
-    hhs_control_total_by_TAZ_df.loc[hhs_control_total_by_TAZ_df['Jurisdiction'] == 'Redmond','total_persons'] = hhs_control_total_by_TAZ_df['total_hhs'] * avg_person_per_hh_Redmond
+    hhs_control_total_by_TAZ_df['total_hhs'] = 0
+    hhs_control_total_by_TAZ_df.loc[hhs_control_total_by_TAZ_df['Jurisdiction'] == 'Kirkland', 'sfhhs'] = hhs_control_total_by_TAZ_df['SFU'] * sf_occupancy_rate_Kirkland
+    hhs_control_total_by_TAZ_df.loc[hhs_control_total_by_TAZ_df['Jurisdiction'] == 'Kirkland', 'mfhhs'] = hhs_control_total_by_TAZ_df['MFU'] * mf_occupancy_rate_Kirkland
+    hhs_control_total_by_TAZ_df.loc[hhs_control_total_by_TAZ_df['Jurisdiction'] == 'Kirkland', 'total_hhs'] = hhs_control_total_by_TAZ_df['sfhhs'] + hhs_control_total_by_TAZ_df['mfhhs']
+    hhs_control_total_by_TAZ_df.loc[hhs_control_total_by_TAZ_df['Jurisdiction'] == 'Kirkland', 'total_persons'] = hhs_control_total_by_TAZ_df['sfhhs'] * avg_persons_per_sfhh_Kirkland + hhs_control_total_by_TAZ_df['mfhhs'] * avg_persons_per_mfhh_Kirkland
+   
+    hhs_control_total_by_TAZ_df.loc[hhs_control_total_by_TAZ_df['Jurisdiction'] == 'Redmond', 'sfhhs'] = hhs_control_total_by_TAZ_df['SFU'] * sf_occupancy_rate_Redmond
+    hhs_control_total_by_TAZ_df.loc[hhs_control_total_by_TAZ_df['Jurisdiction'] == 'Redmond', 'mfhhs'] = hhs_control_total_by_TAZ_df['MFU'] * mf_occupancy_rate_Redmond
+    hhs_control_total_by_TAZ_df.loc[hhs_control_total_by_TAZ_df['Jurisdiction'] == 'Redmond', 'total_hhs'] = hhs_control_total_by_TAZ_df['sfhhs'] + hhs_control_total_by_TAZ_df['mfhhs']
+    hhs_control_total_by_TAZ_df.loc[hhs_control_total_by_TAZ_df['Jurisdiction'] == 'Redmond', 'total_persons'] = hhs_control_total_by_TAZ_df['sfhhs'] * avg_persons_per_sfhh_Redmond + hhs_control_total_by_TAZ_df['mfhhs'] * avg_persons_per_mfhh_Redmond
 
+    
     # get parcels within trip model Redmond and Kirkland TAZ (old taz system)
     parcels_in_trip_model_TAZ_df = pd.merge(hhs_by_parcel_df[['PSRC_ID', 'total_hhs_by_parcel', 'total_persons_by_parcel']], lookup_df.loc[lookup_df['BKRTMTAZ'].notna(), ['PSRC_ID', 'Jurisdiction', 'BKRTMTAZ']], on = 'PSRC_ID', how = 'inner')
     parcels_in_trip_model_TAZ_df = parcels_in_trip_model_TAZ_df.merge(hhs_control_total_by_TAZ_df[['BKRTMTAZ']], on  = 'BKRTMTAZ', how = 'inner')
@@ -77,9 +102,10 @@ if hhs_control_total_by_TAZ != '':
     hhs_by_TAZ_df.to_csv(os.path.join(working_folder, hhs_by_taz_comparison_file), index = False)
 
     adjusted_hhs_by_parcel_df = adjusted_hhs_by_parcel_df.merge(parcels_in_trip_model_TAZ_df[['PSRC_ID', 'BKRTMTAZ']], on = 'PSRC_ID', how = 'left')
-    # reset hhs and persons to zero in Kirkland and Redmond parcels that are not included in local estimates. We will use their local forecast.
-    adjusted_hhs_by_parcel_df.loc[(adjusted_hhs_by_parcel_df['Jurisdiction'] == 'KIRKLAND') & adjusted_hhs_by_parcel_df['BKRTMTAZ'].isna(), ['adj_hhs_by_parcel', 'adj_persons_by_parcel']] = 0
-    adjusted_hhs_by_parcel_df.loc[(adjusted_hhs_by_parcel_df['Jurisdiction'] == 'REDMOND') & adjusted_hhs_by_parcel_df['BKRTMTAZ'].isna(), ['adj_hhs_by_parcel', 'adj_persons_by_parcel']] = 0
+
+    for city in juris_list:
+        # reset hhs and persons to zero in Kirkland and Redmond parcels that are not included in local estimates. We will use their local forecast.
+        adjusted_hhs_by_parcel_df.loc[(adjusted_hhs_by_parcel_df['Jurisdiction'] == city.upper()) & adjusted_hhs_by_parcel_df['BKRTMTAZ'].isna(), ['adj_hhs_by_parcel', 'adj_persons_by_parcel']] = 0
 
     # for a TAZ that have no hhs in PSRC erstimate but have hhs in local jurisdiction estimate, evenly distribute hhs to all parcels in that TAZ
     tazs_for_evenly_distri_df = hhs_by_TAZ_df.loc[hhs_by_TAZ_df['total_hhs_by_parcel'] == 0]
