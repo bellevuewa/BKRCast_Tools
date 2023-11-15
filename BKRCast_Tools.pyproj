@@ -5,8 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>
-    </StartupFile>
+    <StartupFile>LandUse\replace_parcel_columns_with_new_tables_v2.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -52,6 +51,11 @@
     <Compile Include="LandUse\Allocate_TAZ_jobs_to_parcels.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="LandUse\Create_LU_for_oldTAZ.py" />
+    <Compile Include="LandUse\sqft_summary_by_old_BKRTMTAZ.py" />
+    <Compile Include="LandUse\parcel_file_summary_by_old_BKRTMTAZ.py" />
+    <Compile Include="LandUse\replace_parcel_columns_with_new_tables_v2.py" />
+    <Compile Include="LandUse\replace_parcel_columns_with_new_tables.py" />
     <Compile Include="LandUse\update_total_jobs.py">
       <SubType>Code</SubType>
     </Compile>
@@ -74,9 +78,6 @@
     <Compile Include="Create_parcel_TAZ_crosstable.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LandUse\replace_parcel_columns_with_new_tables_for_Kirkland_only.py">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="LandUse\validate_parcel_data_from_local_jurisdiction.py">
       <SubType>Code</SubType>
     </Compile>
@@ -97,10 +98,13 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SyntheticPopulation\generate_COB_local_hhs_estimate.py" />
+    <Compile Include="SyntheticPopulation\increase_hhs_outside_of_Bellevue.py" />
+    <Compile Include="SyntheticPopulation\interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py" />
     <Compile Include="SyntheticPopulation\keep_non_Bel_pop_workers_consistent.py" />
     <Compile Include="SyntheticPopulation\merge_two_synthetic_populations.py" />
     <Compile Include="SyntheticPopulation\merge_two_synthetic_populations_for_complan.py" />
     <Compile Include="SyntheticPopulation\parcelizationV2.py" />
+    <Compile Include="SyntheticPopulation\parcelizationV2_regional_increase.py" />
     <Compile Include="SyntheticPopulation\parcelization.py">
       <SubType>Code</SubType>
     </Compile>
@@ -119,6 +123,7 @@
     <Compile Include="SyntheticPopulation\prepare_hhs_for_baseyear_using_ofm.py" />
     <Compile Include="SyntheticPopulation\for Kirkland Support only\Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast_for_Kirkland_only.py" />
     <Compile Include="SyntheticPopulation\Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast.py" />
+    <Compile Include="SyntheticPopulation\Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast_sfp_dsicount.py" />
     <Compile Include="SyntheticPopulation\Prepare_household_for_concurrency.py">
       <SubType>Code</SubType>
     </Compile>
@@ -157,6 +162,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Soundcast\trip_mode_share_calculator_PSRC.py" />
+    <Compile Include="trip_distribution_summary.py" />
     <Compile Include="Trucks\update_truck_externals.py">
       <SubType>Code</SubType>
     </Compile>
@@ -172,6 +178,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="walk_trips.py" />
+    <Compile Include="WFH_tour_trips_adjustment.py" />
     <Compile Include="workers_taz.py" />
     <Compile Include="__init__.py" />
   </ItemGroup>
