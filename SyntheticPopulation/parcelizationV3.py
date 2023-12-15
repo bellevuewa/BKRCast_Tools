@@ -21,17 +21,17 @@ upgrade to python 3.7
 
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\baseline2044'
-synthetic_households_file_name = '2044_kirk_complan_baseline_synthetic_households.csv'
-synthetic_population_file_name = '2044_kirk_complan_baseline_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\NewPopSim\2044'
+synthetic_households_file_name = '2044_Complan_synthetic_households.csv'
+synthetic_population_file_name = '2044_Complan_synthetic_persons.csv'
 
 # number of hhs per parcel
-parcels_for_allocation_filename = r"2044_kirkcomplan_parcels_for_allocation_local_estimate.csv"
+parcels_for_allocation_filename = r"2044_final_hhs_by_parcel.csv"
 
 ## output
-updated_hhs_file_name = 'updated_2044_kirk_complan_baseline_synthetic_households.csv'
-updated_persons_file_name = 'updated_2044_kirk_complan_baseline_synthetic_persons.csv'
-h5_file_name = '2044_kirk_complan_baseline_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2044_Complan_synthetic_households.csv'
+updated_persons_file_name = 'updated_2044_Complan_synthetic_persons.csv'
+h5_file_name = '2044_Complan_hh_and_persons.h5'
 
 ############## End of configuration
    
@@ -45,7 +45,7 @@ parcels_for_allocation_df = pd.read_csv(os.path.join(working_folder, parcels_for
 # remove any blockgroup ID is Nan.
 all_blcgrp_ids = hhs_df['block_group_id'].unique()
 mask = np.isnan(all_blcgrp_ids)
-all_blcgrp_ids = all_blcgrp_ids[~mask]
+all_blcgrp_ids = sorted(all_blcgrp_ids[~mask])
 
 # special treatment on GEOID10 530619900020. Since in 2016 ACS no hhs lived in this census blockgroup, when creating popsim control file
 # we move all hhs in this blockgroup to 530610521042. We need to do the same thing when we allocate hhs to parcels.
@@ -54,6 +54,7 @@ parcels_for_allocation_df.loc[(parcels_for_allocation_df['GEOID10'] == 530619900
 hhs_by_blkgrp_popsim = hhs_df.groupby('block_group_id')[['hhexpfac', 'hhsize']].sum()
 hhs_by_blkgrp_parcel = parcels_for_allocation_df.groupby('GEOID10')[['total_hhs']].sum()
 final_hhs_df = pd.DataFrame()
+
 for blcgrpid in all_blcgrp_ids:
     # if (hhs_by_GEOID10.loc[blcgrpid, 'hhexpfac'] != hhs_by_blkgrp_parcel.loc[blcgrpid, 'total_hhs']):
     #     print(f"GEOID10 {blcgrpid}:  popsim: {hhs_by_GEOID10.loc[blcgrpid, 'hhexpfac']}, parcel: {hhs_by_blkgrp_parcel.loc[blcgrpid, 'total_hhs']}")
@@ -63,35 +64,32 @@ for blcgrpid in all_blcgrp_ids:
     num_hhs = 0
     parcels_in_GEOID10_df = parcels_for_allocation_df.loc[(parcels_for_allocation_df['GEOID10'] == blcgrpid) & (parcels_for_allocation_df['total_hhs'] > 0)]
     subtotal_parcels = parcels_in_GEOID10_df.shape[0]
-    selected_hhs_df = hhs_df.loc[(hhs_df['block_group_id'] == blcgrpid) & (hhs_df['hhparcel'] == 0)]
+    control_total = parcels_in_GEOID10_df['total_hhs'].sum()
     j_start_index = 0
+    selected_hhs_df = hhs_df.loc[(hhs_df['block_group_id'] == blcgrpid) & (hhs_df['hhparcel'] == 0)].copy()
+    numhhs_avail_for_alloc = selected_hhs_df['hhexpfac'].sum()
     index_hhparcel = selected_hhs_df.columns.get_loc('hhparcel')
     for i in range(subtotal_parcels):
         numHhs = parcels_in_GEOID10_df['total_hhs'].iat[i]
         parcelid = parcels_in_GEOID10_df['PSRC_ID'].iat[i]
         for j in range(int(numHhs)):
-            selected_hhs_df.iat[j + j_start_index, index_hhparcel] = parcelid 
-            num_hhs += 1          
+            if num_hhs < numhhs_avail_for_alloc:
+                selected_hhs_df.iat[j + j_start_index, index_hhparcel] = parcelid 
+                num_hhs += 1          
         num_parcels += 1
         j_start_index += int(numHhs)
 
-    final_hhs_df = pd.concat([final_hhs_df, selected_hhs_df])
-    #hhs_df = hhs_df.loc[~hhs_df['household_id'].isin(selected_hhs_df['household_id'])]
- 
-    ## process sf parcel in batch, to save some computer time
-    #sf_parcels_df = parcels_for_allocation_df.loc[(parcels_for_allocation_df['GEOID10'] == blcgrpid) & (parcels_for_allocation_df['total_hhs'] == 1)]
-    #sf_parcels_count = sf_parcels_df.shape[0]
-    #if sf_parcels_count > 0:
-    #    selected_hhids = hhs_df.loc[(hhs_df['block_group_id'] == blcgrpid) & (hhs_df['hhparcel'] == 0)].sample(n = sf_parcels_count)['household_id']   
-    #    hhs_df.loc[hhs_df['household_id'].isin(selected_hhids), 'hhparcel'] = sf_parcels_df['PSRC_ID']
-    #    num_parcels += sf_parcels_count
-    #parcels_GEOID10_df = parcels_for_allocation_df.loc[(parcels_for_allocation_df['GEOID10'] == blcgrpid) & (parcels_for_allocation_df['total_hhs'] > 1)]
-    #for parcel in parcels_GEOID10_df.itertuples():
-    #    num_parcels += 1
-    #    selected_hhids = hhs_df.loc[(hhs_df['block_group_id'] == blcgrpid) & (hhs_df['hhparcel'] == 0)].sample(n = int(parcel.total_hhs))['household_id']   
-    #    hhs_df.loc[hhs_df['household_id'].isin(selected_hhids), 'hhparcel'] = parcel.PSRC_ID
-    print(f"{hhs_by_GEOID10.loc[blcgrpid, 'hhexpfac']} (actual {num_hhs}) hhs allocated to GEOID10 {blcgrpid}, {num_parcels} parcels are processed")
+    ## take care some unallocated hhs here
+    unallocated_num = numhhs_avail_for_alloc - control_total
+    if unallocated_num > 0:
+        for j in range(int(unallocated_num)):
+            if (j + j_start_index) < selected_hhs_df.shape[0]:
+                random_picked_pids = parcels_for_allocation_df.loc[(parcels_for_allocation_df['GEOID10'] == blcgrpid) & (parcels_for_allocation_df['total_hhs'] > 0)].sample(n = unallocated_num)['PSRC_ID'].to_numpy()
+                selected_hhs_df.iat[j + j_start_index, index_hhparcel] = random_picked_pids[j] 
 
+    final_hhs_df = pd.concat([final_hhs_df, selected_hhs_df])
+
+    print(f"Control: {control_total}, {hhs_by_GEOID10.loc[blcgrpid, 'hhexpfac']} (actual {num_hhs}) hhs allocated to GEOID10 {blcgrpid}, {num_parcels} parcels are processed")
 
 final_hhs_df = final_hhs_df.merge(parcels_for_allocation_df[['PSRC_ID', 'BKRCastTAZ']], how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
 final_hhs_df.rename(columns = {'BKRCastTAZ': 'hhtaz'}, inplace = True)
