@@ -11,10 +11,10 @@ the households in parcel file is consistent with synthetic population file.
 upgraded to python 3.7
 '''
 
-Hh_and_person_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\WFH\Alt3-30%WFH\final_combined_complan_alt3_hh_and_persons_forWFH_30%_outside_bel_consistent_with_NA.h5"
-parcel_folder = r'Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\LU_alt3'
-input_parcel_file = 'complan_alt3_parcels_urbansim.txt'
-output_parcel_file = 'updated_alt3_parcels_urbansim.txt'
+Hh_and_person_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\NewPopSim\2044\final_combined_2044_Complan_hh_and_persons.h5"
+parcel_folder = r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU"
+input_parcel_file = '2044_complan_parcels_urbansim.txt'
+output_parcel_file = 'updated_2044_complan_parcels_urbansim.txt'
 
 print('Loading hh_and_persons.h5...')
 hdf_file = h5py.File(Hh_and_person_file, "r")
@@ -30,6 +30,7 @@ parcel_df = parcel_df.join(hhs, how = 'left')
 parcel_df['HH_P']  = parcel_df['hhexpfac']
 parcel_df.fillna(0, inplace = True)
 parcel_df.drop(['hhexpfac', 'hhsize'], axis = 1, inplace = True)
+parcel_df['HH_P'] = parcel_df['HH_P'].round(0).astype(int)
 
 
 print('Exporting future parcel file...')
