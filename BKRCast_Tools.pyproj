@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>LandUse\replace_parcel_columns_with_new_tables_v2.py</StartupFile>
+    <StartupFile>SyntheticPopulation\parcelizationV3.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -52,6 +52,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="LandUse\Create_LU_for_oldTAZ.py" />
+    <Compile Include="LandUse\integerize_parcel_land_use.py" />
+    <Compile Include="LandUse\MS_overlake_campus_job_adjustment.py" />
+    <Compile Include="LandUse\preprocessing_LU_complan_2044.py" />
     <Compile Include="LandUse\sqft_summary_by_old_BKRTMTAZ.py" />
     <Compile Include="LandUse\parcel_file_summary_by_old_BKRTMTAZ.py" />
     <Compile Include="LandUse\replace_parcel_columns_with_new_tables_v2.py" />
@@ -67,6 +70,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="SyntheticPopulation\create_hhs_by_parcel_file_from_synth_pop.py" />
+    <Compile Include="SyntheticPopulation\Create_popsim_control_file_from_parcel_urbansim.py" />
     <Compile Include="SyntheticPopulation\hh_and_person_summary.py" />
     <Compile Include="hh_and_person_survey_summary.py" />
     <Compile Include="HH_ajustment_by_TAZ.py">
@@ -104,6 +108,7 @@
     <Compile Include="SyntheticPopulation\merge_two_synthetic_populations.py" />
     <Compile Include="SyntheticPopulation\merge_two_synthetic_populations_for_complan.py" />
     <Compile Include="SyntheticPopulation\parcelizationV2.py" />
+    <Compile Include="SyntheticPopulation\parcelizationV3.py" />
     <Compile Include="SyntheticPopulation\parcelizationV2_regional_increase.py" />
     <Compile Include="SyntheticPopulation\parcelization.py">
       <SubType>Code</SubType>
