@@ -55,6 +55,11 @@ print('              after change: ' + str(newjobs))
 print('Bellevue jobs gained ' + str(newjobs - oldjobs))
 updated_parcel_df.loc[updated_parcel_df.index.isin(new_parcel_data_df.index), Columns_List] = new_parcel_data_df[Columns_List]
 
+# update the total jobs 
+updated_parcel_df['EMPTOT_P'] = 0
+for col in Columns_List:
+    updated_parcel_df['EMPTOT_P'] += updated_parcel_df[col]     
+
 if Set_Jobs_to_Zeros_All_Bel_Parcels_Not_in_New_Parcel_Data_File == True:
     jobs_to_be_zeroed_out = updated_parcel_df.loc[updated_parcel_df.index.isin(missing_bellevue_parcels_df['PARCELID']), 'EMPTOT_P'].sum()
     updated_parcel_df.loc[updated_parcel_df.index.isin(missing_bellevue_parcels_df['PARCELID']), Columns_List] = 0
@@ -74,15 +79,16 @@ in BKRTMTAZ level.
 '''
 kirk_control_jobs_by_BKRTMTAZ_df = pd.read_csv(os.path.join(working_folder, Jobs_by_old_BKRTMTAZ_file))
 kirk_parcels_df = lookup_df.loc[lookup_df['Jurisdiction'] == 'KIRKLAND']
-kirk_parcels_df = updated_parcel_df.reset_index().merge(kirk_parcels_df[['PSRC_ID', 'BKRTMTAZ']], left_on = 'PARCELID', right_on = 'PSRC_ID').copy()
+kirk_parcels_df = updated_parcel_df.reset_index().merge(kirk_parcels_df[['PSRC_ID', 'BKRTMTAZ']], left_on = 'PARCELID', right_on = 'PSRC_ID')
 temp_col_list = Columns_List.copy()
 temp_col_list.append('EMPTOT_P')
 temp_col_list.append('BKRTMTAZ')
 psrc_kirk_jobs = kirk_parcels_df['EMPTOT_P'].sum()
 kirk_psrc_jobs_by_BKRTMTAZ_df = kirk_parcels_df[temp_col_list].groupby('BKRTMTAZ').sum()
 kirk_control_jobs_by_BKRTMTAZ_df = kirk_control_jobs_by_BKRTMTAZ_df.merge(kirk_psrc_jobs_by_BKRTMTAZ_df.reset_index(), on = 'BKRTMTAZ', how = 'left')
-kirk_control_jobs_by_BKRTMTAZ_df.loc[kirk_control_jobs_by_BKRTMTAZ_df['EMPTOT_P'] != 0, 'scale'] = kirk_control_jobs_by_BKRTMTAZ_df['Total'] / kirk_control_jobs_by_BKRTMTAZ_df['EMPTOT_P']
+kirk_control_jobs_by_BKRTMTAZ_df.loc[kirk_control_jobs_by_BKRTMTAZ_df['EMPTOT_P'] != 0, 'scale'] = kirk_control_jobs_by_BKRTMTAZ_df['KirklandControlTotal'] / kirk_control_jobs_by_BKRTMTAZ_df['EMPTOT_P']
 kirk_control_jobs_by_BKRTMTAZ_df.loc[kirk_control_jobs_by_BKRTMTAZ_df['EMPTOT_P'] == 0, 'scale'] = 1
+kirk_control_jobs_by_BKRTMTAZ_df.to_csv(os.path.join(working_folder, 'Kirkland_job_scale_comparison.csv'), index = True)
 
 kirk_parcels_df = kirk_parcels_df.merge(kirk_control_jobs_by_BKRTMTAZ_df[['BKRTMTAZ', 'scale']], on = 'BKRTMTAZ', how = 'left')
 kirk_parcels_df['EMPTOT_P'] = 0
@@ -93,7 +99,7 @@ for col in Columns_List:
 
 kirk_parcels_df.to_csv(os.path.join(working_folder, 'adjusted_jobs_by_parcel_in_Kirkland.csv'), index = False)
 kirk_jobs_by_BKRTMTAZ_df = kirk_parcels_df[temp_col_list].groupby('BKRTMTAZ').sum()
-kirk_jobs_by_BKRTMTAZ_df = kirk_jobs_by_BKRTMTAZ_df.merge(kirk_control_jobs_by_BKRTMTAZ_df[['BKRTMTAZ', 'Total']], on = 'BKRTMTAZ')
+kirk_jobs_by_BKRTMTAZ_df = kirk_jobs_by_BKRTMTAZ_df.merge(kirk_control_jobs_by_BKRTMTAZ_df[['BKRTMTAZ', 'KirklandControlTotal']], on = 'BKRTMTAZ')
 kirk_jobs_by_BKRTMTAZ_df.to_csv(os.path.join(working_folder, 'Kirkland_job_comparison_by_BKRTMTAZ.csv'), index = True)
 
 updated_parcel_df = updated_parcel_df.loc[~updated_parcel_df.index.isin(kirk_parcels_df['PARCELID'])]
