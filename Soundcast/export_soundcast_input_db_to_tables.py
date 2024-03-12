@@ -33,16 +33,15 @@ from sqlalchemy import create_engine
 
 '''
 
-input_db_file = r"D:\Soundcast\soundcast\inputs\db\soundcast_inputs.db"
+input_db_file = r"D:\Soundcast\SC2050_input_only\soundcast_inputs_01262024.db"
 parcel_lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 tazSharesFileName = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\psrc_to_bkr.txt"
 
-input_year = 2014
-output_folder = r'D:\Soundcast\SC_input_db_export'
-to_export_tables  = False
+output_folder = r'D:\Soundcast\SC_input_db_export_01262024'
+to_export_tables  = True
 
 
-def export_tables_from_SC_input_db(db_file, input_year, output_folder):
+def export_tables_from_SC_input_db(db_file, output_folder):
     '''
        export all tables from db_file to output_folder. exported files are named as table_name + '.csv' 
     '''
@@ -251,10 +250,17 @@ def convert_truck_tod_to_bkr(output_folder, filename):
     fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
     truck_tod_bkr_df.to_csv(os.path.join(output_folder, fn), index = False)
 
+def shorten_running_emission_rates_by_veh_type(output_folder, filename):
+    df = pd.read_csv(os.path.join(output_folder, filename))
+    df_kingc = df.loc[df['county'] == 'king']    
+    df_kingc.drop(columns = ['field1'], inplace = True)    
+    fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'    
+    df_kingc.to_csv(os.path.join(output_folder, fn), index = False)        
+
 def main():
 
     if to_export_tables == True:
-        export_tables_from_SC_input_db(input_db_file, input_year, output_folder)
+        export_tables_from_SC_input_db(input_db_file, output_folder)
 
 
     convert_military_jobs_to_bkr(output_folder, 'enlisted_personnel.csv')
@@ -264,11 +270,12 @@ def main():
     convert_group_quarters_to_bkr(output_folder, 'group_quarters.csv')
     convert_heavy_trucks_to_bkr(output_folder, 'heavy_trucks.csv')
     convert_seatac_to_bkr(output_folder, 'seatac.csv')
-    convert_special_generator_to_bkr(output_folder, 'special_generator.csv')
+    convert_special_generator_to_bkr(output_folder, 'special_generators.csv')
     convert_externals_unadjusted_to_bkr(output_folder, 'externals_unadjusted.csv')
     convert_jblm_trips_to_bkr(output_folder, 'jblm_trips.csv')
     convert_tod_factors_to_bkr(output_folder, 'time_of_day_factors.csv')
     convert_truck_tod_to_bkr(output_folder, 'truck_time_of_day_factors.csv')
+    shorten_running_emission_rates_by_veh_type(output_folder, 'running_emission_rates_by_veh_type.csv')    
 
 
     print('Done')
