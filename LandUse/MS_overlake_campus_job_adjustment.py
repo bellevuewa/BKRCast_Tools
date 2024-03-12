@@ -15,13 +15,13 @@ The new parcel file is exported to updated_parcel_file_name.
 
 '''
 ### Inputs
-original_parcel_file_name = r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\DT_rebalance_btw_job_category\original_complan_2044_final_parcels_urbansim.txt"
-ratio_file_name = r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\DT_rebalance_btw_job_category\DT_rebalance_adjustment_factor_by_taz.csv"
+original_parcel_file_name = r"Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline 2044\parcels_urbansim.txt"
+ratio_file_name = r"Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline2044_01092024\kirkland_2019_scale_factor_selected_TAZ.csv"
 baseyear_parcel_file_name = r"Z:\Modeling Group\BKRCast\LandUse\2019baseyear-new_popsim_approach\parcels_urbansim.txt"
 
 ### Outputs
-updated_parcel_file_name = r'Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\DT_rebalance_btw_job_category\Complan_2044_parcels_urbansim_DT_job_rebalanced.txt'
-ms_parcels_file = r'Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\DT_rebalance_btw_job_category\Complan_2044_BelDT_parcels.xlsx'
+updated_parcel_file_name = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline2044_01092024\Kirk_Complan_2044_parcels_urbansim_job_rebalanced.txt'
+ms_parcels_file = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline2044_01092024\Kirkland_Complan_2044_rebalanced_parcels.xlsx'
 
 Job_Field = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P']
 ratio_attribute_name = 'adj_factor'
@@ -69,7 +69,7 @@ total_jobs_in_MS_campus_new =  updated_parcel_df['EMPTOT_P'].sum()
 print(f'Total jobs at MS campus after the adjustment: {total_jobs_in_MS_campus_new}')
 print('MS job increase: ' + str(total_jobs_in_MS_campus_new - total_jobs_in_MS_campus))
 
-All_Job_Fields = Job_Field
+All_Job_Fields = Job_Field.copy()
 All_Job_Fields.append('EMPTOT_P')
 
 updated_parcel_df.drop(['BKRCastTAZ', ratio_attribute_name], axis = 1, inplace = True)
@@ -77,10 +77,16 @@ parcel_df.set_index('PARCELID', inplace = True)
 updated_parcel_df.set_index('PARCELID', inplace = True)
 parcel_df.update(updated_parcel_df[All_Job_Fields])
 
-for col in All_Job_Fields:
+parcel_df['EMPTOT_P'] = 0
+for col in Job_Field:
     parcel_df[col] = parcel_df[col].astype(int)
+    parcel_df['EMPTOT_P'] += parcel_df[col]
+
+    
 total_jobs_after = parcel_df['EMPTOT_P'].sum()
 print(f'Total jobs after adjustment: {total_jobs_after}')
+
+
 print('Exporting ...')
 parcel_df.to_csv(updated_parcel_file_name, index = True, sep = ' ')
 
