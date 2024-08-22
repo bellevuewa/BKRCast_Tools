@@ -3,49 +3,30 @@ sys.path.append(os.getcwd())
 import pandas as pd
 import utility
 
-# 2/23/2021
-# this script is used to join parcel data from Community Development to BKRCastTAZ and subarea
-# # via PSRC_ID, and save jobs and sqft data to different data files. IF the parcels provided in the kingsqft file are not valid parcels in
-# lookup_file, these invalid parcels will be exported to error_parcel_file for further investigation. 
-# Sometimes BKRCastTAZ and subarea column in the data from CD are little mismatched
-# # so it is always good to reattach parcel data to lookup file to ensure we always
-# # summarize land use  on the same base data.
-
-# 2/28/2022
-# upgrade to Python 3.7
+# this script is used to reformat land use files from City of Redmond to satisfy the input file 
+# requirement for BKRCast.
+# No other data adjustment except rounding to nearest integer.
+# 8/20/2024
 
 ### input files
-working_folder = r'Z:\Modeling Group\BKRCast\LandUse\2023baseyear'
-kingcsqft = 'Base Year by PSRC ID (Updated)_05242024_new_method.csv'
+working_folder = r'Z:\Modeling Group\BKRCast\LandUse\Redmond Land Use\base_year_2023'
+original_redmond_job_file = 'FinalResults_Employment.csv'
+original_redmond_du_file = 'FinalResults_Residential.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 ###
 
 ### Output fiels
-kc_job_file = '2024_COB_Jobs_new_method.csv'
-kc_SQFT_file = '2024_COB_Sqft.csv'
-error_parcel_file = 'parcels_not_in_2014_PSRC_parcels.csv'
-kc_du_file = '2024_KC_housingunits.csv'
-cob_du_file = '2024_COB_housingunits.csv'
-###
+redmond_job_file = '2023_redmond_jobs_reformatted.csv'
+redmond_du_file = '2023_Redmond_housing_units_reformatted.csv'
+job_error_parcel_file = 'job_parcels_not_in_2014_PSRC_parcels.csv'
+resident_error_parcel_file = 'resident_parcels_not_in_2014_PSRC_parcels.csv'###
 
-##
-##  subset_area can only be these values: 
-# 'Rest of KC','External','BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'
-# if it is empty, means all parcels in kingcsqft file   
-##
-subset_area = ['BELLEVUE', 'KIRKLAND','REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe'] 
-# subset_area = ['BELLEVUE']
-SQFT_data_available = True
-#subset_area = [] 
+job_rename_dict = {'EMP_EDU':'EMPEDU_P', 'EMP_FOOD':'EMPFOO_P', 'EMP_GOV':'EMPGOV_P', 'EMP_IND':'EMPIND_P',
+    'EMP_MED':'EMPMED_P', 'EMP_OFF':'EMPOFC_P', 'EMP_RTL':'EMPRET_P', 'EMP_RSV':'EMPRSC_P', 'EMP_SEV':'EMPSVC_P', 'EMP_OTHER':'EMPOTH_P',
+    'EMP_TOT':'EMPTOT_P'}
 
-job_rename_dict = {'JOBS_EDU':'EMPEDU_P', 'JOBS_FOOD':'EMPFOO_P', 'JOBS_GOV':'EMPGOV_P', 'JOBS_IND':'EMPIND_P',
-    'JOBS_MED':'EMPMED_P', 'JOBS_OFF':'EMPOFC_P', 'JOBS_RET':'EMPRET_P', 'JOBS_RSV':'EMPRSC_P', 'JOBS_SERV':'EMPSVC_P', 'JOBS_OTH':'EMPOTH_P',
-    'JOBS_TOTAL':'EMPTOT_P'}
-sqft_rename_dict = {'SQFT_EDU':'SQFT_EDU', 'SQFT_FOOD':'SQFT_FOO','SQFT_GOV':'SQFT_GOV','SQFT_IND':'SQFT_IND','SQFT_MED':'SQFT_MED', 'SQFT_OFF':'SQFT_OFC',
-    'SQFT_RET':'SQFT_RET', 'SQFT_RSV':'SQFT_RSV', 'SQFT_SERV':'SQFT_SVC', 'SQFT_OTH': 'SQFT_OTH', 'SQFT_NONE':'SQFT_NON', 
-    'SQFT_TOTAL':'SQFT_TOT'}
-du_rename_dict = {'UNITS_SF':'SFUnits', 'UNITS_MF':'MFUnits'}
+du_rename_dict = {'DU_Single':'SFUnits', 'DU_Multi':'MFUnits'}
 
 jobs_columns_List = ['PSRC_ID', 'EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPRET_P', 'EMPRSC_P', 'EMPSVC_P', 'EMPOTH_P', 'EMPTOT_P']
 sqft_columns_list = ['PSRC_ID', 'SQFT_EDU', 'SQFT_FOO', 'SQFT_GOV', 'SQFT_IND', 'SQFT_MED', 'SQFT_OFC', 'SQFT_RET', 'SQFT_RSV', 'SQFT_SVC', 'SQFT_OTH', 'SQFT_TOT']
@@ -53,46 +34,52 @@ dwellingunits_list = ['PSRC_ID', 'SFUnits', 'MFUnits']
 
 print('Loading....')
 lookup_df = pd.read_csv(lookup_file, sep = ',', low_memory = False)
-kc_df = pd.read_csv(os.path.join(working_folder,kingcsqft), sep = ',', low_memory = False)
+redmond_job_df = pd.read_csv(os.path.join(working_folder, original_redmond_job_file), sep = ',', low_memory = False)
+redmond_du_df = pd.read_csv(os.path.join(working_folder, original_redmond_du_file), sep = ',', low_memory = False)
 subarea_df = pd.read_csv(subarea_file, sep = ',')
 
 ## rename columns to fit modeling input format
-kc_df.rename(columns = job_rename_dict, inplace = True)
-kc_df.rename(columns = sqft_rename_dict, inplace = True)
-kc_df.rename(columns = du_rename_dict, inplace = True)
+redmond_job_df.rename(columns = job_rename_dict, inplace = True)
+redmond_du_df.rename(columns = du_rename_dict, inplace = True)
+redmond_job_df.fillna(0, inplace = True)
+redmond_du_df.fillna(0, inplace = True)
+
+job_cat = [col for col in redmond_job_df.columns if col.startswith('EMP')]
+du_cat = [col for col in redmond_du_df.columns if col.endswith('Units')]
+
+b4rounding_jobs = redmond_job_df['EMPTOT_P'].sum()
+b4rounding_du = redmond_du_df[du_cat].sum().sum()
+
+redmond_job_df[job_cat] = redmond_job_df[job_cat].round().astype(int)
+redmond_du_df[du_cat] = redmond_du_df[du_cat].round().astype(int)
+
+afterrounding_jobs = redmond_job_df['EMPTOT_P'].sum()
+afterrounding_du = redmond_du_df[du_cat].sum().sum()
+
+print(f'jobs before rounding: {b4rounding_jobs}, after: {afterrounding_jobs}')
+print(f'housing units before rounding: {b4rounding_du}, after: {afterrounding_du}')
 
 print('Exporting job file...')
-updated_jobs_kc = kc_df[jobs_columns_List].merge(lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'inner')
-updated_jobs_kc = updated_jobs_kc.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_on = 'BKRCastTAZ', right_on = 'BKRCastTAZ', how = 'left')
-if subset_area != []:
-    updated_jobs_kc = updated_jobs_kc[updated_jobs_kc['Jurisdiction'].isin(subset_area)]
-updated_jobs_kc.to_csv(os.path.join(working_folder, kc_job_file), sep = ',', index = False)
+updated_jobs_df = redmond_job_df[jobs_columns_List].merge(lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'left')
+updated_jobs_df = updated_jobs_df.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_on = 'BKRCastTAZ', right_on = 'BKRCastTAZ', how = 'left')
+updated_jobs_df.to_csv(os.path.join(working_folder, redmond_job_file), sep = ',', index = False)
 
-if SQFT_data_available: 
-    print('Exporting sqft file...')
-    updated_sqft_kc = kc_df[sqft_columns_list].merge(lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'left')
-    updated_sqft_kc = updated_sqft_kc.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_on = 'BKRCastTAZ', right_on = 'BKRCastTAZ', how = 'left')
-    if subset_area != []:
-        updated_sqft_kc = updated_sqft_kc[updated_sqft_kc['Jurisdiction'].isin(subset_area)]
-    updated_sqft_kc.to_csv(os.path.join(working_folder, kc_SQFT_file), sep = ',', index = False)
-
-print('Exporting King County dwelling units...')
-du_kc = kc_df[dwellingunits_list].merge(lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'inner')
-du_kc = du_kc.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_on = 'BKRCastTAZ', right_on = 'BKRCastTAZ', how = 'left')
-if subset_area != []:
-    du_kc = du_kc[du_kc['Jurisdiction'].isin(subset_area)]
-du_kc.to_csv(os.path.join(working_folder, kc_du_file), sep  = ',', index = False)
-
-#du_cob = kc_df[dwellingunits_list].merge(lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'inner')
-#du_cob = du_kc.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_on = 'BKRCastTAZ', right_on = 'BKRCastTAZ', how = 'left')
-du_cob = du_kc[du_kc['Jurisdiction'] == 'BELLEVUE']
-du_cob.to_csv(os.path.join(working_folder, cob_du_file), sep = ',', index = False)
+print('Exporting housing unit file...')
+updated_housing_df = redmond_du_df[dwellingunits_list].merge(lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'left')
+updated_housing_df = updated_housing_df.merge(subarea_df[['BKRCastTAZ', 'Subarea', 'SubareaName']], left_on = 'BKRCastTAZ', right_on = 'BKRCastTAZ', how = 'left')
+updated_housing_df.to_csv(os.path.join(working_folder, redmond_du_file), sep = ',', index = False)
 
 print('Exporting error file...')
-error_parcels = kc_df[~kc_df['PSRC_ID'].isin(lookup_df['PSRC_ID'])]
-error_parcels.to_csv(os.path.join(working_folder, error_parcel_file), sep = ',', index = False)
-if error_parcels.shape[0] > 0:
-    print('Please check the error file first.')
+job_error_parcels = updated_jobs_df[~updated_jobs_df['PSRC_ID'].isin(lookup_df['PSRC_ID'])]
+job_error_parcels.to_csv(os.path.join(working_folder, job_error_parcel_file), sep = ',', index = False)
+resident_error_parcels = updated_housing_df[~updated_housing_df['PSRC_ID'].isin(lookup_df['PSRC_ID'])]
+resident_error_parcels.to_csv(os.path.join(working_folder, resident_error_parcel_file), sep = ',', index = False)
+
+if job_error_parcels.shape[0] > 0:
+    print(f'Please check the {job_error_parcel_file}file first.')
+
+if resident_error_parcels.shape[0] > 0:
+    print(f'Please check the {resident_error_parcel_file}file first.')
 
 utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
 print('Done')

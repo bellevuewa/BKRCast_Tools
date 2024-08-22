@@ -5,7 +5,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{f8d105e3-9a8b-47f1-81ba-6eefb2a8eff3}</ProjectGuid>
     <ProjectHome />
-    <StartupFile>SyntheticPopulation\parcelizationV3.py</StartupFile>
+    <StartupFile>BikeCounts\WSDOT_bike_counts_processor_for_2024.py</StartupFile>
     <SearchPath />
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -23,6 +23,8 @@
     <Compile Include="adjacent_nodes.py" />
     <Compile Include="Adjust_Employment_by_tract_contral_total.py" />
     <Compile Include="BikeCounts\WSDOT_bike_counts_processor.py" />
+    <Compile Include="BikeCounts\WSDOT_bike_counts_processor_for_2024.py" />
+    <Compile Include="calculate_number_of_vehicles.py" />
     <Compile Include="commercial_parcels.py">
       <SubType>Code</SubType>
     </Compile>
@@ -54,7 +56,10 @@
     <Compile Include="LandUse\Create_LU_for_oldTAZ.py" />
     <Compile Include="LandUse\integerize_parcel_land_use.py" />
     <Compile Include="LandUse\MS_overlake_campus_job_adjustment.py" />
+    <Compile Include="LandUse\prepare_land_use_step_1.py" />
     <Compile Include="LandUse\preprocessing_LU_complan_2044.py" />
+    <Compile Include="LandUse\replace_parcel_columns_with_new_tables_v3.py" />
+    <Compile Include="LandUse\replace_subset_parcels_by_TAZ.py" />
     <Compile Include="LandUse\sqft_summary_by_old_BKRTMTAZ.py" />
     <Compile Include="LandUse\parcel_file_summary_by_old_BKRTMTAZ.py" />
     <Compile Include="LandUse\replace_parcel_columns_with_new_tables_v2.py" />
@@ -62,6 +67,8 @@
     <Compile Include="LandUse\update_total_jobs.py">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="open_daysim_outputs.py" />
+    <Compile Include="PDF\PDF_merger.py" />
     <Compile Include="Soundcast\export_soundcast_input_db_to_tables.py" />
     <Compile Include="SyntheticPopulation\adjust_fulltime_worker_status.py">
       <SubType>Code</SubType>
@@ -128,6 +135,7 @@
     <Compile Include="SyntheticPopulation\prepare_hhs_for_baseyear_using_ofm.py" />
     <Compile Include="SyntheticPopulation\for Kirkland Support only\Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast_for_Kirkland_only.py" />
     <Compile Include="SyntheticPopulation\Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast.py" />
+    <Compile Include="SyntheticPopulation\Prepare_Hhs_for_base_or_future_using_local_jurisdiction_parcel_forecast.py" />
     <Compile Include="SyntheticPopulation\Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast_sfp_dsicount.py" />
     <Compile Include="SyntheticPopulation\Prepare_household_for_concurrency.py">
       <SubType>Code</SubType>
@@ -142,7 +150,7 @@
     <Compile Include="SyntheticPopulation\baseyear_synthetic_pop_aggregate_by_blockgroup.py">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="LandUse\prepare_land_use_step_1.py" />
+    <Compile Include="LandUse\redmond land use\redmond_LU_process.py" />
     <Compile Include="TemoraryCode.py" />
     <Compile Include="TOD\time_of_day_by_tours.py" />
     <Compile Include="TOD\time_of_day_by_trips.py" />
@@ -188,10 +196,12 @@
     <Compile Include="__init__.py" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="LandUse\redmond land use\" />
     <Folder Include="Locations\" />
     <Folder Include="LandUse\" />
     <Folder Include="Network\" />
     <Folder Include="BikeCounts\" />
+    <Folder Include="PDF\" />
     <Folder Include="Soundcast\" />
     <Folder Include="Soundcast\subarea_definition\" />
     <Folder Include="SyntheticPopulation\for Kirkland Support only\" />
