@@ -6,8 +6,8 @@ import h5py
 import utility
 
 # input configuration
-working_folder = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline 2044'
-kirkland_land_use_file = '2044_kirkland_baseline_land_use.csv'
+working_folder = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\preferred_2044'
+kirkland_land_use_file = 'Kirkland_Complan_2044_target_Landuse.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 psrc_2044_parcel_file_name = r"interpolated_parcel_file_2044_from_PSRC_2014_2050_w_psrc_hhs.txt"
 
@@ -16,7 +16,10 @@ LU_category_2044 = {'EMPCOM_2044':'Commercial', 'EMPIND_2044':'Industrial', 'EMP
 Columns_List = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPRET_P', 'EMPRSC_P', 'EMPSVC_P', 'EMPOTH_P']
 
 # output configuration
-updated_land_use_file = '2044_kirkcomplan_baseline_parcels_urbansim.txt'
+updated_land_use_file = '2044_kirkcomplan_target_parcels_urbansim.txt'
+control_total_file_name = '2044_Kirkland_target_control_total_by_BKRCastTAZ.csv'
+lu_parcel_comparison_file_name = '2044_kirkland_target_landuse_parcel_comparison.csv'
+kirk_parcel_file_name = 'Adjusted_2044_Kirkland_target_parcels.csv'
 
 sf_occupancy_rate = 0.952  # from Gwen
 mf_occupancy_rate = 0.895  # from Gwen
@@ -79,7 +82,7 @@ kirk_control_by_TAZ_df['SF_2044'] = kirk_control_by_TAZ_df['SF_2044'].round(0).a
 kirk_control_by_TAZ_df['MF_2044'] = kirk_control_by_TAZ_df['MF_2044'].round(0).astype(int)
 kirk_control_by_TAZ_df.rename(columns={'SF_2044':'SF_ctrl_2044', 'MF_2044':'MF_ctrl_2044'}, inplace = True)
 kirk_control_by_TAZ_df['TotHhs_ctrl_2044'] = kirk_control_by_TAZ_df['SF_ctrl_2044'] + kirk_control_by_TAZ_df['MF_ctrl_2044']
-kirk_control_by_TAZ_df.to_csv(os.path.join(working_folder, '2044_Kirkland_baseline_control_total_by_BKRCastTAZ.csv'))
+kirk_control_by_TAZ_df.to_csv(os.path.join(working_folder, control_total_file_name))
 
 print('Kirkland (control) land use summary by BKRCastTAZ is exported.')
 print(f'Control total {kirk_control_by_TAZ_df["EMPTOT_2044"].sum()}')
@@ -118,11 +121,11 @@ kirk_parcels_df['HH_P'] = kirk_parcels_df['SF_2044'] + kirk_parcels_df['MF_2044'
 print(f'After scaling, total jobs in Kirkland is {kirk_parcels_df["EMPTOT_P"].sum()}')
 print(f'Household control total: {kirk_psrc_sum_by_BKRCastTAZ["TotHhs_ctrl_2044"].sum()}')
 print(f'Total households after integerization: {kirk_parcels_df["SF_2044"].sum() + kirk_parcels_df["MF_2044"].sum()}')
-kirk_parcels_df.to_csv(os.path.join(working_folder, 'Adjusted_2044_Kirkland_baseline_parcels.csv'), index = False)
+kirk_parcels_df.to_csv(os.path.join(working_folder, kirk_parcel_file_name), index = False)
 
 lu_col_list.extend(['PSRC_ID', 'SF_2044', 'MF_2044'])
 kirk_compare_lu_df = kirk_ctrl_input_lu_df.merge(kirk_parcels_df[lu_col_list], on = 'PSRC_ID', how = 'left')
-kirk_compare_lu_df.to_csv(os.path.join(working_folder, '2044_kirkland_landuse_parcel_comparison.csv'))
+kirk_compare_lu_df.to_csv(os.path.join(working_folder, lu_parcel_comparison_file_name))
 
 updated_parcels_df = psrc_parcels_df.drop(columns = ['PSRC_ID', 'Jurisdiction']).copy()
 updated_parcels_df.set_index('PARCELID', inplace = True)
