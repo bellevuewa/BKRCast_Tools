@@ -7,7 +7,7 @@ import utility
 
 # input configuration
 working_folder = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\preferred_2044'
-kirkland_land_use_file = 'Kirkland_Complan_2044_target_Landuse.csv'
+kirkland_land_use_file = 'parcel_fixed_Kirkland_Complan_2044_target_Landuse.csv'
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 psrc_2044_parcel_file_name = r"interpolated_parcel_file_2044_from_PSRC_2014_2050_w_psrc_hhs.txt"
 
@@ -36,7 +36,7 @@ avg_persons_per_mfhh =  2.03 # from Gwen
 # taz_control_total_attr_name: control total attribute name in control_in_taz_df
 def integerize_households(parcels_df, control_in_taz_df, parcel_hhs_attr_name,  taz_control_total_attr_name):
     for taz in control_in_taz_df['BKRCastTAZ']:
-        # find residential parcels within taz        
+        # find residential parcels within taz     
         parcels_in_taz_df = parcels_df.loc[(parcels_df['TAZ_P'] == taz) & (parcels_df[parcel_hhs_attr_name] > 0)] 
         if parcels_in_taz_df.shape[0] == 0: # if no residential parcels, use all parcels
             parcels_in_taz_df = parcels_df.loc[parcels_df['TAZ_P'] == taz]
@@ -44,16 +44,43 @@ def integerize_households(parcels_df, control_in_taz_df, parcel_hhs_attr_name,  
         control_total = control_in_taz_df.loc[control_in_taz_df['BKRCastTAZ'] == taz, taz_control_total_attr_name].iloc[0]
         already_assigned = parcels_in_taz_df[parcel_hhs_attr_name].sum()
     
+        # how many need to be assigned or removed to match the control total
         diff = control_total - already_assigned
         if total_parcels >= abs(diff):
             selected_indices = np.random.choice(parcels_in_taz_df.index, size = abs(diff), replace = False) 
         else:
             selected_indices = np.random.choice(parcels_in_taz_df.index, size = abs(diff), replace = True) 
     
-        if control_total >= already_assigned:
-            parcels_df.loc[selected_indices, parcel_hhs_attr_name] += 1   
-        else: 
-            parcels_df.loc[(parcels_df[parcel_hhs_attr_name] > 0) & parcels_df.index.isin(selected_indices), parcel_hhs_attr_name] -= 1    
+        unique_indices, counts = np.unique(selected_indices, return_counts=True)
+        sorted_zipped = sorted(zip(unique_indices, counts), key=lambda x: x[1], reverse=True)
+
+        index_for_2nd_round = []
+        if control_total >= already_assigned: # need to add more hhs to match the control total, 
+            for index, count in sorted_zipped:
+                parcels_df.loc[index, parcel_hhs_attr_name] += count   
+        else:  # need to remove some hhs to match the control total. more complicated.
+            remaining = 0
+            for index, count in sorted_zipped:
+                count += remaining
+                # need to ensure no negative households
+                if parcels_df.loc[index, parcel_hhs_attr_name] >= count:
+                    parcels_df.loc[index, parcel_hhs_attr_name] -= count
+                    remaining = 0
+                    index_for_2nd_round.append(index)
+                else:
+                    remaining = count - parcels_df.loc[index, parcel_hhs_attr_name]
+                    parcels_df.loc[index, parcel_hhs_attr_name] = 0
+
+            if (remaining > 0):
+                for index in index_for_2nd_round:
+                    curhhs = parcels_df.loc[index, parcel_hhs_attr_name]
+                    if curhhs >= remaining:
+                        parcels_df.loc[index, parcel_hhs_attr_name] = curhhs - remaining
+                        remaining = 0
+                        break
+                    else:
+                        remaining -= parcels_df.loc[index, parcel_hhs_attr_name]
+                        parcels_df.loc[index, parcel_hhs_attr_name] = 0
 
 
 print('loading...')
@@ -126,6 +153,14 @@ kirk_parcels_df.to_csv(os.path.join(working_folder, kirk_parcel_file_name), inde
 lu_col_list.extend(['PSRC_ID', 'SF_2044', 'MF_2044'])
 kirk_compare_lu_df = kirk_ctrl_input_lu_df.merge(kirk_parcels_df[lu_col_list], on = 'PSRC_ID', how = 'left')
 kirk_compare_lu_df.to_csv(os.path.join(working_folder, lu_parcel_comparison_file_name))
+
+kirk_rounded_by_TAZ = kirk_parcels_df[['SF_2044', 'MF_2044', 'TAZ_P']].groupby('TAZ_P').sum().reset_index()
+kirk_rounded_by_TAZ['TotHhs_2044'] = kirk_rounded_by_TAZ['SF_2044'] + kirk_rounded_by_TAZ['MF_2044']
+kirk_rounded_comparison_TAZ = kirk_rounded_by_TAZ.merge(kirk_psrc_sum_by_BKRCastTAZ[['SF_ctrl_2044', 'MF_ctrl_2044', 'TotHhs_ctrl_2044', 'BKRCastTAZ']], left_on = 'TAZ_P', right_on = 'BKRCastTAZ', how = 'outer')
+kirk_rounded_comparison_TAZ['Diff'] = kirk_rounded_comparison_TAZ['TotHhs_ctrl_2044'] - kirk_rounded_comparison_TAZ['TotHhs_2044']
+
+kirk_rounded_comparison_TAZ.to_csv(os.path.join(working_folder, 'Rounding_Comparison_by_TAZ.csv'), index = False)
+
 
 updated_parcels_df = psrc_parcels_df.drop(columns = ['PSRC_ID', 'Jurisdiction']).copy()
 updated_parcels_df.set_index('PARCELID', inplace = True)
