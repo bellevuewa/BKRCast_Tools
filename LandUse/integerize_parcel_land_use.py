@@ -86,7 +86,7 @@ def integerize_households(parcels_df, control_in_taz_df, parcel_hhs_attr_name,  
 print('loading...')
 kirk_ctrl_input_lu_df = pd.read_csv(os.path.join(working_folder, kirkland_land_use_file))
 lookup_df = pd.read_csv(lookup_file)
-kirk_ctrl_input_lu_df = kirk_ctrl_input_lu_df.merge(lookup_df[['PSRC_ID', 'BKRCastTAZ', 'Jurisdiction']], on = 'PSRC_ID', how = 'left')
+kirk_ctrl_input_lu_df = kirk_ctrl_input_lu_df.merge(lookup_df[['PSRC_ID', 'Jurisdiction']], on = 'PSRC_ID', how = 'left')
 psrc_parcels_df = pd.read_csv(os.path.join(working_folder, psrc_2044_parcel_file_name), sep = ' ')
 psrc_parcels_df = psrc_parcels_df.merge(lookup_df[['PSRC_ID', 'Jurisdiction']], left_on = 'PARCELID', right_on = 'PSRC_ID', how = 'left')
 # make sure total is sum of all categories
@@ -127,13 +127,31 @@ kirk_psrc_sum_by_BKRCastTAZ = kirk_psrc_sum_by_BKRCastTAZ.merge(kirk_control_by_
 kirk_psrc_sum_by_BKRCastTAZ.loc[kirk_psrc_sum_by_BKRCastTAZ['EMPTOT_P'] != 0 , 'scale'] = kirk_psrc_sum_by_BKRCastTAZ['EMPTOT_2044'] / kirk_psrc_sum_by_BKRCastTAZ['EMPTOT_P']
 kirk_psrc_sum_by_BKRCastTAZ.loc[kirk_psrc_sum_by_BKRCastTAZ['EMPTOT_P'] == 0 , 'scale'] = 1
 
+# these tazs cannot be scaled because denominators are zeros. 
+special_taz = kirk_psrc_sum_by_BKRCastTAZ.loc[(kirk_psrc_sum_by_BKRCastTAZ['EMPTOT_P']==0) & (kirk_psrc_sum_by_BKRCastTAZ['EMPTOT_2044']>0), 'TAZ_P']
+special_parcels = kirk_input_lu_df.loc[kirk_input_lu_df['BKRCastTAZ'].isin(special_taz)]
+
 # calculate adjusted jobs based on PSRC's job distribution. Kirkland citywide total jobs match the control total. 
 kirk_parcels_df = kirk_parcels_df.merge(kirk_psrc_sum_by_BKRCastTAZ[['TAZ_P', 'scale']], on = 'TAZ_P')
+
+kirkland_local_job_category = {'EMPCOM_2044':'EMPRET_P', 'EMPIND_2044':'EMPIND_P', 'EMPOFF_2044':'EMPOFC_P', 'EMPINST_2044':'EMPGOV_P'}
+merged_df = kirk_parcels_df.merge(special_parcels[['PSRC_ID'] + list(kirkland_local_job_category.keys())], on = 'PSRC_ID', how = 'right').reset_index()
+
+
+for key, val in kirkland_local_job_category.items():
+    merged_df[val] = merged_df[key].round(0).astype(int)
+merged_df.drop(columns = list(kirkland_local_job_category.keys()), inplace = True)
+
+kirk_parcels_df = kirk_parcels_df.loc[~kirk_parcels_df['PSRC_ID'].isin(merged_df['PSRC_ID'])]
+kirk_parcels_df = pd.concat([kirk_parcels_df, merged_df])
+
+
 kirk_parcels_df['EMPTOT_P'] = 0
 for col in Columns_List:
     kirk_parcels_df[col] = kirk_parcels_df[col] * kirk_parcels_df['scale']
     kirk_parcels_df[col] = kirk_parcels_df[col].round(0).astype(int)
     kirk_parcels_df['EMPTOT_P'] += kirk_parcels_df[col]   
+
 
 # adjust number of hhs to whole number.
 kirk_parcels_df = kirk_parcels_df.merge(kirk_input_lu_df[['PSRC_ID', 'SF_2044', 'MF_2044']], on = 'PSRC_ID', how = 'left')
@@ -162,7 +180,10 @@ kirk_rounded_comparison_TAZ['Diff'] = kirk_rounded_comparison_TAZ['TotHhs_ctrl_2
 kirk_rounded_comparison_TAZ.to_csv(os.path.join(working_folder, 'Rounding_Comparison_by_TAZ.csv'), index = False)
 
 
-updated_parcels_df = psrc_parcels_df.drop(columns = ['PSRC_ID', 'Jurisdiction']).copy()
+updated_parcels_df = psrc_parcels_df.copy()
+# clear all jobs in Kirkland. get ready to receive job forecast from Kirkland staff
+updated_parcels_df.loc[updated_parcels_df['Jurisdiction'] == 'KIRKLAND', ['HH_P'] + job_col_list] = 0
+updated_parcels_df.drop(columns = ['PSRC_ID', 'Jurisdiction'], inplace = True)
 updated_parcels_df.set_index('PARCELID', inplace = True)
 selected_cols = job_col_list.copy()
 selected_cols.extend(['PARCELID'])
