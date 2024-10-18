@@ -1,3 +1,4 @@
+from msilib import Control
 import pandas as pd
 import numpy as np
 import os
@@ -26,6 +27,57 @@ mf_occupancy_rate = 0.895  # from Gwen
 avg_persons_per_sfhh =  2.82 # from Gwen
 avg_persons_per_mfhh =  2.03 # from Gwen
 
+
+def controlled_rounding(data_df, attr_name, control_total):
+    # find residential parcels within taz     
+    updated_data_df = data_df.copy()
+    total_rows = updated_data_df.shape[0]
+    already_assigned = updated_data_df[attr_name].sum()
+    
+    # how many need to be assigned or removed to match the control total
+    diff = int(control_total - already_assigned)
+    if diff == 0:
+        return updated_data_df
+
+    if total_rows >= abs(diff):
+        selected_indices = np.random.choice(updated_data_df.index, size = abs(diff), replace = False) 
+    else:
+        selected_indices = np.random.choice(updated_data_df.index, size = abs(diff), replace = True) 
+    
+    unique_indices, counts = np.unique(selected_indices, return_counts=True)
+    sorted_zipped = sorted(zip(unique_indices, counts), key=lambda x: x[1], reverse=True)
+
+    index_for_2nd_round = []
+    if control_total >= already_assigned: # need to add more hhs to match the control total, 
+        for index, count in sorted_zipped:
+            updated_data_df.loc[index, attr_name] += count   
+    else:  # need to remove some hhs to match the control total. more complicated.
+        remaining = 0
+        for index, count in sorted_zipped:
+            count += remaining
+            # need to ensure no negative households
+            if updated_data_df.loc[index, attr_name] >= count:
+                updated_data_df.loc[index, attr_name] -= count
+                remaining = 0
+                index_for_2nd_round.append(index)
+            else:
+                remaining = count - updated_data_df.loc[index, attr_name]
+                updated_data_df.loc[index, attr_name] = 0
+
+        if (remaining > 0):
+            for index in index_for_2nd_round:
+                curValue = updated_data_df.loc[index, attr_name]
+                if curValue >= remaining:
+                    updated_data_df.loc[index, attr_name] = curValue - remaining
+                    remaining = 0
+                    break
+                else:
+                    remaining -= updated_data_df.loc[index, attr_name]
+                    updated_data_df.loc[index, attr_name] = 0
+    return updated_data_df
+
+
+
 # this function is used to integerize household fractions in a parcel file, if the control total in TAZ level is known. 
 # The number of households in the parcel file will be held to the maximum extent by rounding to its nearliest integer. 
 # After that household adjustment (increase or decrease by 1) will be made on randomly selected residential parcels so that number of hhs
@@ -35,53 +87,19 @@ avg_persons_per_mfhh =  2.03 # from Gwen
 # parcel_hhs_attr_name: hhs attribute name in parcel file
 # taz_control_total_attr_name: control total attribute name in control_in_taz_df
 def integerize_households(parcels_df, control_in_taz_df, parcel_hhs_attr_name,  taz_control_total_attr_name):
+    updated_parcels_df = parcels_df.copy()
     for taz in control_in_taz_df['BKRCastTAZ']:
         # find residential parcels within taz     
-        parcels_in_taz_df = parcels_df.loc[(parcels_df['TAZ_P'] == taz) & (parcels_df[parcel_hhs_attr_name] > 0)] 
+        parcels_in_taz_df = updated_parcels_df.loc[(updated_parcels_df['TAZ_P'] == taz) & (updated_parcels_df[parcel_hhs_attr_name] > 0)] 
         if parcels_in_taz_df.shape[0] == 0: # if no residential parcels, use all parcels
-            parcels_in_taz_df = parcels_df.loc[parcels_df['TAZ_P'] == taz]
-        total_parcels = parcels_in_taz_df.shape[0]
+            parcels_in_taz_df = updated_parcels_df.loc[updated_parcels_df['TAZ_P'] == taz]
+
         control_total = control_in_taz_df.loc[control_in_taz_df['BKRCastTAZ'] == taz, taz_control_total_attr_name].iloc[0]
-        already_assigned = parcels_in_taz_df[parcel_hhs_attr_name].sum()
+        parcels_in_taz_df = controlled_rounding(parcels_in_taz_df, parcel_hhs_attr_name, control_total)
+
+        updated_parcels_df.update(parcels_in_taz_df)
     
-        # how many need to be assigned or removed to match the control total
-        diff = control_total - already_assigned
-        if total_parcels >= abs(diff):
-            selected_indices = np.random.choice(parcels_in_taz_df.index, size = abs(diff), replace = False) 
-        else:
-            selected_indices = np.random.choice(parcels_in_taz_df.index, size = abs(diff), replace = True) 
-    
-        unique_indices, counts = np.unique(selected_indices, return_counts=True)
-        sorted_zipped = sorted(zip(unique_indices, counts), key=lambda x: x[1], reverse=True)
-
-        index_for_2nd_round = []
-        if control_total >= already_assigned: # need to add more hhs to match the control total, 
-            for index, count in sorted_zipped:
-                parcels_df.loc[index, parcel_hhs_attr_name] += count   
-        else:  # need to remove some hhs to match the control total. more complicated.
-            remaining = 0
-            for index, count in sorted_zipped:
-                count += remaining
-                # need to ensure no negative households
-                if parcels_df.loc[index, parcel_hhs_attr_name] >= count:
-                    parcels_df.loc[index, parcel_hhs_attr_name] -= count
-                    remaining = 0
-                    index_for_2nd_round.append(index)
-                else:
-                    remaining = count - parcels_df.loc[index, parcel_hhs_attr_name]
-                    parcels_df.loc[index, parcel_hhs_attr_name] = 0
-
-            if (remaining > 0):
-                for index in index_for_2nd_round:
-                    curhhs = parcels_df.loc[index, parcel_hhs_attr_name]
-                    if curhhs >= remaining:
-                        parcels_df.loc[index, parcel_hhs_attr_name] = curhhs - remaining
-                        remaining = 0
-                        break
-                    else:
-                        remaining -= parcels_df.loc[index, parcel_hhs_attr_name]
-                        parcels_df.loc[index, parcel_hhs_attr_name] = 0
-
+    return updated_parcels_df
 
 print('loading...')
 kirk_ctrl_input_lu_df = pd.read_csv(os.path.join(working_folder, kirkland_land_use_file))
@@ -90,9 +108,7 @@ kirk_ctrl_input_lu_df = kirk_ctrl_input_lu_df.merge(lookup_df[['PSRC_ID', 'Juris
 psrc_parcels_df = pd.read_csv(os.path.join(working_folder, psrc_2044_parcel_file_name), sep = ' ')
 psrc_parcels_df = psrc_parcels_df.merge(lookup_df[['PSRC_ID', 'Jurisdiction']], left_on = 'PARCELID', right_on = 'PSRC_ID', how = 'left')
 # make sure total is sum of all categories
-psrc_parcels_df['EMPTOT_P'] = 0
-for col in Columns_List:
-    psrc_parcels_df['EMPTOT_P'] += psrc_parcels_df[col]
+psrc_parcels_df['EMPTOT_P'] = psrc_parcels_df[Columns_List].sum(axis=1)
 
 kirk_input_lu_df = kirk_ctrl_input_lu_df.copy()
 # calculate households
@@ -102,11 +118,18 @@ kirk_input_lu_df['MF_2044'] = kirk_input_lu_df['MFU_2044'] * mf_occupancy_rate
 # calculate number of jobs and hhs by BKRCastTAZ
 kirk_control_by_TAZ_df = kirk_input_lu_df.groupby('BKRCastTAZ').sum().reset_index()
 kirk_control_by_TAZ_df.drop(columns = ['PSRC_ID'], inplace = True)
+total_SF = int(round(kirk_control_by_TAZ_df['SF_2044'].sum(), 0))
+total_MF = int(round(kirk_control_by_TAZ_df['MF_2044'].sum(), 0))
 kirk_control_by_TAZ_df = kirk_control_by_TAZ_df.round(0).astype(int)
 kirk_control_by_TAZ_df['EMPTOT_2044'] = kirk_control_by_TAZ_df['EMPCOM_2044'] + kirk_control_by_TAZ_df['EMPIND_2044'] + kirk_control_by_TAZ_df['EMPOFF_2044'] + kirk_control_by_TAZ_df['EMPINST_2044']
 kirk_control_by_TAZ_df['DU_2044'] = kirk_control_by_TAZ_df['SFU_2044'] + kirk_control_by_TAZ_df['MFU_2044']
 kirk_control_by_TAZ_df['SF_2044'] = kirk_control_by_TAZ_df['SF_2044'].round(0).astype(int)
 kirk_control_by_TAZ_df['MF_2044'] = kirk_control_by_TAZ_df['MF_2044'].round(0).astype(int)
+
+
+kirk_control_by_TAZ_df = controlled_rounding(kirk_control_by_TAZ_df, 'SF_2044', total_SF)
+kirk_control_by_TAZ_df = controlled_rounding(kirk_control_by_TAZ_df, 'MF_2044', total_MF)
+
 kirk_control_by_TAZ_df.rename(columns={'SF_2044':'SF_ctrl_2044', 'MF_2044':'MF_ctrl_2044'}, inplace = True)
 kirk_control_by_TAZ_df['TotHhs_ctrl_2044'] = kirk_control_by_TAZ_df['SF_ctrl_2044'] + kirk_control_by_TAZ_df['MF_ctrl_2044']
 kirk_control_by_TAZ_df.to_csv(os.path.join(working_folder, control_total_file_name))
@@ -146,12 +169,22 @@ kirk_parcels_df = kirk_parcels_df.loc[~kirk_parcels_df['PSRC_ID'].isin(merged_df
 kirk_parcels_df = pd.concat([kirk_parcels_df, merged_df])
 
 
-kirk_parcels_df['EMPTOT_P'] = 0
-for col in Columns_List:
-    kirk_parcels_df[col] = kirk_parcels_df[col] * kirk_parcels_df['scale']
-    kirk_parcels_df[col] = kirk_parcels_df[col].round(0).astype(int)
-    kirk_parcels_df['EMPTOT_P'] += kirk_parcels_df[col]   
+kirk_parcels_df[Columns_List] = kirk_parcels_df[Columns_List].multiply(kirk_parcels_df['scale'], axis = 0)
 
+kirk_parcels_df[Columns_List] = kirk_parcels_df[Columns_List].round(0).astype(int)
+
+# controlled rounding for jobs.
+# find the citywide total job difference, assign the difference proportionally to each job category. Then controlled balance each category.
+total_jobs_ctrl = kirk_control_by_TAZ_df['EMPTOT_2044'].sum()
+diff = total_jobs_ctrl - kirk_parcels_df[Columns_List].sum().sum()
+total_assigned_jobs = kirk_parcels_df[Columns_List].sum(axis = 1).sum()
+for job_cat in Columns_List:
+    assigned_by_job_cat = kirk_parcels_df[job_cat].sum()
+    job_cat_ctrl = int(round((assigned_by_job_cat / total_assigned_jobs) * diff + assigned_by_job_cat, 0))
+    kirk_parcels_df = controlled_rounding(kirk_parcels_df, job_cat, job_cat_ctrl)
+
+kirk_parcels_df['EMPTOT_P'] = kirk_parcels_df[Columns_List].sum(axis = 1)
+print(f'After scaling, total jobs in Kirkland is {kirk_parcels_df["EMPTOT_P"].sum()}')
 
 # adjust number of hhs to whole number.
 kirk_parcels_df = kirk_parcels_df.merge(kirk_input_lu_df[['PSRC_ID', 'SF_2044', 'MF_2044']], on = 'PSRC_ID', how = 'left')
@@ -159,11 +192,11 @@ kirk_parcels_df['SF_2044'] = kirk_parcels_df['SF_2044'].fillna(0)
 kirk_parcels_df['MF_2044'] = kirk_parcels_df['MF_2044'].fillna(0)
 kirk_parcels_df['SF_2044'] = kirk_parcels_df['SF_2044'].round(0).astype(int)
 kirk_parcels_df['MF_2044'] = kirk_parcels_df['MF_2044'].round(0).astype(int)
-integerize_households(kirk_parcels_df, kirk_psrc_sum_by_BKRCastTAZ, 'SF_2044', 'SF_ctrl_2044')
-integerize_households(kirk_parcels_df, kirk_psrc_sum_by_BKRCastTAZ, 'MF_2044', 'MF_ctrl_2044')
+kirk_parcels_df = integerize_households(kirk_parcels_df, kirk_psrc_sum_by_BKRCastTAZ, 'SF_2044', 'SF_ctrl_2044')
+kirk_parcels_df = integerize_households(kirk_parcels_df, kirk_psrc_sum_by_BKRCastTAZ, 'MF_2044', 'MF_ctrl_2044')
 kirk_parcels_df['HH_P'] = kirk_parcels_df['SF_2044'] + kirk_parcels_df['MF_2044']
 
-print(f'After scaling, total jobs in Kirkland is {kirk_parcels_df["EMPTOT_P"].sum()}')
+
 print(f'Household control total: {kirk_psrc_sum_by_BKRCastTAZ["TotHhs_ctrl_2044"].sum()}')
 print(f'Total households after integerization: {kirk_parcels_df["SF_2044"].sum() + kirk_parcels_df["MF_2044"].sum()}')
 kirk_parcels_df.to_csv(os.path.join(working_folder, kirk_parcel_file_name), index = False)
@@ -197,34 +230,3 @@ updated_parcels_df.to_csv(os.path.join(working_folder, updated_land_use_file), s
 utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
 print('Done')
 
-
-
-def adjust_hhs_by_psrc_distribution():
-    kirk_parcels_df['adj_hh_p'] = kirk_parcels_df['HH_P']
-    kirk_parcels_df.loc[kirk_parcels_df['HH_P'] > 1,'adj_hh_p'] = (kirk_parcels_df['HH_P'] * kirk_parcels_df['hhs_scale']).round(0).astype(int)
-    
-    for taz in kirk_psrc_sum_by_BKRCastTAZ['BKRCastTAZ']:
-        # SF parcels cannot be scaled up/down effectively because of rounding. Need to process them with special treatment.
-        parcels_in_taz_df = kirk_parcels_df.loc[(kirk_parcels_df['TAZ_P'] == taz) & (kirk_parcels_df['HH_P'] >= 1)]
-        if parcels_in_taz_df.shape[0] == 0:
-            parcels_in_taz_df = kirk_parcels_df.loc[kirk_parcels_df['TAZ_P'] == taz]
-                    
-        total_parcels = parcels_in_taz_df.shape[0]    
-        control_total = kirk_psrc_sum_by_BKRCastTAZ.loc[kirk_psrc_sum_by_BKRCastTAZ['BKRCastTAZ'] == taz, 'TotHhs_2044'].iloc[0]
-        psrc_hhs = kirk_psrc_sum_by_BKRCastTAZ.loc[kirk_psrc_sum_by_BKRCastTAZ['BKRCastTAZ'] == taz, 'HH_P'].iloc[0] 
-        # if control total is higher than psrc, evenly increase by 1 on randomly selected parcels.
-        if control_total >= psrc_hhs:
-            diff = control_total - psrc_hhs
-            if total_parcels > diff:        
-                selected_indices = np.random.choice(parcels_in_taz_df.index, size = diff, replace = False) 
-            else: 
-                selected_indices = np.random.choice(parcels_in_taz_df.index, size = diff, replace = True) 
-            kirk_parcels_df.loc[selected_indices, 'adj_hh_p'] += 1    
-        else:
-            # if control total is lower than psrc, evenly decrease by 1 on randomly selected parcels.
-            diff = psrc_hhs - control_total
-            if total_parcels > diff:        
-                selected_indices = np.random.choice(parcels_in_taz_df.index, size = diff, replace = False) 
-            else: 
-                selected_indices = np.random.choice(parcels_in_taz_df.index, size = diff, replace = True) 
-            kirk_parcels_df.loc[(kirk_parcels_df['adj_hh_p'] > 0) & kirk_parcels_df.index.isin(selected_indices), 'adj_hh_p'] -= 1    
