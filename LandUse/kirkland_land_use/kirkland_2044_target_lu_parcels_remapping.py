@@ -16,9 +16,24 @@ remapping_dict = pd.Series(remapping_df['new_parcel_ID'].values, index = remappi
 for oldid, newid in remapping_dict.items():
     input_df.loc[input_df['PSRC_ID'] == oldid, 'PSRC_ID'] = newid 
 
+jobs_field = {'EMPTOT_2044':['EMPCOM_2044', 'EMPIND_2044', 'EMPOFF_2044', 'EMPINST_2044'],
+                'TotalDU_2044':['SFU_2044', 'MFU_2044']}
+
+
 fixed_df = input_df.groupby('PSRC_ID').sum().reset_index()
 fixed_df = fixed_df.merge(lookup_df[['PSRC_ID', 'BKRCastTAZ']], on = 'PSRC_ID', how = 'left')
+fixed_df['EMPOFF_2044'] =  fixed_df['EMPOFF_2044'] + fixed_df['EMPHO_2044']
+fixed_df.drop(columns = ['EMPHO_2044'], inplace = True)
+
+for key, vals in jobs_field.items():
+    fixed_df[key] = 0
+    for val in vals:
+        fixed_df[key] += fixed_df[val]
+
 fixed_df.to_csv(os.path.join(working_folder, 'parcel_fixed_Kirkland_Complan_2044_target_Landuse.csv'), index = False)
+summary_by_TAZ_df = fixed_df.groupby('BKRCastTAZ').sum()
+summary_by_TAZ_df = summary_by_TAZ_df.drop(columns = ['PSRC_ID'])
+summary_by_TAZ_df.to_csv(os.path.join(working_folder, '2044_Kirk_Target_LU_by_TAZ.csv'))
 # cleaning
 
 utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))

@@ -11,6 +11,12 @@ print('loading...')
 input_df = pd.read_csv(os.path.join(working_folder, input_landuse_file))
 lookup_df = pd.read_csv(lookup_file, low_memory = False)
 
+dup_id = input_df.loc[input_df['PSRC_ID'].duplicated()]
+if dup_id.empty == False:
+    dup_id.to_csv(os.path.join(os.path.dirname(input_landuse_file), 'duplicated_parcels.txt'))
+    print('Duplicated IDs are exported.')
+
+
 # cleaning
 input_df = input_df.merge(lookup_df[['PSRC_ID', 'BKRCastTAZ', 'Jurisdiction']], on = 'PSRC_ID', how = 'left')
 wrong_parcels_df = input_df.loc[input_df['Jurisdiction'] != 'KIRKLAND']
