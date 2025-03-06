@@ -11,7 +11,7 @@ working_folder = r"I:\Modeling and Analysis Group\03_Data\bikecounts\WSDOT_count
 wsdot_count_file_name = r'PTRBikePedSummary2019.csv'
 wsdot_location_file = r'PTRBikePedCount.PTRBikePedLocation-2024.csv'
 
-selectedLocations = [100030163, 100038318, 100030164, 100038317, 100021744, 100031002, 100035378, 100035377, 100031001, 100022295, 100022296, 100023865, 100038319, 100019136, 100019135, 100033843]
+selectedLocations = [520, 300023865, 100030163, 100038318, 100030164, 100038317, 100021744, 100031002, 100035378, 100035377, 100031001, 100022295, 100022296, 100023865, 100038319, 100019136, 100019135, 100033843]
 
 
 is_weekday_included = True
@@ -102,9 +102,9 @@ with pd.ExcelWriter(os.path.join(working_folder, export_filename), engine = 'xls
         
         # sum all columns by 'Year' multiIndex now becomes single index 'Year'        
         sum_row = sum_all_df.groupby(level=0).sum()
-        sum_row.index = pd.MultiIndex.from_tuples([(level, 'Total') for level in sum_row.index])
-        sum_all_df = sum_all_df.append(sum_row)        
-        sum_all_df.to_excel(writer, sheet_name = str(loc), startrow = start, index = True)
+        sum_row['StartHr'] = 'Total'
+        sum_all_df = pd.concat([sum_all_df.reset_index(), sum_row])        
+        sum_all_df.to_excel(writer, sheet_name = str(loc), startrow = start, index = False)
         
         # write table title                  
         wksheet = writer.sheets[str(loc)]
