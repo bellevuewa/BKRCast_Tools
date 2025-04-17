@@ -21,17 +21,17 @@ upgrade to python 3.7
 
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\NewPopSim\2044'
-synthetic_households_file_name = '2044_Complan_synthetic_households.csv'
-synthetic_population_file_name = '2044_Complan_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2023baseyear_with_RedmondData'
+synthetic_households_file_name = '2023_baseyear_synthetic_households.csv'
+synthetic_population_file_name = '2023_baseyear_synthetic_persons.csv'
 
 # number of hhs per parcel
-parcels_for_allocation_filename = r"2044_final_hhs_by_parcel.csv"
+parcels_for_allocation_filename = r"2023_final_hhs_by_parcel.csv"
 
 ## output
-updated_hhs_file_name = 'updated_2044_Complan_synthetic_households.csv'
-updated_persons_file_name = 'updated_2044_Complan_synthetic_persons.csv'
-h5_file_name = '2044_Complan_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2023_baseyear_synthetic_households.csv'
+updated_persons_file_name = 'updated_2023_baseyear_synthetic_persons.csv'
+h5_file_name = '2023_baseyear_hh_and_persons.h5'
 
 ############## End of configuration
    

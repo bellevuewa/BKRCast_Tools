@@ -9,12 +9,12 @@ import utility
 
 
 ### configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\Alt3'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\NewPopSim\2044'
 base_syn_pop_file = r'final_combined_COB_renumbered_2044complan_na_hh_and_persons.h5'
-growth_syn_pop_file = 'complan_alt3_hh_and_persons.h5'
+growth_syn_pop_file = '2044_Complan_hh_and_persons.h5'
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 # output
-final_output_pop_file = 'final_combined_complan_alt3_hh_and_persons.h5'
+final_output_pop_file = 'final_combined_2044_Complan_hh_and_persons.h5'
 
 ### end of configuration
 

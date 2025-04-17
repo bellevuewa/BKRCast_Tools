@@ -15,6 +15,9 @@ import utility
 ## 3/9/2022
 ## upgraded to python 3.7
 
+# 2023
+# allow input jobs file using old trip model TAZ (originally for kirkland complan support)
+
 ###################### configuration
 ### inputs ###
 working_folder = r"Z:\Modeling Group\BKRCast\LandUse\2022baseyear_With_Kirkland_Data"

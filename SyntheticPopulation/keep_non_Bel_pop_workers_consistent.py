@@ -4,14 +4,14 @@ import os
 import utility
 
 
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\WFH\Alt3-30%WFH'
-bel_syn_pop_file = r"final_combined_complan_alt3_hh_and_persons_forWFH_30%.h5"
-non_bel_syn_pop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\WFH\NA-30%WFH\final_combined_COB_renumbered_2044complan_na_hh_and_persons_forWFH_30%.h5"
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\NewPopSim\WFH\2044_30%WFH'
+bel_syn_pop_file = r"2044_Complan_hh_and_persons_forWFH_30%.h5"
+non_bel_syn_pop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\NewPopSim\WFH\NA_30%WFH\complan_NA_hh_and_persons_forWFH_30%.h5"
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-non_bel_converted_worker_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\WFH\NA-30%WFH\converted_non_workers.csv"
+non_bel_converted_worker_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\NewPopSim\WFH\NA_30%WFH\converted_non_workers.csv"
 bel_converted_worker_file = 'converted_non_workers.csv'
 # output
-final_output_pop_file = 'final_combined_complan_alt3_hh_and_persons_forWFH_30%_outside_bel_consistent_with_NA.h5'
+final_output_pop_file = 'final_2044_Complan_hh_and_persons_forWFH_30%_outside_bel_consistent_with_NA.h5'
 converted_workers_file = 'final_converted_non_workers.csv'
 
 subarea = ['BELLEVUE']

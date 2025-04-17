@@ -22,10 +22,10 @@ arcpy.env.workspace = geodb
 in_fc = geodb + r'\baseline_2035_emme_links'
 
 # Elevation raster location
-in_raster = r'V:\ExternalData\UWGeology\GeoMapNWFeb2010\usgs_dem_30ft'
+in_raster = r'V:\ExternalData\UWGeology\xDelete\GeoMapNWFeb2010\usgs_dem_30ft'
 
 # Output dir for final results in csv format
-output_dir = r'D:\Bike'
+output_dir = r'D:\bike_cumulative_slopes'
 
 # ### Load and Process Data
 # Find two-way links - we only need to split these links once
@@ -36,7 +36,7 @@ df = pd.DataFrame(emme_links)
 ij_links = []
 ji_links = []
 
-for rownum in xrange(len(df)):
+for rownum in range(len(df)):
     inode = df.iloc[rownum].INODE
     jnode = df.iloc[rownum].JNODE
     ij_df = df[(df['INODE']==inode)&(df['JNODE']==jnode)]
@@ -60,7 +60,7 @@ for rownum in xrange(len(df)):
 ij_df = df[df['ID'].isin(ij_links)]
 ji_df = df[df['ID'].isin(ji_links)]
 len(ij_df)+len(ji_df)==len(df)
-print 'link df created.'
+print('link df created.')
 ij_df.to_csv(os.path.join(output_dir, 'ij_df.csv'), sep = ',')
 ji_df.to_csv(os.path.join(output_dir, 'ji_df.csv'), sep = ',')
 
@@ -92,7 +92,7 @@ with arcpy.da.SearchCursor(in_fc,["SHAPE@",'ID'], spatial_reference=sr) as curso
         if row[1] in ij_links:
             count += 1
             if count % 1000 == 0:
-                print count
+                print(count)
             split_count = int(row[0].length/segment_len)
             big_output = []
             for i in range(split_count):
@@ -105,8 +105,8 @@ with arcpy.da.SearchCursor(in_fc,["SHAPE@",'ID'], spatial_reference=sr) as curso
                 #point_list.append(y)
                 #output = (str(row[1]), (x, y))
                 #final_result.append(output)
-    print count
-    print 'All lines are split into points.'
+    print(count)
+    print('All lines are split into points.')
 
 # - Export results to a feature class called link_components
 
@@ -134,7 +134,7 @@ arcpy.Intersect_analysis(inFeatures, intersectOutput, "", clusterTolerance, "poi
 # license is checked out successfully but it can not be executed. I have to split the script from this point
 # into two smaller scripts and they work!
 
-print 'start to pull elevation'
+print('start to pull elevation')
 in_point_features = geodb + r'\link_components_full'
 out_point_features = geodb + r'\link_components_elevation'
 if arcpy.Exists(out_point_features):
@@ -142,13 +142,13 @@ if arcpy.Exists(out_point_features):
 
 try:    
     if arcpy.CheckOutExtension("Spatial") == 'CheckedOut':
-        print 'Spatial Analyst license is checked out'
-        print in_point_features
-        print out_point_features
-        print in_raster
+        print('Spatial Analyst license is checked out')
+        print(in_point_features)
+        print(out_point_features)
+        print(in_raster)
         arcpy.sa.ExtractValuesToPoints(in_point_features, in_raster, out_point_features)
     else:
-        print 'Spatial Analyst is required. Tool is terminated'
+        print('Spatial Analyst is required. Tool is terminated')
 except Exception as e:
     print(e)
 
@@ -160,7 +160,7 @@ df = pd.DataFrame(elevation_shp)
 # List of links IDs
 link_list = df.groupby('ID').min().index
 
-print 'calculating slops'
+print('calculating slops')
 # Loop through all edges
 # Assume that all links are bi-directional and compute ij and ji direction slopes
 # if a line is truly one-way, we will discard the ji direction
@@ -176,7 +176,7 @@ for link in link_list:
     # Loop through each point in each edge
     upslope_ij[link] = 0
     upslope_ji[link] = 0
-    for point in xrange(len(elev_data)-1):  # stop short of the list because we only want to compare the 2nd to last to last
+    for point in range(len(elev_data)-1):  # stop short of the list because we only want to compare the 2nd to last to last
         elev_diff = elev_data[point+1] - elev_data[point]
         if elev_diff > 0:
             upslope_ij[link] += elev_diff
@@ -192,13 +192,13 @@ upslope_ij_s = upslope_ij_s.reset_index()
 upslope_ji_s.index.name='ID'
 upslope_ji_s = upslope_ji_s.reset_index()
 
-print 'processing i-j link'
+print('processing i-j link')
 # Attach ij-direction slope to IJ links
 slope_ij = pd.merge(ij_df,upslope_ij_s,on='ID')
 slope_ij.rename(columns={"elev_gain_ij": "elev_gain"}, inplace=True)
 
 # Attach ji-direction slope to JI links
-print 'processing j-i link'
+print ('processing j-i link')
 
 # fo JI links, flip the i and j values to get lookup of ji links
 upslope_ji_s['newID'] = upslope_ji_s.ID.apply(lambda row: row.split('-')[-1]+"-"+row.split('-')[0])
@@ -217,12 +217,12 @@ slope_df = slope_ij.append(slope_ji)
 # Network distance measured in: miles, elevation in meters 
 slope_df['avg_upslope'] = slope_df['elev_gain']/(slope_df['LENGTH']*5280)
 
-print 'start exporting'
+print('start exporting')
 # - reformat and export as emme_attr.in
 # - for BKR, assume all bike facilities are 0 for now
 
 emme_attr = slope_df
-print emme_attr.columns
+print(emme_attr.columns)
 emme_attr.rename(columns={'INODE':'inode','JNODE':'jnode','F_biketype':'@bkfac','avg_upslope':'@upslp'},
                 inplace=True)
 
@@ -231,10 +231,10 @@ emme_attr.drop(['LENGTH','elev_gain'], axis=1, inplace=True)
 # - some very short links are not processed
 # - assume zero elevation change for these
 
-print len(emme_attr)
-print len(df)
+print(len(emme_attr))
+print(len(df))
 
-print emme_attr.columns
+print(emme_attr.columns)
 
 # Get list of IDs from network not included in the final outpu
 df = pd.DataFrame(emme_links)
@@ -260,4 +260,4 @@ emme_attr['id']=emme_attr['inode'].astype('str')+'-'+emme_attr['jnode'].astype('
 emme_attr.to_csv(output_dir + r'\emme_attr.csv', sep=' ', index=False)
 
 emme_attr
-print 'done'
+print('done')

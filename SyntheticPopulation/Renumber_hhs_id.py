@@ -4,13 +4,13 @@ import os
 import utility
 
 ### configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\NA\new_popsim_approach'
-input_syn_pop_file = r'final_combined_complan_NA_hh_and_persons.h5'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\target2044'
+input_syn_pop_file = r'2044_kirk_complan_target_hh_and_persons.h5'
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 # output
-final_output_pop_file = 'final_combined_COB_renumbered_2044complan_na_hh_and_persons.h5'
+final_output_pop_file = 'final_COK_renumbered_2044_kirk_complan_target_hh_and_persons.h5'
 
-subarea = ['BELLEVUE']
+subarea = ['KIRKLAND']
 #subarea = ['BELLEVUE', 'KIRKLAND', 'REDMOND', 'BellevueFringe', 'KirklandFringe', 'RedmondFringe']
 
 

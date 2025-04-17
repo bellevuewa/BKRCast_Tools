@@ -15,16 +15,16 @@ status. The percent, associated with individual tazs, is specified in an externa
 '''
 
 ### input configuration
-working_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\TFP\2033_horizon_year\WFH_30%"
-original_h5_file_name = '2033TFP_hh_and_persons.h5'
+working_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\WFH\target2044_30%_WFH"
+original_h5_file_name = '2044_kirk_complan_target_hh_and_persons_reallocated_from_baseline.h5'
 TAZ_Subarea_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
 # percent of workers to be adjusted
 adjustment_factor_name = r"TAZ_subarea_worker_adjustment.csv"
 
 ### output configuration
-updated_h5_file_name = '2033TFP_hh_and_persons_forWFH_30%.h5'
-converted_nonworker_file_name = 'converted_non_workers.csv'
-report_file_name = 'workers_conversion_report.txt'
+updated_h5_file_name = '2044_kirk_complan_target_hh_and_persons_reallocated_from_baseline_forWFH_30%_test.h5'
+converted_nonworker_file_name = 'converted_non_workers_test.csv'
+report_file_name = 'workers_conversion_report_test.txt'
 
 
 print ('Loading hh and person file...')   

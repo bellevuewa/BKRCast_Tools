@@ -15,13 +15,13 @@ The new parcel file is exported to updated_parcel_file_name.
 
 '''
 ### Inputs
-original_parcel_file_name = r"Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline 2044\parcels_urbansim.txt"
+original_parcel_file_name = r"Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\preferred_2044\updated_2044_kirkcomplan_target_parcels_urbansim.txt"
 ratio_file_name = r"Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline2044_01092024\kirkland_2019_scale_factor_selected_TAZ.csv"
 baseyear_parcel_file_name = r"Z:\Modeling Group\BKRCast\LandUse\2019baseyear-new_popsim_approach\parcels_urbansim.txt"
 
 ### Outputs
-updated_parcel_file_name = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline2044_01092024\Kirk_Complan_2044_parcels_urbansim_job_rebalanced.txt'
-ms_parcels_file = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline2044_01092024\Kirkland_Complan_2044_rebalanced_parcels.xlsx'
+updated_parcel_file_name = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\preferred_2044\updated_2044_kirkcomplan_target_parcels_urbansim_job_rebalanced.txt'
+ms_parcels_file = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\preferred_2044\Kirkland_Complan_2044_target_rebalanced_parcels.xlsx'
 
 Job_Field = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P']
 ratio_attribute_name = 'adj_factor'

@@ -5,15 +5,15 @@ import os
 import utility
 
 # input configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\baseline2044'
-local_estimate_parcel_file = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline 2044\Adjusted_2044_Kirkland_baseline_parcels.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\target2044'
+local_estimate_parcel_file = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\preferred_2044\Adjusted_2044_Kirkland_target_parcels.csv'
 control_template_file = 'acecon0403.csv'
 hh_person_file = '2044_interpolated_synthetic_population_from_SC.h5'
 lookup_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
 # output configuration
-control_file_name = 'ACS2016_controls_2044_kirkcomplan_baseline_estimate.csv'
-parcels_for_allocation_filename = '2044_kirkcomplan_baseline_parcels_for_allocation_local_estimate.csv'
+control_file_name = 'ACS2016_controls_2044_kirkcomplan_target_estimate.csv'
+parcels_for_allocation_filename = '2044_kirkcomplan_target_parcels_for_allocation_local_estimate.csv'
 
 sf_occupancy_rate = 0.952  # from Gwen
 mf_occupancy_rate = 0.895  # from Gwen

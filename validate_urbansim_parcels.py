@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 
-parcel_name = r'Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\NA\parcels_urbansim.txt'
+parcel_name = r'Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline2044_01092024\parcels_urbansim.txt'
 
 parcels_df = pd.read_csv(parcel_name, sep = ' ')
 

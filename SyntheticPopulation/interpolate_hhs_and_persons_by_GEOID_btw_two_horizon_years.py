@@ -26,9 +26,9 @@ future_year =2050
 base_year = 2014
 
 ## Output files
-interploated_ofm_estimate_by_GEOID = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\Alt3\2044_ofm_estimate_from_PSRC_2014_2050.csv"
-hhs_by_parcel_filename = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\Alt3\2044_hhs_by_parcels_from_PSRC_2014_2050.csv'
-final_output_pop_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\Alt3\2044_interpolated_synthetic_population_from_SC.h5'
+interploated_ofm_estimate_by_GEOID = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\target2044\2044_ofm_estimate_from_PSRC_2014_2050.csv"
+hhs_by_parcel_filename = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\target2044\2044_hhs_by_parcels_from_PSRC_2014_2050.csv'
+final_output_pop_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\target2044\2044_interpolated_synthetic_population_from_SC.h5'
 
 ### end of configuration
 print('Loading synthetic populations...')

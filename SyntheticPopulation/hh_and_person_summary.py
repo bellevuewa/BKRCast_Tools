@@ -16,8 +16,8 @@ sys.path.append(os.getcwd())
 import utility
 
 ### inputs
-hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\WFH\Alt1-30%WFH'                                       
-hh_person_file = 'final_combined_complan_alt1_hh_and_persons_forWFH_30%_outside_bel_consistent_with_NA.h5'
+hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\WFH\target2044_30%_WFH_by_baseline_worker_conversion_file'                                       
+hh_person_file = '2044_kirk_complan_target_hh_and_persons_reallocated_from_baseline_forWFH_30%.h5'
 TAZ_Subarea_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv'
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 export_parcel_level_dataset = False

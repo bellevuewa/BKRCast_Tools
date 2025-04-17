@@ -7,14 +7,14 @@ import numpy as np
 
 
 ### Configuration
-SELECT_BY_TAZ = False
-SELECT_BY_PARCEL = True
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\TFP\2033_Spring_Dist_New_Development_Baseline"
+SELECT_BY_TAZ = True
+SELECT_BY_PARCEL = False
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\baseline2044_01092024"
 Common_Data_Folder = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData'
-Original_ESD_Parcel_File_Name = r"2033_horizenTFP_parcels_urbansim.txt"
+Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
 TAZ_Subarea_File_Name = r"TAZ_subarea.csv"
 Subset_definition_file = r"customized.csv"   # TAZ list or ParcelID list
-Outputfile = 'spring_district_2033_selected_parcels.csv'
+Outputfile = '2044_Kirk_Complan_baseline_TAZ951.csv'
 ###
 
 print("Loading input files ...")

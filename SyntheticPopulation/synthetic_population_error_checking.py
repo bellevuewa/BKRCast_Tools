@@ -8,8 +8,8 @@ import utility
 
 ############# confiuration ###############
 ## input files
-hh_person_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\WFH\Alt2-30%WFH"
-hh_person_file = 'final_combined_complan_alt2_hh_and_persons_forWFH_30%_outside_bel_consistent_with_NA.h5'
+hh_person_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\WFH\target2044_30%_WFH_by_baseline_worker_conversion_file"
+hh_person_file = '2044_kirk_complan_target_hh_and_persons_reallocated_from_baseline_forWFH_30%.h5'
 
 ## output files
 error_hhs_file = 'hhs.f'
@@ -35,5 +35,18 @@ else:
     print('found duplicated household ids (hhno). check out duplicated_hhs.csv for details.')
     duplicated_hhs_df.to_csv(os.path.join(hh_person_folder, 'duplicated_hhs.csv'), index = False)
 
+neg_hhparcels_df = hh_df.loc[hh_df['hhparcel'] <= 0]
+if neg_hhparcels_df.shape[0] > 0:
+    print('Some parcel IDs are negatives.')
+    neg_hhparcels_df.to_csv(os.path.join(hh_person_folder, 'negative_parcel_id.csv', index = False))
+else:
+    print('No negative parcel ID is found.')
+    
+neg_hhtaz_df = hh_df.loc[hh_df['hhtaz'] <= 0]
+if neg_hhtaz_df.shape[0] > 0:
+    print('Some hhtaz are negatives.')
+    neg_hhtaz_df.to_csv(os.path.join(hh_person_folder, 'negative_hhtaz.csv', index = False))
+else:
+    print('No negative hhtaz is found.')
 
 print('Done')

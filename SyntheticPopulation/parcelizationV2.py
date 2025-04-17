@@ -21,17 +21,17 @@ upgrade to python 3.7
 
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\baseline2044 - Copy'
-synthetic_households_file_name = '2044_kirk_complan_baseline_synthetic_households.csv'
-synthetic_population_file_name = '2044_kirk_complan_baseline_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\target2044'
+synthetic_households_file_name = '2044_kirkland_complan_target_synthetic_households.csv'
+synthetic_population_file_name = '2044_kirkland_complan_target_synthetic_persons.csv'
 
 # number of hhs per parcel
-parcels_for_allocation_filename = r"2044_kirkcomplan_baseline_parcels_for_allocation_local_estimate.csv"
+parcels_for_allocation_filename = r"2044_kirkcomplan_target_parcels_for_allocation_local_estimate.csv"
 
 ## output
-updated_hhs_file_name = 'updated_2044_kirk_complan_baseline_synthetic_households.csv'
-updated_persons_file_name = 'updated_2044_kirk_complan_baseline_synthetic_persons.csv'
-h5_file_name = '2044_kirk_complan_baseline_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2044_kirkland_complan_target_synthetic_households.csv'
+updated_persons_file_name = 'updated_2044_kirkland_complan_target_synthetic_persons.csv'
+h5_file_name = '2044_kirk_complan_target_hh_and_persons.h5'
 
 ############## End of configuration
    

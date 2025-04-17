@@ -21,22 +21,22 @@ A control file for populationsim is generated as well.
 '''
 ### configuration #####
 ### input files
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2022baseyear_with_KirkData' 
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2023baseyear' 
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-hhs_by_parcel = '2022_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
-cob_du_file = '2022_COB_housingunits.csv'
+hhs_by_parcel = '2023_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
+cob_du_file = '2023_COB_housingunits.csv'
 popsim_control_file = 'acecon0403.csv'
 
 # TAZ level control total (households) from Kirkland and Redmond. (can be any TAZ)
 # if there is no local estimate from Redmond/Kirkland, set it to ''. 
-hhs_control_total_by_TAZ = '2022_Kirkland_DU.csv'
+hhs_control_total_by_TAZ = ''
 
 # output files
-hhs_by_taz_comparison_file = '2022_PSRC_hhs_and_forecast_from_kik_Red_by_trip_model_TAZ_comparison.csv'
-adjusted_hhs_by_parcel_file = '2022_final_hhs_by_parcel.csv'
-popsim_control_output_file = r'ACS2016_controls_2022_w_kirk_data_estimate.csv'
-parcels_for_allocation_filename = '2022_baseyear_parcels_for_allocation_local_estimate.csv'
-summary_by_jurisdiction_filename = '2022_summary_by_jurisdiction.csv'
+hhs_by_taz_comparison_file = '2023_PSRC_hhs_and_forecast_from_kik_Red_by_trip_model_TAZ_comparison.csv'
+adjusted_hhs_by_parcel_file = '2023_final_hhs_by_parcel.csv'
+popsim_control_output_file = r'ACS2016_controls_2023_Complan.csv'
+parcels_for_allocation_filename = '2023_Complan_parcels_for_allocation_local_estimate.csv'
+summary_by_jurisdiction_filename = '2023_summary_by_jurisdiction.csv'
 #maybe we do not need this file. we can use an output file from prepare_land_use_step_1.py
 
 ####
