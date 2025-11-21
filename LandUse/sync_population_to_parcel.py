@@ -1,6 +1,7 @@
 import pandas as pd
 import h5py
-import os
+import os,sys
+sys.path.append(os.getcwd())
 import utility
 
 '''
@@ -11,10 +12,10 @@ the households in parcel file is consistent with synthetic population file.
 upgraded to python 3.7
 '''
 
-Hh_and_person_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\WFH\target2044_30%_WFH_by_baseline_worker_conversion_file\2044_kirk_complan_target_hh_and_persons_reallocated_from_baseline_forWFH_30%.h5"
-parcel_folder = r"Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\preferred_2044_30pct_WFH"
-input_parcel_file = '2044_KirklandComplan_target_parcels_urbansim_noWFH.txt'
-output_parcel_file = '2044_kirkcomplan_target_parcels_urbansim_sync_with_30pct_WFH_popsim.txt'
+Hh_and_person_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2030_DevReview_156thCorridor_Study\WFH_30%\2030_DevReview_156thCorridorStudy_hh_and_persons_forWFH_30%.h5"
+parcel_folder = r"Z:\Modeling Group\BKRCast\LandUse\2030_DevReview_156th_corridor_Study"
+input_parcel_file = '2030_devreview_156thCorridorStudy_parcels_urbansim.txt'
+output_parcel_file = 'updated_2030_devreview_156thCorridorStudy_parcels_urbansim.txt.txt'
 
 print('Loading hh_and_persons.h5...')
 hdf_file = h5py.File(Hh_and_person_file, "r")
