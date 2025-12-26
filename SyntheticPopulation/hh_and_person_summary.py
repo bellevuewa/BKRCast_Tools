@@ -16,11 +16,12 @@ sys.path.append(os.getcwd())
 import utility
 
 ### inputs
-hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\WFH\target2044_30%_WFH_by_baseline_worker_conversion_file'                                       
-hh_person_file = '2044_kirk_complan_target_hh_and_persons_reallocated_from_baseline_forWFH_30%.h5'
+hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\NewPopSim\2044'                                       
+hh_person_file = 'final_combined_2044_Complan_hh_and_persons.h5'
 TAZ_Subarea_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv'
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 export_parcel_level_dataset = False
+export_parcel_level_summary = True
 
 print('Loading hh and person file...')
 hdf_file = h5py.File(os.path.join(hh_person_folder, hh_person_file), "r")
@@ -43,7 +44,6 @@ hh_taz['total_hhs'] = hh_taz['hhexpfac']
 
 summary_by_jurisdiction = hh_taz.groupby('Jurisdiction')[['total_hhs', 'total_persons', 'ft_w', 'pt_w']].sum()   
 summary_by_mma = hh_taz.groupby('Subarea')[['total_hhs', 'total_persons',  'ft_w', 'pt_w']].sum()
-summary_by_parcels = hh_taz.groupby('hhparcel')[['total_hhs', 'total_persons',  'ft_w', 'pt_w']].sum()
 
 taz_subarea.reset_index()
 subarea_def = taz_subarea[['Subarea', 'SubareaName']]
@@ -59,14 +59,22 @@ print('exporting summary by mma... ')
 summary_by_mma.to_csv(os.path.join(hh_person_folder, "hh_summary_by_mma.csv"), header = True)
 print('exporting summary by taz... ')
 summary_by_taz.to_csv(os.path.join(hh_person_folder, "hh_summary_by_taz.csv"), header = True)
-print('exporting summary by parcel...')
-summary_by_parcels.to_csv(os.path.join(hh_person_folder, 'hh_summary_by_parcel.csv'), header = True)
 
 parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
 hh_taz = hh_taz.merge(parcel_df, how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
 summary_by_geoid10 = hh_taz.groupby('GEOID10')[['total_hhs', 'total_persons',  'ft_w', 'pt_w']].sum()
+
 print('exporting summary by block groups...')
 summary_by_geoid10.to_csv(os.path.join(hh_person_folder, 'hh_summary_by_geoid10.csv'), header = True)
+
+if export_parcel_level_summary == True:
+    print('exporting summary by parcel...')
+    agg_dict = {'total_hhs': 'sum', 'total_persons': 'sum'}
+    summary_by_parcels = hh_taz.groupby('hhparcel').agg(agg_dict)
+    summary_by_parcels = summary_by_parcels.merge(parcel_df[['PSRC_ID', 'GEOID10', 'BKRCastTAZ', 'Jurisdiction']], how = 'right', left_on = 'hhparcel', right_on = 'PSRC_ID')
+    summary_by_parcels.fillna(0, inplace = True)
+    summary_by_parcels.rename(columns = {'total_hhs': 'total_hhs_by_parcel', 'total_persons': 'total_persons_by_parcel'}, inplace = True)
+    summary_by_parcels.to_csv(os.path.join(hh_person_folder, 'hh_summary_by_parcel.csv'), index = False, header = True)
 
 if export_parcel_level_dataset == True:
     print('exporting households and persons by parcel...')
