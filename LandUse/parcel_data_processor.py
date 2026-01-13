@@ -1,10 +1,10 @@
 """
-Parcel Assembler – Windows Python Program (PyQt6)
+Parcel Processor – Windows Python Program (PyQt6)
 
 Jan 9, 2026
 
 Purpose:
-Assemble a unified parcel dataset from multiple jurisdiction-specific source files:
+Process a unified parcel dataset from multiple jurisdiction-specific source files:
 - Bellevue
 - Bellevue Fringe
 - Kirkland
@@ -62,16 +62,10 @@ FILTER_RULES = {
 # Logging setup
 # -------------------------
 
-LOG_FILE = "parcel_assembler.log"
-logging.basicConfig(
-    filename=LOG_FILE,
-    level=logging.INFO,
-    format="%(asctime)s | %(message)s",
-)
+LOG_FILE = "parcel_processor.log"
 
-logging.info("Run started")
 
-class AssemblyWorker(QThread):
+class ProcessorWorker(QThread):
     """Worker thread to run the assemble operation without freezing the GUI."""
     finished = pyqtSignal()
     error = pyqtSignal(str)
@@ -103,19 +97,27 @@ class NumbericTableWidgetItem(QTableWidgetItem):
             return self.numeric_value < other.numeric_value
         return super().__lt__(other)
         
-class ParcelAssembler(QMainWindow):
+class ParcelProcessor(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Parcel Data Assembler")
+        self.setWindowTitle("Parcel Data Processor")
         self.setMinimumWidth(750)
         self.file_inputs = {
-            "Bellevue": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt",
-            "Bellevue Fringe": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt",
-            "Kirkland": r"Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\preferred_2044\parcels_urbansim.txt",
-            "Kirkland Fringe": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt",
-            "Redmond": r"Z:\Modeling Group\BKRCast\LandUse\2044_long_term_planning\parcels_urbansim.txt",
-            "Redmond Fringe": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt",
-            "Outside BKR": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt"
+            "Bellevue": "",
+            "Bellevue Fringe": "",
+            "Kirkland": "",            
+            "Kirkland Fringe": "",
+            "Redmond": "",
+            "Redmond Fringe": "",
+            "Outside BKR": ""
+
+            # "Bellevue": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt",
+            # "Bellevue Fringe": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt",
+            # "Kirkland": r"Z:\Modeling Group\BKRCast\KirklandSupport\Kirkland2044Complan\preferred_2044\parcels_urbansim.txt",
+            # "Kirkland Fringe": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt",
+            # "Redmond": r"Z:\Modeling Group\BKRCast\LandUse\2044_long_term_planning\parcels_urbansim.txt",
+            # "Redmond Fringe": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt",
+            # "Outside BKR": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt"
         }
         self._init_ui()
         self._init_statusbar()
@@ -124,7 +126,7 @@ class ParcelAssembler(QMainWindow):
     def _init_ui(self):
         main_layout = QVBoxLayout()
 
-        title = QLabel("Parcel Data Assembler")
+        title = QLabel("Parcel Data Processor")
         title.setStyleSheet("font-size: 18px; font-weight: bold; height: 40px; padding: 5px;")
         title.setFixedHeight(40)
         main_layout.addWidget(title)
@@ -176,7 +178,7 @@ class ParcelAssembler(QMainWindow):
         main_layout.addLayout(output_row)
 
         # assemble button
-        assemble_btn = QPushButton("Assemble Parcel File")
+        assemble_btn = QPushButton("Process Parcel File")
         assemble_btn.clicked.connect(self.assemble)
         self.assemble_btn = assemble_btn
         main_layout.addWidget(assemble_btn)
@@ -288,14 +290,20 @@ class ParcelAssembler(QMainWindow):
         self.assemble_btn.setEnabled(False)
         self.status_section1.setText("Running")
         
-        self.worker = AssemblyWorker(self)
+        self.worker = ProcessorWorker(self)
         self.worker.finished.connect(self._on_assembly_finished)
         self.worker.error.connect(self._on_assembly_error)
         self.worker.start()
 
     def _assemble_worker(self):
         """Main assembly logic - runs in background thread."""
-        logging.info("Assemble process started")
+        logging.basicConfig(
+            filename=os.path.join(self.output_input.text().strip(), "parcel_processor.log"),
+            level=logging.INFO,
+            format="%(asctime)s | %(message)s",
+        )
+
+        logging.info("Parcel data process started")
         
         # Log all file inputs
         logging.info("=" * 60)
@@ -309,15 +317,14 @@ class ParcelAssembler(QMainWindow):
         dfs = []
         summary_rows = []
 
-        #subarea_df = pd.read_csv(self.subarea_input.text())
-        subarea_df = pd.read_csv(r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv")
+        subarea_df = pd.read_csv(self.subarea_input.text())
+        # subarea_df = pd.read_csv(r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv")
         
         for name, entry in self.file_inputs.items():
             path = entry.text().strip()
             if not path:
                 continue
 
-            logging.info(f"{name}: {path}")
             df = pd.read_csv(path, low_memory=False, sep = " ")
             df = df.merge(subarea_df[["BKRCastTAZ", "Jurisdiction", "Subarea", "SubareaName"]], left_on="TAZ_P", right_on = "BKRCastTAZ", how="left")
             filtered = FILTER_RULES[name](df)
@@ -331,12 +338,12 @@ class ParcelAssembler(QMainWindow):
 
         result = pd.concat(dfs, ignore_index=True)
 
-        self.summarize_parcel_data(result, subarea_df=subarea_df, output_dir=r"Z:\Modeling Group\BKRCast\LandUse\test_2044_long_range_planning")
+        self.summarize_parcel_data(result, subarea_df=subarea_df, output_dir=self.output_input.text().strip())
 
         result = result.drop(columns=["BKRCastTAZ", "Jurisdiction", "Subarea", "SubareaName"], errors='ignore')
         result = result.sort_values(by="PARCELID", ascending=True)
-        # output_filename = os.path.join(self.output_input.text().strip(), "assembled_parcel_urbansim.txt")
-        output_filename = r"Z:\Modeling Group\BKRCast\LandUse\test_2044_long_range_planning\parcel_urbansim.txt"
+        output_filename = os.path.join(self.output_input.text().strip(), "assembled_parcel_urbansim.txt")
+        # output_filename = r"Z:\Modeling Group\BKRCast\LandUse\test_2044_long_range_planning\parcel_urbansim.txt"
         if output_filename:
             result.to_csv(output_filename, index=False, sep =" ")
             logging.info(f"Assembled file saved to: {output_filename}")
@@ -496,6 +503,6 @@ class ParcelAssembler(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = ParcelAssembler()
+    window = ParcelProcessor()
     window.show()
     sys.exit(app.exec())
