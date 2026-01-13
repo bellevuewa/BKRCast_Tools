@@ -86,15 +86,22 @@ class ProcessorWorker(QThread):
 class NumbericTableWidgetItem(QTableWidgetItem):
     """Custom QTableWidgetItem that treats numbers correctly for sorting."""
     def __init__(self, text):
+        text = "" if text is None else str(text)
         super().__init__(text)
         try:
             self.numeric_value = float(text)
+            self.is_numeric = True
         except ValueError:
             self.numeric_value = text
+            self.is_numeric = False
 
     def __lt__(self, other):
         if isinstance(other, NumbericTableWidgetItem):
-            return self.numeric_value < other.numeric_value
+            if self.is_numeric and other.is_numeric:
+                return self.numeric_value < other.numeric_value
+            
+            if self.is_numeric != other.is_numeric:
+                return self.is_numeric
         return super().__lt__(other)
         
 class ParcelProcessor(QMainWindow):
