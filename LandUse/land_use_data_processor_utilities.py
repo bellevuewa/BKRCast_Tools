@@ -19,14 +19,16 @@ class ParcelDataProcessor(QMainWindow):
         self.setMinimumWidth(750)
         self.base_file = r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\DT_rebalance_btw_job_category\parcels_urbansim.txt"
         self.file_inputs = {
-            "Bellevue": "",
-            "Bellevue Fringe": "",            
+            "Bellevue": "",           
             "Kirkland": "",
-            "Kirkland Fringe": "",
             "Redmond": "",
-            "Redmond Fringe": "",
-            "Outside BKR": ""
+            "Base Parel": ""
         }
+        self.base_parcel_df = None
+        self.subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
+        self.subarea_df = pd.read_csv(self.subarea_file)
+
+        self.output_dir = r"Z:\Modeling Group\BKRCast\LandUse\test_2044_long_range_planning"
 
         self._init_ui() 
         self._init_statusbar()
@@ -41,21 +43,39 @@ class ParcelDataProcessor(QMainWindow):
         hbox = QHBoxLayout()
         base_button = QPushButton("Select Base Parcel Data Files")
         base_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        base_button.clicked.connect(self.select_base_files)
         hbox.addWidget(base_button)
         self.base_file_label = QLabel("No files selected")
+        base_button.clicked.connect(lambda: self.select_files("Select Base Parcel File", self.base_file_label))  
         hbox.addWidget(self.base_file_label)  
         main_layout.addLayout(hbox)
 
+        hbox = QHBoxLayout()
+        subarea_button = QPushButton("Select Subarea Lookup File")
+        subarea_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        hbox.addWidget(subarea_button)
+        self.subarea_label = QLabel("No files selected")
+        subarea_button.clicked.connect(lambda: self.select_files("Select Subarea Definition File", self.subarea_label))
+        hbox.addWidget(self.subarea_label)  
+        main_layout.addLayout(hbox)       
+
+        hbox = QHBoxLayout()
+        output_button = QPushButton("Select Output Location")
+        output_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.output_label = QLabel("No Location selected")
+        output_button.clicked.connect(self.browse_output_file)
+        hbox.addWidget(output_button)
+        hbox.addWidget(self.output_label)
+        main_layout.addLayout(hbox)
 
         hbox = QHBoxLayout()
         self.valid_btn = QPushButton("Validate")
         self.valid_btn.clicked.connect(lambda: self.validate_files(self.base_file))
         hbox.addWidget(self.valid_btn)
 
-        summarize_btn = QPushButton("Summarize")
-        summarize_btn.clicked.connect(self.summarize_files) 
-        hbox.addWidget(summarize_btn)
+        self.summarize_btn = QPushButton("Summarize")
+        self.summarize_btn.clicked.connect(lambda: self.summarize_parcel_data(self.base_parcel_df, self.subarea_df, self.output_dir)) 
+        self.summarize_btn.setEnabled(False)
+        hbox.addWidget(self.summarize_btn)
         main_layout.addLayout(hbox)
 
         groupbox_container = QWidget()
@@ -83,27 +103,47 @@ class ParcelDataProcessor(QMainWindow):
         self.statusBar().addPermanentWidget(self.status_section3, 1)
         self.statusBar().addPermanentWidget(self.status_section4, 1)
 
-    def select_base_files(self):
+    def browse_output_file(self):
+        path = QFileDialog.getExistingDirectory(
+            self, "Select Output Folder", os.getcwd(),
+        )
+        if path:
+            self.output_label.setText(path)
 
-        filename, _ = QFileDialog.getOpenFileName(self, "Select Base Parcel Data File", "", "Text Files (*.txt);;All Files (*)")
+    def select_base_parcel_file(self):
+        filename = self.select_files("Select Base Parcel File", self.base_file_label)
+        if filename:
+            self.base_file = filename
+
+    def select_subarea_file(self):
+        filename = self.select_files("Select Subarea Definition File", self.subarea_label)
+        if filename:
+            self.subarea_file = filename
+            self.subarea_df = pd.read_csv(filename, sep = ',')
+        
+    def select_files(self, msg, label):
+
+        filename, _ = QFileDialog.getOpenFileName(self, msg, "", "Text Files (*.txt);;All Files (*)")
         if not filename:
             return
         else:
-            self.base_file = filename
-            self.base_file_label.setText(filename)
+            label.setText(filename)
+            return filename
 
     def validate_files(self, filename):
         self.status_section1.setText("running")
         self.valid_btn.setEnabled(False)
 
         self.worker = ValidationThread(self, filename)
-        self.worker.finished.connect(lambda validate_dict: self._on_thread_finished(self.valid_btn, validate_dict))
+        self.worker.finished.connect(lambda validate_dict: self._on_thread_finished([self.valid_btn, self.summarize_btn], validate_dict))
         self.worker.error.connect(lambda message: self._on_thread_error(self.valid_btn, self.status_section1, message))
         self.worker.start()
         
-    def _on_thread_finished(self, btn, validate_dict):
+    def _on_thread_finished(self, btns, validate_dict):
         # called when the thread is finished
-        btn.setEnabled(True)
+        for btn in btns:
+            btn.setEnabled(True)
+        
         self.status_section1.setText("Done")
         # Add validation logic here
         valid_dialog = ValidationAndSummary(self, "Validation and Summary of the base parcel data", validate_dict)
@@ -126,10 +166,11 @@ class ParcelDataProcessor(QMainWindow):
         
         output_list = []
 
-        data_df = pd.read_csv(filename, sep = " ", low_memory = False)
+        if self.base_parcel_df == None:
+            self.base_parcel_df  = pd.read_csv(filename, sep = " ", low_memory = False)
         header = ["Column", "Data Type", "Unique Values", "Missing Values", "Duplicated", "Min", "Max", "Mean"]
-        for col in data_df.columns:
-            series = data_df[col]
+        for col in self.base_parcel_df.columns:
+            series = self.base_parcel_df[col]
             unique_non_null = series.nunique(dropna = True)
             missing = series.isna().sum()
             duplicates = len(series) - unique_non_null - missing
@@ -151,23 +192,56 @@ class ParcelDataProcessor(QMainWindow):
 
             output_list.append(outputs)
 
+        # df: validation of data_df
         df = pd.DataFrame(output_list, columns = header)
 
-        df2 = pd.DataFrame([{"Rows": data_df.shape[0], "Columns": data_df.shape[1]}])
+        # df2: data_df shape
+        df2 = pd.DataFrame([{"Rows": self.base_parcel_df.shape[0], "Columns": self.base_parcel_df.shape[1]}])
+
+        df3 = self.base_parcel_df.head(100)   
+        
         validation_dict = {
             "Validation": df,
-            "Summary": df2
+            "Summary": df2,
+            "Raw Data Samples": df3
         }
         
         return validation_dict
 
+    def summarize_files(self, df):
+        if df is None:
+            QMessageBox.Critical(self, "Error", "You need to select the data file")
 
-    def summarize_files(self):
-        if not self.base_file:
-            QMessageBox.warning(self, "Warning", "Please select a base parcel data file first.")
-            return
-        # Add summarization logic here
-        QMessageBox.information(self, "Info", "Summarization completed successfully.")
+        if self.subarea_df is None:
+            self.subarea_df = pd.read_csv(self.subarea_file)
+
+        
+    def summarize_parcel_data(self, parcel_df, subarea_df=None, output_dir=None):
+        if self.subarea_df is None:
+            self.subarea_df = pd.read_csv(self.subarea_file)
+
+        parcel_df = parcel_df.merge(subarea_df[['BKRCastTAZ', 'Jurisdiction', 'Subarea']], left_on="TAZ_P", right_on = "BKRCastTAZ", how="left")
+        cols = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P', 'EMPTOT_P', 'STUGRD_P', 'STUHGH_P', 'STUUNI_P', 'HH_P']
+        summary_jurisdictions = parcel_df.groupby('Jurisdiction')[cols].sum().reset_index()
+        summary_taz = parcel_df.groupby('TAZ_P')[cols].sum().reset_index()
+        summary_subarea = parcel_df.groupby('Subarea')[cols].sum().reset_index()
+        summary_subarea = summary_subarea.merge(subarea_df[['Subarea', 'SubareaName']].drop_duplicates(), on='Subarea', how='left')
+
+        if output_dir is None:
+            output_dir = os.getcwd()
+        summary_jurisdictions.to_csv(os.path.join(output_dir, 'parcel_summary_by_jurisdiction.csv'), index=False)
+        summary_taz.to_csv(os.path.join(output_dir, 'parcel_summary_by_taz.csv'), index=False)
+        summary_subarea.to_csv(os.path.join(output_dir, 'parcel_summary_by_subarea.csv'), index=False)
+
+        summary_dict = {
+            "Jurisdiction": summary_jurisdictions,
+            "Subarea": summary_subarea,
+            "TAZ": summary_taz
+        }
+
+        summary_dialog = ValidationAndSummary(self, "Base Parcel File Summary", summary_dict)
+        summary_dialog.exec()
+        
 
 
 class ValidationAndSummary(QDialog):
