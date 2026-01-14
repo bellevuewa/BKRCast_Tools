@@ -5,11 +5,24 @@ from datetime import datetime
 import pandas as pd
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QPushButton,
-    QFileDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QMessageBox, QSizePolicy,
+    QFileDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QMessageBox, QSizePolicy, QSplitter,
     QTableWidget, QTableWidgetItem, QMainWindow, QMenu, QTabWidget, QListWidget, QDialog, QStatusBar
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QAction 
+
+
+Parcel_Data_Format = {
+    0: "Processed Parcel Data",
+    1: "Data in BKRCastTAZ Format",
+    2: "Data in BKR Trip Model TAZ Format"
+}
+
+Data_Scale_Method = {
+    0: "Keep the data from the partner city",
+    1: "Scale by Job Category",
+    2: "Scale by Total Jobs by TAZ"
+}
 
 class ParcelDataProcessor(QMainWindow):
     """Main window for the Parcel Data Processor application."""
@@ -18,12 +31,7 @@ class ParcelDataProcessor(QMainWindow):
         self.setWindowTitle("Parcel Data Processor")
         self.setMinimumWidth(750)
         self.base_file = r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\DT_rebalance_btw_job_category\parcels_urbansim.txt"
-        self.file_inputs = {
-            "Bellevue": "",           
-            "Kirkland": "",
-            "Redmond": "",
-            "Base Parel": ""
-        }
+        self.landuse_rules = []
         self.base_parcel_df = None
         self.subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
         self.subarea_df = pd.read_csv(self.subarea_file)
@@ -78,18 +86,68 @@ class ParcelDataProcessor(QMainWindow):
         hbox.addWidget(self.summarize_btn)
         main_layout.addLayout(hbox)
 
+        #### create controls for input data
         groupbox_container = QWidget()
         groupbox_layout = QVBoxLayout(groupbox_container)
-        groupbox_layout.addWidget(QLabel("Data from Partner Cities"))
-        self.list_box = QListWidget()
-        self.list_box.addItem("Bellevue")
-        self.list_box.addItem("Kirkland")
-        self.list_box.addItem("Redmond")
-        groupbox_layout.addWidget(self.list_box)
-        groupbox_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        groupbox_layout.setContentsMargins(0, 0, 0, 0)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        partner_container, self.jurisdiction_list_box = self.make_list_panel("Partner Cities", ["Bellevue", "Kirkland", "Redmond"])
+        splitter.addWidget(partner_container)
+
+        # Data Format
+        format_container, self.method_list_box = self.make_list_panel(
+            "Data Format",
+            list(Parcel_Data_Format.values())
+        )
+        splitter.addWidget(format_container)
+
+        # Scale By
+        scaleby_container, self.scaleby_list_box = self.make_list_panel(
+            "Scale By",
+            list(Data_Scale_Method.values()),
+            v_policy=QSizePolicy.Policy.Minimum
+        )
+        splitter.addWidget(scaleby_container)
+
+        # Initial splitter sizes
+        splitter.setSizes([200, 300, 250])
+
+        groupbox_layout.addWidget(splitter)
         main_layout.addWidget(groupbox_container)
 
+        add_rules_button = QPushButton("Add Rules")
+        add_rules_button.clicked.connect(self.add_rules)
+        main_layout.addWidget(add_rules_button)
 
+        vbox = QVBoxLayout()
+        vbox.addWidget(QLabel("Processing Rules"))
+        self.rule_table = QTableWidget()
+        self.rule_table.setColumnCount(4)
+        self.rule_table.horizontalHeader().setStretchLastSection(True)
+        self.rule_table.setHorizontalHeaderLabels(["Jurisdiction", "File", "Data Format", "Scale Method"])
+        vbox.addWidget(self.rule_table)
+        main_layout.addLayout(vbox)
+
+        process_btn = QPushButton("Start Processing")
+        process_btn.clicked.connect(self.parcel_process)
+        main_layout.addWidget(process_btn)
+
+
+    def make_list_panel(self, title, items, v_policy=QSizePolicy.Policy.Expanding):
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(5)
+
+        label = QLabel(title)
+        listbox = QListWidget()
+        listbox.addItems(items)
+        listbox.setSizePolicy(QSizePolicy.Policy.Preferred, v_policy)
+
+        layout.addWidget(label)
+        layout.addWidget(listbox)
+
+        return container, listbox
 
     def _init_statusbar(self):
         """Initialize status bar with four sections."""
@@ -242,7 +300,31 @@ class ParcelDataProcessor(QMainWindow):
         summary_dialog = ValidationAndSummary(self, "Base Parcel File Summary", summary_dict)
         summary_dialog.exec()
         
+    def add_rules(self):
+        if (not self.jurisdiction_list_box.selectedItems()) or (not self.method_list_box.selectedItems()) or (not self.scaleby_list_box.selectedItems()):
+            QMessageBox.information(self, "Warning", "You cannot leave these boxes blank")
 
+        city = self.jurisdiction_list_box.currentItem().text()
+        method = self.method_list_box.currentItem().text()
+        scale_method = self.scaleby_list_box.currentItem().text()
+
+        input_filename, _ = QFileDialog.getOpenFileName(self, f"Select input file from {city}", "", "Text Files (*.txt);;All Files (*)")
+        rule_dict = {
+            "Jurisdiction": city,
+            "File": input_filename,
+            "Data Format": method,
+            "Scale Method": scale_method    
+        }
+        self.landuse_rules.append(rule_dict)
+        # add to the rule table
+        self.rule_table.insertRow(self.rule_table.rowCount())
+        row = self.rule_table.rowCount() - 1
+
+        for col, key in enumerate(rule_dict.keys()):
+            self.rule_table.setItem(row, col, QTableWidgetItem(str(rule_dict[key])))
+
+    def parcel_process(self):
+        return
 
 class ValidationAndSummary(QDialog):
     def __init__(self, parent=None, msg=None, data_dict=None):
