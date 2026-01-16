@@ -42,6 +42,7 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QAction
 
+from GUI_support_utilities import (Shared_GUI_Widgets, NumericTableWidgetItem)
 # -------------------------
 # Configuration section
 # -------------------------
@@ -104,7 +105,7 @@ class NumbericTableWidgetItem(QTableWidgetItem):
                 return self.is_numeric
         return super().__lt__(other)
         
-class ParcelProcessor(QMainWindow):
+class ParcelProcessor(QMainWindow, Shared_GUI_Widgets):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Parcel Data Processor")
@@ -127,16 +128,16 @@ class ParcelProcessor(QMainWindow):
             # "Outside BKR": r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\parcels_urbansim.txt"
         }
         self._init_ui()
-        self._init_statusbar()
+        self.create_status_bar(self, 4)
 
 
     def _init_ui(self):
-        main_layout = QVBoxLayout()
+        self.main_layout = QVBoxLayout()
 
         title = QLabel("Parcel Data Processor")
         title.setStyleSheet("font-size: 18px; font-weight: bold; height: 40px; padding: 5px;")
         title.setFixedHeight(40)
-        main_layout.addWidget(title)
+        self.main_layout.addWidget(title)
 
         # parcel file inputs
         for name in FILTER_RULES.keys():
@@ -151,7 +152,7 @@ class ParcelProcessor(QMainWindow):
             row.addWidget(entry)
             row.addWidget(browse)
 
-            main_layout.addLayout(row)
+            self.main_layout.addLayout(row)
             # Set pre-populated value if it exists, then store the widget
             if self.file_inputs[name] is not None:
                 entry.setText(self.file_inputs[name])
@@ -169,7 +170,7 @@ class ParcelProcessor(QMainWindow):
         sub_row.addWidget(label)
         sub_row.addWidget(self.subarea_input)
         sub_row.addWidget(sub_browse)
-        main_layout.addLayout(sub_row)
+        self.main_layout.addLayout(sub_row)
 
         # output folder input
         label = QLabel("Output File")
@@ -182,13 +183,13 @@ class ParcelProcessor(QMainWindow):
         output_row.addWidget(label)
         output_row.addWidget(self.output_input)
         output_row.addWidget(output_browse)
-        main_layout.addLayout(output_row)
+        self.main_layout.addLayout(output_row)
 
         # assemble button
         assemble_btn = QPushButton("Process Parcel File")
         assemble_btn.clicked.connect(self.assemble)
         self.assemble_btn = assemble_btn
-        main_layout.addWidget(assemble_btn)
+        self.main_layout.addWidget(assemble_btn)
 
         # Summary table for the assembled data
         self.tabs = QTabWidget()
@@ -196,7 +197,7 @@ class ParcelProcessor(QMainWindow):
         self.summary_table.setSortingEnabled(True)
         self.summary_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.summary_table.customContextMenuRequested.connect(
-            lambda pos: self.show_table_context_menu(self.summary_table, pos)
+            lambda pos: self.create_context_menu(self.summary_table, pos)
         )
         self.summary_table.selectionModel().selectionChanged.connect(
             lambda sel, des, t=self.summary_table: self.on_table_selection_changed(t)
@@ -218,7 +219,7 @@ class ParcelProcessor(QMainWindow):
         self.valid_table = QTableWidget()
         self.valid_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.valid_table.customContextMenuRequested.connect(
-            lambda pos: self.show_table_context_menu(self.valid_table, pos)
+            lambda pos: self.create_context_menu(self.valid_table, pos)
         )
         self.valid_table.selectionModel().selectionChanged.connect(
             lambda sel, des, t=self.valid_table: self.on_table_selection_changed(t)
@@ -229,7 +230,7 @@ class ParcelProcessor(QMainWindow):
         self.jurisdiction_table = QTableWidget()
         self.jurisdiction_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.jurisdiction_table.customContextMenuRequested.connect(
-            lambda pos: self.show_table_context_menu(self.jurisdiction_table, pos)
+            lambda pos: self.create_context_menu(self.jurisdiction_table, pos)
         )
         self.jurisdiction_table.selectionModel().selectionChanged.connect(
             lambda sel, des, t=self.jurisdiction_table: self.on_table_selection_changed(t)
@@ -240,7 +241,7 @@ class ParcelProcessor(QMainWindow):
         self.taz_table = QTableWidget()
         self.taz_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.taz_table.customContextMenuRequested.connect(
-            lambda pos: self.show_table_context_menu(self.taz_table, pos)
+            lambda pos: self.create_context_menu(self.taz_table, pos)
         )
         self.taz_table.selectionModel().selectionChanged.connect(
             lambda sel, des, t=self.taz_table: self.on_table_selection_changed(t)
@@ -251,31 +252,19 @@ class ParcelProcessor(QMainWindow):
         self.subarea_table = QTableWidget()
         self.subarea_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu) 
         self.subarea_table.customContextMenuRequested.connect(
-            lambda pos: self.show_table_context_menu(self.subarea_table, pos)
+            lambda pos: self.create_context_menu(self.subarea_table, pos)
         )
         self.subarea_table.selectionModel().selectionChanged.connect(
             lambda sel, des, t=self.subarea_table: self.on_table_selection_changed(t)
         )
         self.tabs.addTab(self.subarea_table, "Subarea")
 
-        main_layout.addWidget(QLabel("Aggregated Summary"))
-        main_layout.addWidget(self.tabs)
+        self.main_layout.addWidget(QLabel("Aggregated Summary"))
+        self.main_layout.addWidget(self.tabs)
 
         central = QWidget()
-        central.setLayout(main_layout)
+        central.setLayout(self.main_layout)
         self.setCentralWidget(central)
-
-    def _init_statusbar(self):
-        """Initialize status bar with four sections."""
-        self.status_section1 = QLabel("")
-        self.status_section2 = QLabel("")
-        self.status_section3 = QLabel("")
-        self.status_section4 = QLabel("")
-        
-        self.statusBar().addWidget(self.status_section1, 1)
-        self.statusBar().addWidget(self.status_section2, 1)
-        self.statusBar().addWidget(self.status_section3, 1)
-        self.statusBar().addWidget(self.status_section4, 1)
 
     def browse_file(self, name, entry):
         path, _ = QFileDialog.getOpenFileName(
@@ -295,7 +284,7 @@ class ParcelProcessor(QMainWindow):
     def assemble(self):
         """Start assembly in a background thread."""
         self.assemble_btn.setEnabled(False)
-        self.status_section1.setText("Running")
+        self.status_sections[0].setText("Running")
         
         self.worker = ProcessorWorker(self)
         self.worker.finished.connect(self._on_assembly_finished)
@@ -356,10 +345,10 @@ class ParcelProcessor(QMainWindow):
             logging.info(f"Assembled file saved to: {output_filename}")
             
             # Update UI from worker thread safely
-            self.status_section1.setText("Done")
-            self.status_section2.setText(f"Parcels: {len(result)} Cols: {len(result.columns)}")
-            self.status_section3.setText(f"Sources: {len(summary_rows)}")
-            self.status_section4.setText(f"Output: {os.path.basename(output_filename)}")
+            self.status_sections[0].setText("Done")
+            self.status_sections[1].setText(f"Parcels: {len(result)} Cols: {len(result.columns)}")
+            self.status_sections[2].setText(f"Sources: {len(summary_rows)}")
+            self.status_sections[3].setText(f"Output: {os.path.basename(output_filename)}")
             
             # Update summary table
             self.summary_table.setRowCount(len(summary_rows))
@@ -453,60 +442,10 @@ class ParcelProcessor(QMainWindow):
     def _on_assembly_error(self, error_msg):
         """Called when assembly thread encounters an error."""
         logging.error(f"Assemble process failed: {error_msg}", exc_info=True)
-        self.status_section1.setText("Error")
-        self.status_section2.setText(error_msg)
+        self.status_sections[0].setText("Error")
+        self.status_sections[1].setText(error_msg)
         self.assemble_btn.setEnabled(True)
         QMessageBox.critical(self, "Error", error_msg)
-
-    def show_table_context_menu(self, table, pos):
-        menu = QMenu(self)
-        copy_action = QAction("Copy All to Clipboard", self)
-        copy_action.triggered.connect(lambda: self.copy_result_to_clipboard(table))
-        menu.addAction(copy_action)
-        menu.exec(table.viewport().mapToGlobal(pos))
-
-    def on_table_selection_changed(self, table):
-        """Compute sum of selected numeric cells in `table` and show in status bar."""
-        items = table.selectedItems()
-        total = 0.0
-        found = False
-        for it in items:
-            txt = (it.text() or '').strip()
-            if txt == "":
-                continue
-            # remove thousands separators
-            txt2 = txt.replace(',', '')
-            try:
-                val = float(txt2)
-                total += val
-                found = True
-            except Exception:
-                # ignore non-numeric cells
-                continue
-
-        if found:
-            # show rounded sum in section 3
-            self.status_section3.setText(f"Sum: {round(total, 2)}")
-        else:
-            # clear sum display
-            self.status_section3.setText("")
-
-    def copy_result_to_clipboard(self, table):
-        rows = table.rowCount()
-        cols = table.columnCount()
-
-        headers = [table.horizontalHeaderItem(c).text() for c in range(cols)]
-        text = "\t".join(headers) + "\n"
-        for row in range(rows):
-            row_data = []
-            for col in range(cols):
-                item = table.item(row, col)
-                row_data.append(item.text() if item else "")
-            text += "\t".join(row_data) + "\n"
-        
-        clipboard = QApplication.clipboard()
-        clipboard.setText(text)
-        QMessageBox.information(self, "Copied", "All data copied to clipboard including headers.")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
