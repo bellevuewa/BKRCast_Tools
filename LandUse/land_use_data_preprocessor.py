@@ -29,7 +29,8 @@ class LUPreprocessUserInterface(QDialog, Shared_GUI_Widgets):
         # Further UI initialization code would go here
         self._init_ui()
         self.create_status_bar(self, 4)
-        logging.info("Land Use Data Preprocessor UI initialized.")
+        self.logger = logging.getLogger()
+        self.logger.info("Land Use Data Preprocessor UI initialized.")
 
 
     def _init_ui(self):
@@ -102,18 +103,18 @@ class LUPreprocessUserInterface(QDialog, Shared_GUI_Widgets):
 
     def bellevue_btn_clicked(self):
         # open file dialog to select Bellevue land use data file
-        logging.info("Bellevue land use data preprocessing started.")
+        self.logger.info("Bellevue land use data preprocessing started.")
         file_name, _ = QFileDialog.getOpenFileName(self, "Select Bellevue Land Use Data File", "", "CSV Files (*.csv);;All Files (*)")
         if file_name:
             # call preprocessing function for Bellevue
-            logging.info(f"Selected Bellevue land use data file: {file_name}")
+            self.logger.info(f"Selected Bellevue land use data file: {file_name}")
             # Further processing code would go here
          
         data_df = pd.read_csv(file_name)
         SQFT_data_available = self.sqft_checkbox.isChecked()
         subset_area = [item.text() for item in self.subarea_list.selectedItems()]
-        logging.info(f"SQFT data available: {SQFT_data_available}") 
-        logging.info(f"Selected jurisdictions for processing: {subset_area}")
+        self.logger.info(f"SQFT data available: {SQFT_data_available}") 
+        self.logger.info(f"Selected jurisdictions for processing: {subset_area}")
         if not subset_area:
             QMessageBox.warning(self, "No jurisdiction Selected", "Please select at least one jurisdiction for processing.")
             return
@@ -143,7 +144,7 @@ class LUPreprocessUserInterface(QDialog, Shared_GUI_Widgets):
             updated_jobs_kc = updated_jobs_kc[updated_jobs_kc['Jurisdiction'].isin(subset_area)]
         updated_jobs_kc['EMPTOT_P'] = updated_jobs_kc[Job_Categories].sum(axis = 1)    
         updated_jobs_kc.to_csv(os.path.join(self.output_dir, kc_job_file), sep = ',', index = False)
-        logging.info(f"Exported job file: {os.path.join(self.output_dir, kc_job_file)}")
+        self.logger.info(f"Exported job file: {os.path.join(self.output_dir, kc_job_file)}")
 
         if SQFT_data_available:  
             print('Exporting sqft file...')
@@ -156,7 +157,7 @@ class LUPreprocessUserInterface(QDialog, Shared_GUI_Widgets):
                 updated_sqft_kc = updated_sqft_kc[updated_sqft_kc['Jurisdiction'].isin(subset_area)]
             updated_sqft_kc['SQFT_TOT'] = updated_sqft_kc[sqft_cat_list].sum(axis = 1)       
             updated_sqft_kc.to_csv(os.path.join(self.output_dir, kc_SQFT_file), sep = ',', index = False)
-            logging.info(f"Exported sqft file: {os.path.join(self.output_dir, kc_SQFT_file)}")
+            self.logger.info(f"Exported sqft file: {os.path.join(self.output_dir, kc_SQFT_file)}")
 
         dwellingunits_list = ['PSRC_ID', 'SFUnits', 'MFUnits']
         du_kc = data_df[dwellingunits_list].merge(self.lookup_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ']], left_on = 'PSRC_ID', right_on = 'PSRC_ID', how = 'inner')
@@ -164,18 +165,18 @@ class LUPreprocessUserInterface(QDialog, Shared_GUI_Widgets):
         if not subset_area:
             du_kc = du_kc[du_kc['Jurisdiction'].isin(subset_area)]
         du_kc.to_csv(os.path.join(self.output_dir, kc_du_file), sep  = ',', index = False)
-        logging.info(f"Exported dwelling units file: {os.path.join(self.output_dir, kc_du_file)}")
+        self.logger.info(f"Exported dwelling units file: {os.path.join(self.output_dir, kc_du_file)}")
         du_cob = du_kc[du_kc['Jurisdiction'] == 'BELLEVUE']
         du_cob.to_csv(os.path.join(self.output_dir, cob_du_file), sep = ',', index = False)
-        logging.info(f"Exported COB dwelling units file: {os.path.join(self.output_dir, cob_du_file)}")
+        self.logger.info(f"Exported COB dwelling units file: {os.path.join(self.output_dir, cob_du_file)}")
         print('Exporting error file...')
         error_parcels = data_df[~data_df['PSRC_ID'].isin(self.lookup_df['PSRC_ID'])]
         error_parcels.to_csv(os.path.join(self.output_dir, error_parcel_file), sep = ',', index = False)
 
         if error_parcels.shape[0] > 0:
-            logging.warning(f"Please check the error file first: {os.path.join(self.output_dir, error_parcel_file)}")
-        logging.info("Bellevue land use data preprocessing completed.")
+            self.logger.info(f"Please check the error file first: {os.path.join(self.output_dir, error_parcel_file)}")
+        self.logger.info("Bellevue land use data preprocessing completed.")
 
     def closeEvent(self, event):
-        logging.info("Land Use Data Preprocessor closed.")
+        self.logger.info("Land Use Data Preprocessor closed.")
         event.accept()

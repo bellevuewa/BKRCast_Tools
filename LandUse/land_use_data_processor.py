@@ -117,18 +117,17 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         if horizon_year == -1:
             QMessageBox.warning(self, "Input Error", "Please enter a valid horizon year.")
             return False
-        
-        logging.info(f"Horizon year: {horizon_year}")
+        logger = logging.getLogger()
+        logger.info(f"Horizon year: {horizon_year}")
         scenario_name = self.scen_input_editbox.text().strip()
         if not scenario_name:
             QMessageBox.warning(self, "Input Error", "Please enter a valid scenario name.")
             return False
-        logging.info(f"Scenario name: {scenario_name}")
+        logger.info(f"Scenario name: {scenario_name}")
         if self.project_settings["output_dir"] == "" or self.project_settings["output_dir"] is None:
             QMessageBox.warning(self, "Input Error", "Please select an output location.")
             return False
-        logging.info(f"Output directory: {self.project_settings['output_dir']}")
-
+        logger.info(f"Output directory: {self.project_settings['output_dir']}")
         if (self.project_settings['subarea_df'] is None) or (self.project_settings['lookup_df'] is None):
             QMessageBox.warning(self, "Input Error", "Please select both subarea and parcel lookup files.")
             return False
@@ -142,7 +141,8 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         # open file dialog to select subarea file
         file_name, _ = QFileDialog.getOpenFileName(self, "Select Subarea File", "", "CSV Files (*.csv);;All Files (*)")
         if file_name:
-            logging.info(f"Selected subarea file: {file_name}")
+            logger = logging.getLogger()
+            logger.info(f"Selected subarea file: {file_name}")
             self.project_settings['subarea_df'] = pd.read_csv(file_name)
             self.project_settings['subarea_file'] = file_name
             self.status_sections[1].setText("Subarea file loaded.")
@@ -151,7 +151,8 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         # open file dialog to select parcel lookup file
         file_name, _ = QFileDialog.getOpenFileName(self, "Select Parcel Lookup File", "", "CSV Files (*.csv);;All Files (*)")
         if file_name:
-            logging.info(f"Selected parcel lookup file: {file_name}")
+            logger = logging.getLogger()
+            logger.info(f"Selected parcel lookup file: {file_name}")
             self.project_settings['lookup_df'] = pd.read_csv(file_name)
             self.project_settings['lookup_file'] = file_name
             self.status_sections[1].setText("Parcel lookup file loaded.")
@@ -186,7 +187,8 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         processor.exec()
 
     def closeEvent(self, event):
-        logging.info("Land Use Data Process closed.")
+        logger = logging.getLogger()
+        logger.info("Land Use Data Process closed.")
         logging.shutdown()
         event.accept()  
 

@@ -86,6 +86,9 @@ def setup_logger_file(output_dir, log_name = "parcel_processing.log") -> logging
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
 
+    console_handler.setLevel(logging.ERROR)
+    console_handler.setFormatter(formatter)
+
     root = logging.getLogger()
     root.setLevel(logging.DEBUG)
     root.addHandler(file_handler)
@@ -98,6 +101,11 @@ def setup_logger_file(output_dir, log_name = "parcel_processing.log") -> logging
         "Logging initialized at %s", log_filename
     )  
     return logger
+
+def get_logger() -> logging.Logger:
+    if not _LOGGING_CONFIGURED:
+        raise RuntimeError("Logger not configured. Please call setup_logger_file first.")
+    return logging.getLogger(__name__)
 
 def controlled_rounding(data_df, attr_name, control_total, index_attr_name):
     # find residential parcels within taz     

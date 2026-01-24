@@ -9,15 +9,16 @@ class ParcelDataOperations:
     def __init__(self, base_parcels: Parcels, output_dir: str, output_filename: str):
         self.base_parcel = base_parcels
         self.subarea_df = base_parcels.subarea_df.copy()
-        self_lookup_df = base_parcels.lookup_df.copy()
+        self.lookup_df = base_parcels.lookup_df.copy()
         self.output_dir = output_dir
         self.output_filename = os.path.join(output_dir, output_filename)
         self.updated_parcels_df = base_parcels.original_parcels_df.copy()
+        self.logger = logging.getLogger()
 
 
     def export_updated_parcels(self, export_name: str = None) -> Parcels: 
         if self.updated_parcels_df is None:
-            logging.error("Updated parcel dataframe is not available for export.")
+            self.logger.error("Updated parcel dataframe is not available for export.")
             raise ValueError("Updated parcel dataframe is not available.")
 
         if export_name is not None:
@@ -26,7 +27,7 @@ class ParcelDataOperations:
             fn = self.output_filename
         self.updated_parcels_df.to_csv(fn, sep = ' ', index=False)
         out = Parcels.from_dataframe(self.updated_parcels_df, filename=fn, data_year=self.base_parcel.data_year, subarea_df=self.base_parcel.subarea_df, lookup_df=self.base_parcel.lookup_df)
-        logging.info(f'Updated parcel data exported to: {fn}')
+        self.logger.info(f'Updated parcel data exported to: {fn}')
         return out
         
     def controlled_rounding(self, attr_name, control_total, index_attr_name):
@@ -95,7 +96,7 @@ class ParcelDataOperations:
 
         return updated_parcel_dict
 
-    def replace_selected_base_data_from_with_local_jurisdiction(self, jurisdiction, set_jobs_to_zero, local_parcel_data_file) -> dict:
+    def replace_selected_base_data_from_with_local_jurisdiction(self, jurisdiction, set_juris_base_jobs_to_zero, local_parcel_data_file) -> dict:
         jobs_cat = Job_Categories.copy()
         jobs_cat.append('EMPTOT_P')
 
@@ -106,10 +107,18 @@ class ParcelDataOperations:
         required_cols = ['PSRC_ID'] + jobs_cat
         local_data_df = local_data_df[required_cols]
 
-        # if set_jobs_to_zero:
-        #     # find parcels in base parcel data that are not in local data, set jobs to zero
-        #     jobs_to_be_zeroed_out = updated_parcel_df.loc[updated_parcel_df.index.isin(missing_bellevue_parcels_df['PARCELID']), 'EMPTOT_P'].sum()
-        #     updated_parcel_df.loc[updated_parcel_df.index.isin(missing_bellevue_parcels_df['PARCELID']), Columns_List] = 0
+        full_juris_parcels_df = self.lookup_df.loc[self.lookup_df['Jurisdiction'] == jurisdiction.upper()]  #  a complete list of parcels in Jurisdiction
+        actual_juris_parcels_df = local_data_df.loc[local_data_df['PSRC_ID'].isin(full_juris_parcels_df['PSRC_ID'])] # parcels included in local job file
+        not_in_full_juris_parcels = actual_juris_parcels_df.loc[~actual_juris_parcels_df['PSRC_ID'].isin(full_juris_parcels_df['PSRC_ID'])] # parcels in local job file but not in the complete list
+        missing_juris_parcels_df = updated_parcels_df.loc[updated_parcels_df['PARCELID'].isin(full_juris_parcels_df.loc[~full_juris_parcels_df['PSRC_ID'].isin(local_data_df['PSRC_ID']), 'PSRC_ID'])]
+        missing_juris_parcels_df.to_csv(os.path.join(self.output_dir, f'missing_{jurisdiction}_parcels.csv'), sep = ',', index = False)
+        not_in_full_juris_parcels.to_csv(os.path.join(self.output_dir, f'not_valid_{jurisdiction}_parcels.csv'), sep = ',', index = False)
+
+
+        if set_juris_base_jobs_to_zero:
+            # find parcels in base parcel data that are not in local data, set jobs to zero
+            jobs_to_be_zeroed_out = updated_parcels_df.loc[updated_parcels_df.index.isin(missing_juris_parcels_df['PARCELID']), 'EMPTOT_P'].sum()
+            updated_parcels_df.loc[updated_parcels_df.index.isin(missing_juris_parcels_df['PARCELID']), Job_Categories] = 0
         # index by parcel id for alignment
         updated_parcels_df = updated_parcels_df.set_index('PARCELID')
         local_data_df = local_data_df.set_index('PSRC_ID')
@@ -120,6 +129,10 @@ class ParcelDataOperations:
 
         # replace values
         updated_parcels_df.loc[common_ids, jobs_cat] = local_data_df.loc[common_ids, jobs_cat]
+        
+        # calculate total jobs after change
+        updated_parcels_df.fillna(0, inplace=True)
+        updated_parcels_df['EMPTOT_P'] = updated_parcels_df[Job_Categories].sum(axis=1)
 
         df_dict = {
             "data_frame": updated_parcels_df.reset_index(),

@@ -1,8 +1,8 @@
 import sys, os
 sys.path.append(os.getcwd())
 import logging
-from logging.handlers import RotatingFileHandler
-from datetime import datetime
+import traceback
+
 import pandas as pd
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QPushButton,
@@ -56,7 +56,8 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
             ]
         
         self.preload_rules()
-        logging.info("Parcel Data Processor initialized.")
+        self.logger = logging.getLogger()
+        self.logger.info("Parcel Data Processor initialized.")
 
     def _init_ui(self):
         """Initialize the user interface."""
@@ -286,16 +287,17 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
         
         self.status_sections[0].setText("Done")
 
-    def _on_process_thread_error(self, btns, status_bar_section, message):
+    def _on_process_thread_error(self, btns, status_bar_section, e):
         # called when the thread encounters an error
         for btn in btns:
             btn.setEnabled(True)
         status_bar_section.setText("Error")
-        QMessageBox.critical(self, "Error", message)
+        QMessageBox.critical(self, "Error", str(e))
+
 
     def closeEvent(self, event):
         """Handle the close event to ensure proper cleanup."""
-        logging.info("Parcel Data Processor is closed.")
+        self.logger.info("Parcel Data Processor is closed.")
         event.accept()
 
    
@@ -354,7 +356,7 @@ class ValidationAndSummary(QDialog, Shared_GUI_Widgets):
 
 class ThreadWrapper(QThread):
     finished = pyqtSignal(object)
-    error = pyqtSignal(str)
+    error = pyqtSignal(object)
     status_update = pyqtSignal(str, str, str, str) #status bar section 1 ~ 4
 
     def __init__(self, func, *args, **kwargs):
@@ -368,7 +370,9 @@ class ThreadWrapper(QThread):
             ret = None
             ret = self.func(*self.args, **self.kwargs)
         except Exception as e:
-            self.error.emit(str(e))
+            self.error.emit(e)
+            logger = logging.getLogger()
+            logger.error("Exception in thread: ", exc_info=True)
             return
          
         self.finished.emit(ret)
@@ -383,8 +387,9 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
         self.lower_boundary_file = ""
         self.upper_boundary_file = ""
         self.base_parcel : Parcels = None
+        self.logger = logging.getLogger()
 
-        logging.info("Base Parcel Data Generator initialized.")
+        self.logger.info("Base Parcel Data Generator initialized.")
 
     def __init_ui__(self, msg):
         """Initialize the user interface."""
@@ -468,7 +473,7 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
             self.summarize_btn.setEnabled(True)
             self.base_file = path
 
-            logging.info(f"Selected base parcel file: {path}")
+            self.logger.info(f"Selected base parcel file: {path}")
         return
     
     def changeButtonStatus(self, buttons, Enabled):
@@ -517,9 +522,9 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
 
         interpolation = LinearParcelInterpolator(self.parent().output_dir)
 
-        logging.info(f"Interpolating parcel data between {lower_year} and {upper_year} for horizon year {horizon_year}")
-        logging.info(f"Lower boundary file: {lower_path}")
-        logging.info(f"Upper boundary file: {upper_path}")
+        self.logger.info(f"Interpolating parcel data between {lower_year} and {upper_year} for horizon year {horizon_year}")
+        self.logger.info(f"Lower boundary file: {lower_path}")
+        self.logger.info(f"Upper boundary file: {upper_path}")
 
         # Parcels DataFrame after interpolation
         interpolated_parcels = interpolation.interpolate(left_parcels, right_parcels, horizon_year)
@@ -570,6 +575,6 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
         summary_dialog.exec()    
 
     def closeEvent(self, event):
-        logging.info("Base Parcel Data Generator is closed.")
+        self.logger.info("Base Parcel Data Generator is closed.")
         self.accept()
         event.accept()   

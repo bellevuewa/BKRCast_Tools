@@ -14,9 +14,6 @@ if not sys.warnoptions:
     import warnings
     warnings.simplefilter("ignore")
 
-logger = logging.getLogger(__name__)
-
-
 class Parcels:
     def __init__(self, subarea_file, lookup_file, filename, data_year):
         """
@@ -37,6 +34,8 @@ class Parcels:
         #####
         self.original_parcels_df = pd.read_csv(filename, sep = ' ', low_memory = False)
 
+        self.logger = logging.getLogger()
+
         # self.parcels_df : pd.DataFrame= None
 
     def copy(self) -> "Parcels":
@@ -53,6 +52,7 @@ class Parcels:
         obj.filename = filename
         obj.lookup_df = lookup_df.copy()
         obj.subarea_df = subarea_df.copy()
+        obj.logger = logging.getLogger()
         # obj.parcels_df = None
         return obj
 
@@ -72,9 +72,9 @@ class Parcels:
         summary_taz.to_csv(os.path.join(output_dir, 'parcel_summary_by_taz.csv'), index=False)
         summary_subarea.to_csv(os.path.join(output_dir, 'parcel_summary_by_subarea.csv'), index=False)
 
-        logging.info(f'Parcel summary by jurisdiction exported to: {os.path.join(output_dir, "parcel_summary_by_jurisdiction.csv")}')
-        logging.info(f'Parcel summary by TAZ exported to: {os.path.join(output_dir, "parcel_summary_by_taz.csv")}')
-        logging.info(f'Parcel summary by subarea exported to: {os.path.join(output_dir, "parcel_summary_by_subarea.csv")}')
+        self.logger.info(f'Parcel summary by jurisdiction exported to: {os.path.join(output_dir, "parcel_summary_by_jurisdiction.csv")}')
+        self.logger.info(f'Parcel summary by TAZ exported to: {os.path.join(output_dir, "parcel_summary_by_taz.csv")}')
+        self.logger.info(f'Parcel summary by subarea exported to: {os.path.join(output_dir, "parcel_summary_by_subarea.csv")}')
 
         summary_dict = {
             "Jurisdiction": summary_jurisdictions,
@@ -87,7 +87,7 @@ class Parcels:
     def validate_parcel_file(self) -> dict:
         import debugpy
         debugpy.breakpoint()
-        
+
         validation_dict = {}  
         output_list = []
         header = ["Column", "Data Type", "Unique Values", "Missing Values", "Duplicated", "Min", "Max", "Mean"]
