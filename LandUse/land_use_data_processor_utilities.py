@@ -1,80 +1,79 @@
 import sys, os
 sys.path.append(os.getcwd())
 import logging
+from logging.handlers import RotatingFileHandler
 from datetime import datetime
 import pandas as pd
 from PyQt6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QPushButton,
     QFileDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QMessageBox, QSizePolicy, QSplitter,
-    QTableWidget, QTableWidgetItem, QMainWindow, QTabWidget, QListWidget, QDialog
+    QTableWidget, QTableWidgetItem, QMainWindow, QTabWidget, QListWidget, QDialog, QHeaderView
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QIntValidator
 from enum import Enum
 from GUI_support_utilities import (Shared_GUI_Widgets, NumericTableWidgetItem)
-import parcel_data_functions as parcel_func
+from parcel_data_functions import Parcel_Data_Format, Data_Scale_Method
+from parcel_interpolation import LinearParcelInterpolator
+from Parcels import Parcels
+from ParcelDataOperations import ParcelDataOperations
 
-class Parcel_Data_Format(Enum):
-    Processed_Parcel_Data = 0
-    BKRCastTAZ_Format = 1
-    BKR_Trip_Model_TAZ_Forma = 2
-class Data_Scale_Method(Enum):
-    Keep_the_Data_from_the_Partner_City = 0
-    Scale_by_Job_Category = 1
-    Scale_by_Total_Jobs_by_TAZ = 2
-class ParcelDataProcessor(QMainWindow, Shared_GUI_Widgets):
+_LOGGING_CONFIGURED = False
+class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
     """Main window for the Parcel Data Processor application."""
-    def __init__(self, parent=None):
+    def __init__(self, project_settings, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Parcel Data Processor")
         self.setMinimumWidth(750)
+
+        self.project_settings = project_settings
         self.base_file = r"Z:\Modeling Group\BKRCast\LandUse\Complan\Complan2044\2044LU\DT_rebalance_btw_job_category\parcels_urbansim.txt"
         self.landuse_rules = []
-        self.base_parcel_df = None
-        self.final_parcel_df = None
-        self.subarea_file = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv"
-        self.subarea_df = pd.read_csv(self.subarea_file)
+        self.base_parcel : Parcels = None
+        self.final_parcel  : Parcels = None
 
-        self.output_dir = r"Z:\Modeling Group\BKRCast\LandUse\test_2044_long_range_planning"
-        self.horizon_year = -1
+        self.output_dir = self.project_settings['output_dir']
+        self.horizon_year = self.project_settings['horizon_year']
+        self.scenario_name = self.project_settings['scenario_name']
 
         self._init_ui() 
         # create_status bar from Shared_UI_Widgets
         self.create_status_bar(self, 4)
+
+        self.process_rules = [
+            {"Jurisdiction": "Bellevue", 
+             "File": r"Z:\Modeling Group\BKRCast\LandUse\test_2044_long_range_planning\2044_long_range_planning_bellevue_jobs.csv",
+             "Data_Format": "Processed_Parcel_Data",
+             "Scale_Method": "Keep_the_Data_from_the_Partner_City"},
+            {"Jurisdiction": "Kirkland", 
+             "File": r"Z:\Modeling Group\BKRCast\LandUse\Kirkland_Complan_Support\2019LU\2019_Kirkland_jobs_by_old_BKRTMTAZ.csv",
+             "Data_Format": "BKR_Trip_Model_TAZ_Forma",
+             "Scale_Method": "Scale_by_Total_Jobs_by_TAZ"},
+            {"Jurisdiction": "Redmond", 
+             "File": r"Z:\Modeling Group\BKRCast\LandUse\2044_long_term_planning\2044_Redmond_estimated_jobs_by_BKRTMTAZ.csv",
+             "Data_Format": "BKR_Trip_Model_TAZ_Forma",
+             "Scale_Method": "Scale_by_Job_Category"}
+            ]
         
+        self.preload_rules()
+        logging.info("Parcel Data Processor initialized.")
+
     def _init_ui(self):
         """Initialize the user interface."""
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
         self.main_layout = QVBoxLayout()
-        central_widget.setLayout(self.main_layout)
+        self.setLayout(self.main_layout)
 
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel("Horizon Year"))
-        self.year_box = QLineEdit()
-        self.year_box.setValidator(QIntValidator(2000, 2100))
-        self.year_box.setMaxLength(4)
-        hbox.addWidget(self.year_box)
+        year_box = QLabel(str(self.horizon_year))
+        hbox.addWidget(year_box)
         self.main_layout.addLayout(hbox)
 
         hbox = QHBoxLayout()
-        output_button = QPushButton("Select Output Location")
-        output_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        self.output_label = QLabel("No Location selected")
-        output_button.clicked.connect(self.browse_output_file)
-        hbox.addWidget(output_button)
-        hbox.addWidget(self.output_label)
+        hbox.addWidget(QLabel("Output Directory"))
+        hbox.addWidget(QLabel(self.output_dir))
         self.main_layout.addLayout(hbox) 
         
-        hbox = QHBoxLayout()
-        subarea_button = QPushButton("Select Subarea Lookup File")
-        subarea_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        hbox.addWidget(subarea_button)
-        self.subarea_label = QLabel("No files selected")
-        subarea_button.clicked.connect(lambda: self.select_files("Select Subarea Definition File", self.subarea_label))
-        hbox.addWidget(self.subarea_label)  
-        self.main_layout.addLayout(hbox)     
-
         hbox = QHBoxLayout()    
         base_button = QPushButton("Select Base Parcel Data Files")
         base_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
@@ -124,12 +123,19 @@ class ParcelDataProcessor(QMainWindow, Shared_GUI_Widgets):
         self.rule_table.setColumnCount(4)
         self.rule_table.horizontalHeader().setStretchLastSection(True)
         self.rule_table.setHorizontalHeaderLabels(["Jurisdiction", "File", "Data Format", "Scale Method"])
+        self.rule_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.rule_table.customContextMenuRequested.connect(lambda pos: self.create_context_menu(self.rule_table, pos))
         vbox.addWidget(self.rule_table)
+
         self.main_layout.addLayout(vbox)
+        
+        self.process_btn = QPushButton("Start Processing")
+        self.process_btn.clicked.connect(self.process_btn_clicked)
+        self.main_layout.addWidget(self.process_btn)
         
         hbox = QHBoxLayout()
         self.valid_btn = QPushButton("Validate")
-        self.valid_btn.clicked.connect(lambda: self.validate_files(self.base_file))
+        self.valid_btn.clicked.connect(self.validate_files)
         hbox.addWidget(self.valid_btn)
 
         self.summarize_btn = QPushButton("Summarize")
@@ -138,29 +144,16 @@ class ParcelDataProcessor(QMainWindow, Shared_GUI_Widgets):
         hbox.addWidget(self.summarize_btn)
         self.main_layout.addLayout(hbox)
         
-        process_btn = QPushButton("Start Processing")
-        process_btn.clicked.connect(self.parcel_process)
-        self.main_layout.addWidget(process_btn)
-
-    def validate_inputs(self):
-        if (self.year_box.text() == "") :
-            QMessageBox.critical(self, "Warning", "Please enter the horizon year")
-            return False
-
-        if (self.year_box.hasAcceptableInput()):
-            self.horizon_year = int(self.year_box.text())
-            if self.horizon_year > 2100 or self.horizon_year < 2000:
-                QMessageBox.critical(self, "Warning", "Please double check the horizon year input")
-                return False
-        else:
-            return False
-            
-        if self.output_dir == "":
-            QMessageBox.critical(self, "Warning", "Select Output Folder First")
-            return False
-    
-        return True
-
+    def preload_rules(self):
+        # self.rule_table.clear()
+        for rule in self.process_rules:
+            self.rule_table.insertRow(self.rule_table.rowCount())
+            row = self.rule_table.rowCount() - 1
+            for col, key in enumerate(rule.keys()):
+                item = QTableWidgetItem(str(rule[key]))
+                if key == "File":
+                    item.setToolTip(str(rule[key]))
+                self.rule_table.setItem(row, col, item)
 
     def make_list_panel(self, title, items, v_policy=QSizePolicy.Policy.Expanding):
         container = QWidget()
@@ -172,36 +165,25 @@ class ParcelDataProcessor(QMainWindow, Shared_GUI_Widgets):
         listbox = QListWidget()
         listbox.addItems(items)
         listbox.setSizePolicy(QSizePolicy.Policy.Preferred, v_policy)
+        listbox.setStyleSheet("""
+            QListWidget::item:selected {
+                background: palette(highlight);
+                color: palette(highlighted-text);
+            }
+            """)
 
         layout.addWidget(label)
         layout.addWidget(listbox)
 
         return container, listbox
 
-    def browse_output_file(self):
-        path = QFileDialog.getExistingDirectory(
-            self, "Select Output Folder", os.getcwd(),
-        )
-        if path:
-            self.output_label.setText(path)
-            self.output_dir = path
-
     def select_base_parcel_file(self):
-        if self.validate_inputs() == False:
-            return
-        
         base_dialog = BaseDataGenerator(self, "Base Parcel File Processor")
         if base_dialog.exec() == QDialog.DialogCode.Accepted:
-            return
+            self.base_parcel = base_dialog.base_parcel
+            self.base_file_label.setText(base_dialog.base_file)
 
-    def select_subarea_file(self):
-        filename = self.select_files("Select Subarea Definition File", self.subarea_label)
-        if filename:
-            self.subarea_file = filename
-            self.subarea_df = pd.read_csv(filename, sep = ',')
-        
     def select_files(self, msg, label):
-
         filename, _ = QFileDialog.getOpenFileName(self, msg, "", "Text Files (*.txt);;All Files (*)")
         if not filename:
             return
@@ -209,91 +191,41 @@ class ParcelDataProcessor(QMainWindow, Shared_GUI_Widgets):
             label.setText(filename)
             return filename
 
-    def validate_files(self, filename):
+    def validate_files(self):
         self.status_sections[0].setText("running")
         self.valid_btn.setEnabled(False)
 
-        self.worker = ValidationThread(self, filename)
-        self.worker.finished.connect(lambda validate_dict: self._on_thread_finished([self.valid_btn, self.summarize_btn], validate_dict))
-        self.worker.error.connect(lambda message: self._on_thread_error(self.valid_btn, self.status_sections[0], message))
+        self.worker = ThreadWrapper(self.final_parcel.validate_parcel_file)
+        self.worker.finished.connect(lambda validate_dict: self._on_valid_thread_finished([self.valid_btn, self.summarize_btn], validate_dict))
+        self.worker.error.connect(lambda message: self._on_valid_thread_error([self.valid_btn, self.summarize_btn], self.status_sections[0], message))
         self.worker.start()
         
-    def _on_thread_finished(self, btns, validate_dict):
+    def _on_valid_thread_finished(self, btns, validate_dict):
         # called when the thread is finished
         for btn in btns:
             btn.setEnabled(True)
         
         self.status_sections[0].setText("Done")
         # Add validation logic here
-        valid_dialog = ValidationAndSummary(self, "Validation and Summary of the base parcel data", validate_dict)
+        valid_dialog = ValidationAndSummary(self, "Validation and Summary of the processed parcel data", validate_dict)
         valid_dialog.exec()
         self.status_sections[0].setText("")
 
-    def _on_thread_error(self, btn, status_bar_section, message):
+    def _on_valid_thread_error(self, btn, status_bar_section, message):
         # called when the thread encounters an error
         btn.setEnabled(True)
         status_bar_section.setText("Error")
         QMessageBox.critical(self, "Error", message)
 
-    def validate_thread(self, filename):
-        if (filename == ""):
-            QMessageBox.warning(self, "Warning", "Please select a parcel data file first.")
-            return
-        
-        validation_dict = {}
-        
-        output_list = []
-
-        if self.base_parcel_df == None:
-            self.base_parcel_df  = pd.read_csv(filename, sep = " ", low_memory = False)
-        header = ["Column", "Data Type", "Unique Values", "Missing Values", "Duplicated", "Min", "Max", "Mean"]
-        for col in self.base_parcel_df.columns:
-            series = self.base_parcel_df[col]
-            unique_non_null = series.nunique(dropna = True)
-            missing = series.isna().sum()
-            duplicates = len(series) - unique_non_null - missing
-            is_numeric = pd.api.types.is_numeric_dtype(series)
-            min = series.min() if is_numeric else ""
-            max = series.max() if is_numeric else ""
-            mean = series.mean() if is_numeric else ""
-
-            outputs = {
-                "Column": col,
-                "Data Type": str(series.dtype),
-                "Unique Values": unique_non_null,
-                "Missing Values": missing,
-                "Duplicated": duplicates,
-                "Min": min,
-                "Max": max,
-                "Mean": mean
-            }
-
-            output_list.append(outputs)
-
-        # df: validation of data_df
-        df = pd.DataFrame(output_list, columns = header)
-
-        # df2: data_df shape
-        df2 = pd.DataFrame([{"Rows": self.base_parcel_df.shape[0], "Columns": self.base_parcel_df.shape[1]}])
-
-        df3 = self.base_parcel_df.head(100)   
-        
-        validation_dict = {
-            "Validation": df,
-            "Summary": df2,
-            "Raw Data Samples": df3
-        }
-        
-        return validation_dict
-    
     def summarize_parcel_data(self):
-        summary_dict = parcel_func.summarize_parcel_data(self.final_parcel_df, self.subarea_df, self.output_dir) 
-        summary_dialog = ValidationAndSummary(self, "Base Parcel File Summary", summary_dict)
+        summary_dict = self.final_parcel.summarize_parcel_data(self.output_dir)
+        summary_dialog = ValidationAndSummary(self, "Processed Parcel File Summary", summary_dict)
         summary_dialog.exec()         
        
     def add_rules(self):
         if (not self.jurisdiction_list_box.selectedItems()) or (not self.method_list_box.selectedItems()) or (not self.scaleby_list_box.selectedItems()):
             QMessageBox.information(self, "Warning", "You cannot leave these boxes blank")
+            return
 
         city = self.jurisdiction_list_box.currentItem().text()
         method = self.method_list_box.currentItem().text()
@@ -312,11 +244,61 @@ class ParcelDataProcessor(QMainWindow, Shared_GUI_Widgets):
         row = self.rule_table.rowCount() - 1
 
         for col, key in enumerate(rule_dict.keys()):
-            self.rule_table.setItem(row, col, QTableWidgetItem(str(rule_dict[key])))
+            item = QTableWidgetItem(str(rule_dict[key]))
+            if key == "File": # File
+                item.setToolTip(str(rule_dict[key]))
+            self.rule_table.setItem(row, col, item)
 
-    def parcel_process(self):
-        return
+    def process_btn_clicked(self):
+        rows = self.rule_table.rowCount()
+        if rows == 0:
+            QMessageBox.critical(self, "Error", "At least one rule is required.")
+            return
+        
+        self.status_sections[0].setText("Processing")
+        self.process_rules = self.table_to_list_of_dicts(self.rule_table)
 
+        btns = self.findChildren(QPushButton)
+        for btn in btns:
+            btn.setEnabled(False)
+        self.worker = ThreadWrapper(self.parcel_process)
+        self.worker.finished.connect(lambda ret: self._on_process_thread_finished(btns, ret))
+        self.worker.error.connect(lambda message: self._on_process_thread_error(btns, self.status_sections[0], message))
+        self.worker.start()
+
+    def parcel_process(self) -> dict:
+        import debugpy
+        debugpy.breakpoint()
+
+        fn = f'{self.horizon_year}_{self.scenario_name}_updated_urbansim_parcels.txt'
+        op = ParcelDataOperations(self.base_parcel, self.output_dir, fn)
+        for rule in self.process_rules:
+            ret = op.generate_employment_data_for_jurisiction(rule)
+
+        self.final_parcel = Parcels.from_dataframe(ret['data_frame'], self.horizon_year, os.path.join(self.output_dir, fn), self.project_settings['subarea_df'], self.project_settings['lookup_df'])
+        op.export_updated_parcels()
+        return ret
+
+    def _on_process_thread_finished(self, btns, ret):
+        # called when the thread is finished
+        for btn in btns:
+            btn.setEnabled(True)
+        
+        self.status_sections[0].setText("Done")
+
+    def _on_process_thread_error(self, btns, status_bar_section, message):
+        # called when the thread encounters an error
+        for btn in btns:
+            btn.setEnabled(True)
+        status_bar_section.setText("Error")
+        QMessageBox.critical(self, "Error", message)
+
+    def closeEvent(self, event):
+        """Handle the close event to ensure proper cleanup."""
+        logging.info("Parcel Data Processor is closed.")
+        event.accept()
+
+   
 class ValidationAndSummary(QDialog, Shared_GUI_Widgets):
     def __init__(self, parent=None, msg=None, data_dict=None):
         # data_dict: dictionary containing data to be displayed in the tables
@@ -370,24 +352,6 @@ class ValidationAndSummary(QDialog, Shared_GUI_Widgets):
         close_button.clicked.connect(self.close)
         self.main_layout.addWidget(close_button)
 
-class ValidationThread(QThread):
-    finished = pyqtSignal(dict)
-    error = pyqtSignal(str)
-    status_update = pyqtSignal(str, str, str, str) #status bar section 1 ~ 4
-
-    def __init__(self, parent, filename):
-        super().__init__()
-        self.parent = parent
-        self.filename = filename
-
-    def run(self):
-        try:
-            validate_dict = self.parent.validate_thread(self.filename)
-        except Exception as e:
-            self.error.emit(str(e))
-        finally: 
-            self.finished.emit(validate_dict)
-
 class ThreadWrapper(QThread):
     finished = pyqtSignal(object)
     error = pyqtSignal(str)
@@ -405,8 +369,9 @@ class ThreadWrapper(QThread):
             ret = self.func(*self.args, **self.kwargs)
         except Exception as e:
             self.error.emit(str(e))
-        finally: 
-            self.finished.emit(ret)
+            return
+         
+        self.finished.emit(ret)
 
 class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
     def __init__(self, parent = None, message = None):
@@ -416,8 +381,10 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
         
         self.base_file = ""
         self.lower_boundary_file = ""
-        self.uppfer_boundary_file = ""
-        self.base_parcel_df = None
+        self.upper_boundary_file = ""
+        self.base_parcel : Parcels = None
+
+        logging.info("Base Parcel Data Generator initialized.")
 
     def __init_ui__(self, msg):
         """Initialize the user interface."""
@@ -457,18 +424,18 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
         groupbox_layout.addWidget(self.table)
 
         self.interpolate_btn = QPushButton("Interpolate")
-        self.interpolate_btn.clicked.connect(self.interpolation)
+        self.interpolate_btn.clicked.connect(self.interpolation_btn_clicked)
         groupbox_layout.addWidget(self.interpolate_btn)
         self.main_layout.addLayout(groupbox_layout)
 
         hbox = QHBoxLayout()
         self.valid_btn = QPushButton("Validate")
-        self.valid_btn.clicked.connect(self.validate_files)
+        self.valid_btn.clicked.connect(self.validate_btn_clicked)
         self.valid_btn.setEnabled(False)
         hbox.addWidget(self.valid_btn)
 
         self.summarize_btn = QPushButton("Summarize")
-        self.summarize_btn.clicked.connect(self.summarize_parcel_data) 
+        self.summarize_btn.clicked.connect(self.summarize_btn_clicked) 
         self.summarize_btn.setEnabled(False)
         hbox.addWidget(self.summarize_btn)
         self.main_layout.addLayout(hbox)
@@ -495,10 +462,13 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
             self.sel1_btn.setEnabled(False)
             self.sel2_btn.setEnabled(False)
             self.interpolate_btn.setEnabled(False)
-            self.base_parcel_df = pd.read_csv(path, sep = ' ')
+            self.base_parcel = Parcels(self.parent().project_settings['subarea_file'], self.parent().project_settings['lookup_file'], path, self.parent().horizon_year)
             self.status_sections[0].setText("Base parcel selected.")
             self.valid_btn.setEnabled(True)
             self.summarize_btn.setEnabled(True)
+            self.base_file = path
+
+            logging.info(f"Selected base parcel file: {path}")
         return
     
     def changeButtonStatus(self, buttons, Enabled):
@@ -506,7 +476,7 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
             for btn in buttons:
                 btn.setEnabled(Enabled)
 
-    def interpolation(self):
+    def interpolation_btn_clicked(self):
         self.status_sections[0].setText("interpolating")
         btns = self.findChildren(QPushButton)
         self.changeButtonStatus(btns, False)
@@ -534,15 +504,33 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
         upper = int(base_year_dict['upper']['year'])
         upper_path = base_year_dict['upper']['path']
 
-        self.worker = ThreadWrapper(parcel_func.interpolate_two_parcel_files, lower_path, upper_path, lower, upper, self.parent().horizon_year)
-        self.worker.finished.connect(lambda interpolation_df: self._on_interpolation_finished(btns, interpolation_df))
-        self.worker.error.connect(lambda message: self._on_interpolation_error(btns, self.status_sections[0], message))
+        self.worker = ThreadWrapper(self.interpolate_two_parcel_files, lower_path, upper_path, lower, upper, self.parent().horizon_year)
+        self.worker.finished.connect(lambda interpolation_parcel: self._on_interpolation_finished(btns, interpolation_parcel))
+        self.worker.error.connect(lambda message: self._on_interpolation_error(btns, message))
         self.worker.start()
 
-    def _on_interpolation_finished(self, btns,  interpolation_df):
-        self.base_parcel_df = interpolation_df
+    def interpolate_two_parcel_files(self, lower_path, upper_path, lower_year, upper_year, horizon_year):
+        import debugpy
+        debugpy.breakpoint()
+        left_parcels = Parcels(self.parent().project_settings['subarea_file'], self.parent().project_settings['lookup_file'], lower_path, lower_year)
+        right_parcels = Parcels(self.parent().project_settings['subarea_file'], self.parent().project_settings['lookup_file'], upper_path, upper_year)
+
+        interpolation = LinearParcelInterpolator(self.parent().output_dir)
+
+        logging.info(f"Interpolating parcel data between {lower_year} and {upper_year} for horizon year {horizon_year}")
+        logging.info(f"Lower boundary file: {lower_path}")
+        logging.info(f"Upper boundary file: {upper_path}")
+
+        # Parcels DataFrame after interpolation
+        interpolated_parcels = interpolation.interpolate(left_parcels, right_parcels, horizon_year)
+        return interpolated_parcels
+
+    def _on_interpolation_finished(self, btns, parcels : Parcels):
+        self.base_parcel = parcels
         self.changeButtonStatus(btns, True)
         self.status_sections[0].setText('Done')
+        self.base_filename_label.setText(self.base_parcel.filename)
+        self.base_file = self.base_parcel.filename
 
     def _on_interpolation_error(self, btns, message):
         # called when the thread encounters an error
@@ -550,13 +538,13 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
         self.status_sections[0].setText("interpolation failed")
         QMessageBox.critical(self, "Error", message)
                              
-    def validate_files(self):
+    def validate_btn_clicked(self):
         self.status_sections[0].setText("running")
         self.valid_btn.setEnabled(False)
 
-        self.worker = ThreadWrapper(parcel_func.validate_parcel_file, self.base_parcel_df)
+        self.worker = ThreadWrapper(self.base_parcel.validate_parcel_file)
         self.worker.finished.connect(lambda validate_dict: self._on_validation_finished([self.valid_btn, self.summarize_btn], validate_dict))
-        self.worker.error.connect(lambda message: self._on_validation_error(self.valid_btn, self.status_sections[0], message))
+        self.worker.error.connect(lambda message: self._on_validation_error([self.valid_btn, self.summarize_btn], self.status_sections[0], message))
         self.worker.start()
         
     def _on_validation_finished(self, btns, validate_dict):
@@ -576,14 +564,12 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
         status_bar_section.setText("Error")
         QMessageBox.critical(self, "Error", message)
 
-    def summarize_parcel_data(self):
-
-        summary_dict = parcel_func.summarize_parcel_data(self.base_parcel_df, self.parent().subarea_df, self.parent().output_dir) 
+    def summarize_btn_clicked(self):
+        summary_dict = self.base_parcel.summarize_parcel_data(self.parent().output_dir)
         summary_dialog = ValidationAndSummary(self, "Base Parcel File Summary", summary_dict)
-        summary_dialog.exec()       
+        summary_dialog.exec()    
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = ParcelDataProcessor()
-    window.show()
-    sys.exit(app.exec())
+    def closeEvent(self, event):
+        logging.info("Base Parcel Data Generator is closed.")
+        self.accept()
+        event.accept()   

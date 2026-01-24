@@ -1,4 +1,5 @@
-from PyQt6.QtWidgets import (QApplication, QMessageBox, QMenu, QStatusBar, QLabel, QTableWidgetItem)
+from PyQt6.QtWidgets import (
+    QApplication, QMessageBox, QMenu, QStatusBar, QLabel, QTableWidget, QTableWidgetItem)
 
 from PyQt6.QtGui import QAction 
 
@@ -77,6 +78,31 @@ class Shared_GUI_Widgets:
         else:
             self.status_sections[1].setText("")
             self.status_sections[2].setText("")
+
+
+    def table_to_list_of_dicts(self, table: QTableWidget) -> list[dict]:
+        '''read table into a list of dict'''
+        rows = table.rowCount()
+        cols = table.columnCount()
+
+        # Get column headers
+        headers = [
+            table.horizontalHeaderItem(c).text()
+            for c in range(cols)
+        ]
+
+        data = []
+
+        for row in range(rows):
+            row_dict = {}
+
+            for col, header in enumerate(headers):
+                item = table.item(row, col)
+                row_dict[header] = item.text() if item else ""
+
+            data.append(row_dict)
+
+        return data
 
 class NumericTableWidgetItem(QTableWidgetItem):
     """Custom QTableWidgetItem that treats numbers correctly for sorting."""
