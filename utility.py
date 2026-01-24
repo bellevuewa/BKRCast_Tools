@@ -1,10 +1,35 @@
 import h5py
+import sys, os
 import numpy as np
 import pandas as pd
+from enum import Enum
+import logging
+from datetime import datetime
 
 #2/3/2022
 # upgrade to python 3.7
 
+_LOGGING_CONFIGURED = False
+
+Job_Categories = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPRSC_P', 'EMPSVC_P']
+Summary_Categories = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P', 'EMPTOT_P', 'STUGRD_P', 'STUHGH_P', 'STUUNI_P', 'HH_P']
+
+job_rename_dict = {'JOBS_EDU':'EMPEDU_P', 'JOBS_FOOD':'EMPFOO_P', 'JOBS_GOV':'EMPGOV_P', 'JOBS_IND':'EMPIND_P',
+    'JOBS_MED':'EMPMED_P', 'JOBS_OFF':'EMPOFC_P', 'JOBS_RET':'EMPRET_P', 'JOBS_RSV':'EMPRSC_P', 'JOBS_SERV':'EMPSVC_P', 'JOBS_OTH':'EMPOTH_P',
+    'JOBS_TOTAL':'EMPTOT_P'}
+sqft_rename_dict = {'SQFT_EDU':'SQFT_EDU', 'SQFT_FOOD':'SQFT_FOO','SQFT_GOV':'SQFT_GOV','SQFT_IND':'SQFT_IND','SQFT_MED':'SQFT_MED', 'SQFT_OFF':'SQFT_OFC',
+    'SQFT_RET':'SQFT_RET', 'SQFT_RSV':'SQFT_RSV', 'SQFT_SERV':'SQFT_SVC', 'SQFT_OTH': 'SQFT_OTH', 'SQFT_NONE':'SQFT_NON', 
+    'SQFT_TOTAL':'SQFT_TOT'}
+du_rename_dict = {'UNITS_SF':'SFUnits', 'UNITS_MF':'MFUnits'}
+
+class Parcel_Data_Format(Enum):
+    Processed_Parcel_Data = "Processed_Parcel_Data"
+    BKRCastTAZ_Format = "BKRCastTAZ_Format"
+    BKR_Trip_Model_TAZ_Forma = "BKR_Trip_Model_TAZ_Forma"
+class Data_Scale_Method(Enum):
+    Keep_the_Data_from_the_Partner_City = "Keep_the_Data_from_the_Partner_City"
+    Scale_by_Job_Category = "Scale_by_Job_Category"
+    Scale_by_Total_Jobs_by_TAZ = "Scale_by_Total_Jobs_by_TAZ"
 
 def h5_to_df(h5_file, group_name):
     """
@@ -44,7 +69,35 @@ def backupScripts(source, dest):
     import os
     import shutil
     shutil.copyfile(source, dest)
-   
+
+def setup_logger_file(output_dir, log_name = "parcel_processing.log") -> logging.Logger:
+    global _LOGGING_CONFIGURED 
+    if _LOGGING_CONFIGURED:
+        return logging.getLogger(__name__)
+
+    log_filename = os.path.join(output_dir, log_name)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler = logging.FileHandler(log_filename, mode = 'w')
+
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    root.addHandler(file_handler)
+    root.addHandler(console_handler)
+
+    _LOGGING_CONFIGURED = True
+
+    logger = logging.getLogger(__name__)
+    logger.info(
+        "Logging initialized at %s", log_filename
+    )  
+    return logger
 
 def controlled_rounding(data_df, attr_name, control_total, index_attr_name):
     # find residential parcels within taz     
