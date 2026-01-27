@@ -17,6 +17,7 @@ from parcel_data_functions import Parcel_Data_Format, Data_Scale_Method
 from parcel_interpolation import LinearParcelInterpolator
 from Parcels import Parcels
 from ParcelDataOperations import ParcelDataOperations
+from utility import IndentAdapter, dialog_level
 
 _LOGGING_CONFIGURED = False
 class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
@@ -56,7 +57,9 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
             ]
         
         self.preload_rules()
-        self.logger = logging.getLogger()
+        base_logger = logging.getLogger(__name__)
+        indent = dialog_level(self)
+        self.logger = IndentAdapter(base_logger, indent)
         self.logger.info("Parcel Data Processor initialized.")
 
     def _init_ui(self):
@@ -272,11 +275,12 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
         debugpy.breakpoint()
 
         fn = f'{self.horizon_year}_{self.scenario_name}_updated_urbansim_parcels.txt'
-        op = ParcelDataOperations(self.base_parcel, self.output_dir, fn)
+        indent = dialog_level(self)
+        op = ParcelDataOperations(self.base_parcel, self.output_dir, fn, indent + 1)
         for rule in self.process_rules:
             ret = op.generate_employment_data_for_jurisiction(rule)
 
-        self.final_parcel = Parcels.from_dataframe(ret['data_frame'], self.horizon_year, os.path.join(self.output_dir, fn), self.project_settings['subarea_df'], self.project_settings['lookup_df'])
+        self.final_parcel = Parcels.from_dataframe(ret['data_frame'], self.horizon_year, os.path.join(self.output_dir, fn), self.project_settings['subarea_df'], self.project_settings['lookup_df'], indent + 1)
         op.export_updated_parcels()
         return ret
 
@@ -364,6 +368,8 @@ class ThreadWrapper(QThread):
         self.func = func
         self.args = args
         self.kwargs = kwargs
+        base_logger = logging.getLogger(__name__)
+        self.logger = IndentAdapter(base_logger)
 
     def run(self):
         try:
@@ -371,8 +377,7 @@ class ThreadWrapper(QThread):
             ret = self.func(*self.args, **self.kwargs)
         except Exception as e:
             self.error.emit(e)
-            logger = logging.getLogger()
-            logger.error("Exception in thread: ", exc_info=True)
+            self.logger.error("Exception in thread: ", exc_info=True)
             return
          
         self.finished.emit(ret)
@@ -387,7 +392,9 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
         self.lower_boundary_file = ""
         self.upper_boundary_file = ""
         self.base_parcel : Parcels = None
-        self.logger = logging.getLogger()
+        base_logger = logging.getLogger(__name__)
+        indent = dialog_level(self)
+        self.logger = IndentAdapter(base_logger, indent)
 
         self.logger.info("Base Parcel Data Generator initialized.")
 
@@ -467,7 +474,8 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
             self.sel1_btn.setEnabled(False)
             self.sel2_btn.setEnabled(False)
             self.interpolate_btn.setEnabled(False)
-            self.base_parcel = Parcels(self.parent().project_settings['subarea_file'], self.parent().project_settings['lookup_file'], path, self.parent().horizon_year)
+            indent = dialog_level(self)
+            self.base_parcel = Parcels(self.parent().project_settings['subarea_file'], self.parent().project_settings['lookup_file'], path, self.parent().horizon_year, indent + 1)
             self.status_sections[0].setText("Base parcel selected.")
             self.valid_btn.setEnabled(True)
             self.summarize_btn.setEnabled(True)
@@ -511,16 +519,17 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
 
         self.worker = ThreadWrapper(self.interpolate_two_parcel_files, lower_path, upper_path, lower, upper, self.parent().horizon_year)
         self.worker.finished.connect(lambda interpolation_parcel: self._on_interpolation_finished(btns, interpolation_parcel))
-        self.worker.error.connect(lambda message: self._on_interpolation_error(btns, message))
+        self.worker.error.connect(lambda eobj: self._on_interpolation_error(btns, eobj))
         self.worker.start()
 
     def interpolate_two_parcel_files(self, lower_path, upper_path, lower_year, upper_year, horizon_year):
         import debugpy
         debugpy.breakpoint()
-        left_parcels = Parcels(self.parent().project_settings['subarea_file'], self.parent().project_settings['lookup_file'], lower_path, lower_year)
-        right_parcels = Parcels(self.parent().project_settings['subarea_file'], self.parent().project_settings['lookup_file'], upper_path, upper_year)
+        indent = dialog_level(self)
+        left_parcels = Parcels(self.parent().project_settings['subarea_file'], self.parent().project_settings['lookup_file'], lower_path, lower_year, indent + 1)
+        right_parcels = Parcels(self.parent().project_settings['subarea_file'], self.parent().project_settings['lookup_file'], upper_path, upper_year, indent + 1)
 
-        interpolation = LinearParcelInterpolator(self.parent().output_dir)
+        interpolation = LinearParcelInterpolator(self.parent().output_dir, indent)
 
         self.logger.info(f"Interpolating parcel data between {lower_year} and {upper_year} for horizon year {horizon_year}")
         self.logger.info(f"Lower boundary file: {lower_path}")
@@ -537,11 +546,11 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
         self.base_filename_label.setText(self.base_parcel.filename)
         self.base_file = self.base_parcel.filename
 
-    def _on_interpolation_error(self, btns, message):
+    def _on_interpolation_error(self, btns, exception_obj):
         # called when the thread encounters an error
         self.changeButtonStatus(btns, True)
         self.status_sections[0].setText("interpolation failed")
-        QMessageBox.critical(self, "Error", message)
+        QMessageBox.critical(self, "Error", str(exception_obj))
                              
     def validate_btn_clicked(self):
         self.status_sections[0].setText("running")

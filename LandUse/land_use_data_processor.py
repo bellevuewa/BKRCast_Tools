@@ -41,6 +41,8 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
 
         self.year_box.setText(str(self.project_settings['horizon_year']))
         self.scen_input_editbox.setText(self.project_settings['scenario_name'])
+
+        self.logger = None
         
     def _init_ui(self):
         """Initialize the user interface."""
@@ -98,6 +100,11 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         new_parcels_button.clicked.connect(self.new_parcels_btn_clicked)
         self.main_layout.addWidget(new_parcels_button)
 
+        btns = self.findChildren(QPushButton)
+        for btn in btns:
+            btn.setEnabled(False)
+        output_button.setEnabled(True)
+
     def load_settings(self):
         """Load settings from the UI."""
 
@@ -117,17 +124,17 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         if horizon_year == -1:
             QMessageBox.warning(self, "Input Error", "Please enter a valid horizon year.")
             return False
-        logger = logging.getLogger()
-        logger.info(f"Horizon year: {horizon_year}")
+
+        self.logger.info(f"Horizon year: {horizon_year}")
         scenario_name = self.scen_input_editbox.text().strip()
         if not scenario_name:
             QMessageBox.warning(self, "Input Error", "Please enter a valid scenario name.")
             return False
-        logger.info(f"Scenario name: {scenario_name}")
+        self.logger.info(f"Scenario name: {scenario_name}")
         if self.project_settings["output_dir"] == "" or self.project_settings["output_dir"] is None:
             QMessageBox.warning(self, "Input Error", "Please select an output location.")
             return False
-        logger.info(f"Output directory: {self.project_settings['output_dir']}")
+        self.logger.info(f"Output directory: {self.project_settings['output_dir']}")
         if (self.project_settings['subarea_df'] is None) or (self.project_settings['lookup_df'] is None):
             QMessageBox.warning(self, "Input Error", "Please select both subarea and parcel lookup files.")
             return False
@@ -141,8 +148,7 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         # open file dialog to select subarea file
         file_name, _ = QFileDialog.getOpenFileName(self, "Select Subarea File", "", "CSV Files (*.csv);;All Files (*)")
         if file_name:
-            logger = logging.getLogger()
-            logger.info(f"Selected subarea file: {file_name}")
+            self.logger.info(f"Selected subarea file: {file_name}")
             self.project_settings['subarea_df'] = pd.read_csv(file_name)
             self.project_settings['subarea_file'] = file_name
             self.status_sections[1].setText("Subarea file loaded.")
@@ -151,8 +157,7 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         # open file dialog to select parcel lookup file
         file_name, _ = QFileDialog.getOpenFileName(self, "Select Parcel Lookup File", "", "CSV Files (*.csv);;All Files (*)")
         if file_name:
-            logger = logging.getLogger()
-            logger.info(f"Selected parcel lookup file: {file_name}")
+            self.logger.info(f"Selected parcel lookup file: {file_name}")
             self.project_settings['lookup_df'] = pd.read_csv(file_name)
             self.project_settings['lookup_file'] = file_name
             self.status_sections[1].setText("Parcel lookup file loaded.")
@@ -164,9 +169,12 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         if path:
             self.output_label.setText(path)
             self.project_settings["output_dir"] = path
-            logger = setup_logger_file(path, f'land_use_data_processor_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
-            logger.info(f"Output folder set to: {path}")
+            self.logger = setup_logger_file(path, f'land_use_data_processor_{datetime.now().strftime("%Y%m%d_%H%M%S")}.log')
+            self.logger.info(f"Output folder set to: {path}")
             self.status_sections[0].setText("log initialized.")
+            btns = self.findChildren(QPushButton)
+            for btn in btns:
+                btn.setEnabled(True)
 
     def parcel_btn_clicked(self):
         self.load_settings()
@@ -187,9 +195,9 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         processor.exec()
 
     def closeEvent(self, event):
-        logger = logging.getLogger()
-        logger.info("Land Use Data Process closed.")
-        logging.shutdown()
+        if self.logger != None: 
+            self.logger.info("Land Use Data Process closed.")
+            logging.shutdown()
         event.accept()  
 
 if __name__ == "__main__":

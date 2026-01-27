@@ -73,7 +73,9 @@ def backupScripts(source, dest):
 def setup_logger_file(output_dir, log_name = "parcel_processing.log") -> logging.Logger:
     global _LOGGING_CONFIGURED 
     if _LOGGING_CONFIGURED:
-        return logging.getLogger(__name__)
+        base_logger = logging.getLogger(__name__)
+        logger = IndentAdapter(base_logger, indent = 0)
+        return logger
 
     log_filename = os.path.join(output_dir, log_name)
     formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -96,16 +98,35 @@ def setup_logger_file(output_dir, log_name = "parcel_processing.log") -> logging
 
     _LOGGING_CONFIGURED = True
 
-    logger = logging.getLogger(__name__)
+    base_logger = logging.getLogger(__name__)
+    logger = IndentAdapter(base_logger)   
     logger.info(
         "Logging initialized at %s", log_filename
     )  
     return logger
 
+class IndentAdapter(logging.LoggerAdapter):
+    def __init__(self, logger, indent=0):
+        super().__init__(logger, {})
+        self.indent = indent
+
+    def process(self, msg, kwargs):
+        prefix = "   " * self.indent
+        return f"{prefix}{msg}", kwargs
+
 def get_logger() -> logging.Logger:
     if not _LOGGING_CONFIGURED:
         raise RuntimeError("Logger not configured. Please call setup_logger_file first.")
+    base_logger = logging.getLogger(__name__)
+    logger = IndentAdapter(base_logger)
     return logging.getLogger(__name__)
+
+def dialog_level(widget):
+    level = 0
+    while widget.parentWidget():
+        widget = widget.parentWidget()
+        level += 1
+    return level
 
 def controlled_rounding(data_df, attr_name, control_total, index_attr_name):
     # find residential parcels within taz     

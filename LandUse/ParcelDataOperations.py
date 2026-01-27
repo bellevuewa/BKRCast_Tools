@@ -1,19 +1,20 @@
 import pandas as pd
 import numpy as np
-from utility import Data_Scale_Method, Job_Categories, Parcel_Data_Format, Summary_Categories
+from utility import Data_Scale_Method, Job_Categories, Parcel_Data_Format, dialog_level, IndentAdapter
 import logging, os, sys
 from Parcels import Parcels
  
 
 class ParcelDataOperations:
-    def __init__(self, base_parcels: Parcels, output_dir: str, output_filename: str):
+    def __init__(self, base_parcels: Parcels, output_dir: str, output_filename: str, indent):
         self.base_parcel = base_parcels
         self.subarea_df = base_parcels.subarea_df.copy()
         self.lookup_df = base_parcels.lookup_df.copy()
         self.output_dir = output_dir
         self.output_filename = os.path.join(output_dir, output_filename)
         self.updated_parcels_df = base_parcels.original_parcels_df.copy()
-        self.logger = logging.getLogger()
+        base_logger = logging.getLogger(__name__)
+        self.logger = IndentAdapter(base_logger, indent)
 
 
     def export_updated_parcels(self, export_name: str = None) -> Parcels: 
@@ -88,6 +89,7 @@ class ParcelDataOperations:
 
     def generate_employment_data_for_jurisiction(self, process_rule):
         # process_rule: dict 'Jurisdiction', 'File', 'Data_Format', 'Scale_Method'
+        self.logger.info(f"processing rule: {process_rule}")
         updated_parcel_dict = {}
         if process_rule['Data Format'] == Parcel_Data_Format.Processed_Parcel_Data.value:
             if process_rule['Scale Method'] == Data_Scale_Method.Keep_the_Data_from_the_Partner_City.value:
@@ -111,24 +113,39 @@ class ParcelDataOperations:
         actual_juris_parcels_df = local_data_df.loc[local_data_df['PSRC_ID'].isin(full_juris_parcels_df['PSRC_ID'])] # parcels included in local job file
         not_in_full_juris_parcels = actual_juris_parcels_df.loc[~actual_juris_parcels_df['PSRC_ID'].isin(full_juris_parcels_df['PSRC_ID'])] # parcels in local job file but not in the complete list
         missing_juris_parcels_df = updated_parcels_df.loc[updated_parcels_df['PARCELID'].isin(full_juris_parcels_df.loc[~full_juris_parcels_df['PSRC_ID'].isin(local_data_df['PSRC_ID']), 'PSRC_ID'])]
-        missing_juris_parcels_df.to_csv(os.path.join(self.output_dir, f'missing_{jurisdiction}_parcels.csv'), sep = ',', index = False)
-        not_in_full_juris_parcels.to_csv(os.path.join(self.output_dir, f'not_valid_{jurisdiction}_parcels.csv'), sep = ',', index = False)
+        
+        if missing_juris_parcels_df.shape[0] > 0:
+            missing_fn = f'missing_{jurisdiction}_parcels.csv'
+            missing_juris_parcels_df.to_csv(os.path.join(self.output_dir, missing_fn), sep = ',', index = False)
+            self.logger.info(f"missing parcels are saved in {missing_fn}")
+            self.logger.info(f"jobs in {jurisdiction} missing parcels (base file): {missing_juris_parcels_df['EMPTOT_P'].sum()}")
+        
+        if not_in_full_juris_parcels.shape[0] > 0:
+            invalid_parcels_fn = f'not_valid_{jurisdiction}_parcels.csv'
+            not_in_full_juris_parcels.to_csv(os.path.join(self.output_dir, invalid_parcels_fn), sep = ',', index = False)
+            self.logger.info(f"invalid parcels in {jurisdiction} are saved in {invalid_parcels_fn}")        
 
-
+        self.logger.info(f"set all jobs to zero for {jurisdiction} parcels in the base parcel file: {set_juris_base_jobs_to_zero}")
+        
         if set_juris_base_jobs_to_zero:
             # find parcels in base parcel data that are not in local data, set jobs to zero
-            jobs_to_be_zeroed_out = updated_parcels_df.loc[updated_parcels_df.index.isin(missing_juris_parcels_df['PARCELID']), 'EMPTOT_P'].sum()
-            updated_parcels_df.loc[updated_parcels_df.index.isin(missing_juris_parcels_df['PARCELID']), Job_Categories] = 0
+            jobs_to_be_zeroed_out = updated_parcels_df.loc[updated_parcels_df['PARCELID'].isin(missing_juris_parcels_df['PARCELID']), 'EMPTOT_P'].sum()
+            updated_parcels_df.loc[updated_parcels_df['PARCELID'].isin(missing_juris_parcels_df['PARCELID']), Job_Categories] = 0
         # index by parcel id for alignment
         updated_parcels_df = updated_parcels_df.set_index('PARCELID')
         local_data_df = local_data_df.set_index('PSRC_ID')
 
+        self.logger.info(f"total jobs in {jurisdiction}-provided parcel data: {local_data_df['EMPTOT_P'].sum()}")
+
         # only update rows that exist in both
         common_ids = updated_parcels_df.index.intersection(local_data_df.index)
         b4_change_df = updated_parcels_df.loc[common_ids, jobs_cat]
+        self.logger.info(f"{len(common_ids)} parcels are found in both the base file and the parcel file provided by {jurisdiction}")
+        self.logger.info(f"total jobs among these parcels before replacement: {b4_change_df['EMPTOT_P'].sum()} ")
 
         # replace values
         updated_parcels_df.loc[common_ids, jobs_cat] = local_data_df.loc[common_ids, jobs_cat]
+        self.logger.info(f"total jobs among these parcels after replacement: {updated_parcels_df.loc[common_ids, 'EMPTOT_P'].sum()}")
         
         # calculate total jobs after change
         updated_parcels_df.fillna(0, inplace=True)

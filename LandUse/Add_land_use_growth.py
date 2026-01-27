@@ -133,7 +133,7 @@ def merge_and_summarize(base_df, growth_df, key, numeric_cols, out_file, summary
 			summary_df[f'merged_{c}'] = merged_by[c]
 			summary_df[f'delta_{c}'] = merged_by[c] - base_by[c]
 
-		summary_df.reset_index().rename(columns={'index': key}).to_csv(summary_out_file, index=False)
+		summary_df.reset_index().rename(columns={'index': key}).to_csv(os.path.join(working_folder, summary_out_file), index=False)
 		print(f'Per-{key} numeric summary written to: {summary_out_file}')
 	else:
 		merged_df = pd.concat([base_df, growth_df], ignore_index=True)

@@ -29,7 +29,9 @@ class LUPreprocessUserInterface(QDialog, Shared_GUI_Widgets):
         # Further UI initialization code would go here
         self._init_ui()
         self.create_status_bar(self, 4)
-        self.logger = logging.getLogger()
+        base_logger = logging.getLogger(__name__)
+        indent = dialog_level(self)
+        self.logger = IndentAdapter(base_logger, indent)
         self.logger.info("Land Use Data Preprocessor UI initialized.")
 
 
@@ -96,9 +98,12 @@ class LUPreprocessUserInterface(QDialog, Shared_GUI_Widgets):
         self.status_sections[1].setText(f"{len(self.subarea_list.selectedItems())} jurisdictions selected")
 
     def kirkland_btn_clicked(self):
+
+        self.status_sections[0].setText("Kirkland data processed.")
         pass
 
     def redmond_btn_clicked(self):
+        self.status_sections[0].setText("Redmond data processed.")
         pass
 
     def bellevue_btn_clicked(self):
@@ -176,6 +181,7 @@ class LUPreprocessUserInterface(QDialog, Shared_GUI_Widgets):
         if error_parcels.shape[0] > 0:
             self.logger.info(f"Please check the error file first: {os.path.join(self.output_dir, error_parcel_file)}")
         self.logger.info("Bellevue land use data preprocessing completed.")
+        self.status_sections[0].setText("Bellevue data processed.")
 
     def closeEvent(self, event):
         self.logger.info("Land Use Data Preprocessor closed.")

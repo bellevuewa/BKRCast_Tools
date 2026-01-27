@@ -2,12 +2,15 @@ from abc import ABC, abstractmethod
 import logging, copy, os
 import pandas as pd
 from Parcels import Parcels
-from utility import Job_Categories, Summary_Categories, backupScripts
+from utility import Job_Categories, IndentAdapter, backupScripts, dialog_level
 
 class ParcelInterpolator(ABC):
-    def __init__(self):
+    def __init__(self, indent):
         self.interpolated_df: pd.DataFrame | None = None
         self.output_folder: str = ''
+        self.indent = indent + 1
+        base_logger = logging.getLogger(__name__)
+        self.logger = IndentAdapter(base_logger, self.indent)
 
     @abstractmethod
     def interpolate(self, left_Parcels, right_Parcels, horizon_year) -> Parcels:
@@ -15,17 +18,17 @@ class ParcelInterpolator(ABC):
 
     def export_interpolated_parcels(self, export_name: str):
         if self.interpolated_df is None:
-            logging.error("Interpolated dataframe is not available for export.")
+            self.logger.error("Interpolated dataframe is not available for export.")
             raise ValueError("Interpolated dataframe is not available.")
 
         fn = os.path.join(self.output_folder, export_name)
         self.interpolated_df.to_csv(fn, sep = ' ', index=False)
-        logging.info(f'Interpolated parcel data exported to: {fn}')
+        self.logger.info(f'Interpolated parcel data exported to: {fn}')
 
 
 class LinearParcelInterpolator(ParcelInterpolator):
-    def __init__(self, output_folder: str):
-        super().__init__()
+    def __init__(self, output_folder: str, indent):
+        super().__init__(indent)
         self.output_folder = output_folder
 
 
@@ -38,10 +41,10 @@ class LinearParcelInterpolator(ParcelInterpolator):
             Create a new parcel file by interpolating employment bewteen two parcel files. The newly created parcel file has other non-job values
             from parcel_file_name_ealier.
         """
-        logging.info('Linear interpolating...')
-        logging.info(f"Left Parcel Year: {left_Parcels.data_year}, Right Parcel Year: {right_Parcels.data_year}, Horizon Year: {horizon_year}")
-        logging.info(f"Left Parcel File: {left_Parcels.filename}")
-        logging.info(f"Right Parcel File: {right_Parcels.filename}")
+        self.logger.info('Linear interpolating...')
+        self.logger.info(f"Left Parcel Year: {left_Parcels.data_year}, Right Parcel Year: {right_Parcels.data_year}, Horizon Year: {horizon_year}")
+        self.logger.info(f"Left Parcel File: {left_Parcels.filename}")
+        self.logger.info(f"Right Parcel File: {right_Parcels.filename}")
 
         columns = copy.copy(Job_Categories)
         columns.append('PARCELID')
@@ -57,14 +60,14 @@ class LinearParcelInterpolator(ParcelInterpolator):
         for cat in Job_Categories:
             parcels_from_latter_df['EMPTOT_L'] = parcels_from_latter_df[cat + '_L'] + parcels_from_latter_df['EMPTOT_L']
 
-        logging.info(f"Total jobs in year {right_Parcels.data_year} are {parcels_from_latter_df['EMPTOT_L'].sum():,.0f}")
+        self.logger.info(f"Total jobs in year {right_Parcels.data_year} are {parcels_from_latter_df['EMPTOT_L'].sum():,.0f}")
         parcel_horizon_df = parcel_earlier_df.merge(parcels_from_latter_df.reset_index(), how = 'inner', left_on = 'PARCELID', right_on = 'PARCELID')
 
         parcel_horizon_df['EMPTOT_E'] = 0
         for cat in Job_Categories:
             parcel_horizon_df['EMPTOT_E'] = parcel_horizon_df['EMPTOT_E'] + parcel_horizon_df[cat]
         parcel_horizon_df['EMPTOT_P'] = parcel_horizon_df['EMPTOT_E']
-        logging.info(f"Total jobs in year {left_Parcels.data_year} are {parcel_horizon_df['EMPTOT_P'].sum():,.0f}")
+        self.logger.info(f"Total jobs in year {left_Parcels.data_year} are {parcel_horizon_df['EMPTOT_P'].sum():,.0f}")
 
         # interpolate number of jobs, and round to integer.
         for cat in job_std:
@@ -78,13 +81,13 @@ class LinearParcelInterpolator(ParcelInterpolator):
         parcel_horizon_df = parcel_horizon_df.drop([i + '_L' for i in job_std], axis = 1)
         parcel_horizon_df = parcel_horizon_df.drop(['EMPTOT_L', 'EMPTOT_E'], axis = 1)
 
-        logging.info(f"After interpolation, total jobs are {parcel_horizon_df['EMPTOT_P'].sum():,.0f}")
+        self.logger.info(f"After interpolation, total jobs are {parcel_horizon_df['EMPTOT_P'].sum():,.0f}")
         self.interpolated_df = parcel_horizon_df
 
         interpolated_fn = f'Interpolated_{horizon_year}_urbansim_parcels_from_{left_Parcels.data_year}_and {right_Parcels.data_year}_to_{horizon_year}.txt'
         self.export_interpolated_parcels(interpolated_fn)
         
-        out = Parcels.from_dataframe(self.interpolated_df, horizon_year, interpolated_fn, left_Parcels.subarea_df, left_Parcels.lookup_df)
+        out = Parcels.from_dataframe(self.interpolated_df, horizon_year, interpolated_fn, left_Parcels.subarea_df, left_Parcels.lookup_df, self.indent + 1)
         
         return out
 

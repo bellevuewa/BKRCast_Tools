@@ -15,7 +15,7 @@ if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
 class Parcels:
-    def __init__(self, subarea_file, lookup_file, filename, data_year):
+    def __init__(self, subarea_file, lookup_file, filename, data_year, log_indent = 0):
         """
         Initialize the class with data.
         :param data: Dictionary containing land use data.
@@ -34,7 +34,8 @@ class Parcels:
         #####
         self.original_parcels_df = pd.read_csv(filename, sep = ' ', low_memory = False)
 
-        self.logger = logging.getLogger()
+        base_logger = logging.getLogger(__name__)
+        self.logger = IndentAdapter(base_logger, log_indent)
 
         # self.parcels_df : pd.DataFrame= None
 
@@ -44,7 +45,7 @@ class Parcels:
         return Parcels.from_dataframe(self.original_parcels_df, self.data_year, self.filename, self.subarea_df)
 
     @classmethod
-    def from_dataframe(cls, df: pd.DataFrame, data_year: int, filename: str, subarea_df: pd.DataFrame, lookup_df: pd.DataFrame) -> "Parcels":
+    def from_dataframe(cls, df: pd.DataFrame, data_year: int, filename: str, subarea_df: pd.DataFrame, lookup_df: pd.DataFrame, log_indent = 0) -> "Parcels":
         """Initialize Parcels from a DataFrame. a python way to have multiple constructors."""
         obj = cls.__new__(cls) # Create an uninitialized instance
         obj.original_parcels_df = df.copy()
@@ -52,7 +53,8 @@ class Parcels:
         obj.filename = filename
         obj.lookup_df = lookup_df.copy()
         obj.subarea_df = subarea_df.copy()
-        obj.logger = logging.getLogger()
+        base_logger = logging.getLogger(__name__)
+        obj.logger = IndentAdapter(base_logger, log_indent)
         # obj.parcels_df = None
         return obj
 
