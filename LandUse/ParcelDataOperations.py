@@ -14,6 +14,7 @@ class ParcelDataOperations:
         self.output_filename = os.path.join(output_dir, output_filename)
         self.updated_parcels_df = base_parcels.original_parcels_df.copy()
         base_logger = logging.getLogger(__name__)
+        self.indent = indent
         self.logger = IndentAdapter(base_logger, indent)
 
 
@@ -27,7 +28,7 @@ class ParcelDataOperations:
         else:
             fn = self.output_filename
         self.updated_parcels_df.to_csv(fn, sep = ' ', index=False)
-        out = Parcels.from_dataframe(self.updated_parcels_df, filename=fn, data_year=self.base_parcel.data_year, subarea_df=self.base_parcel.subarea_df, lookup_df=self.base_parcel.lookup_df)
+        out = Parcels.from_dataframe(self.updated_parcels_df, filename=fn, data_year=self.base_parcel.data_year, subarea_df=self.base_parcel.subarea_df, lookup_df=self.base_parcel.lookup_df, log_indent = self.indent + 1)
         self.logger.info(f'Updated parcel data exported to: {fn}')
         return out
         

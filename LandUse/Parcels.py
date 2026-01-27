@@ -36,13 +36,14 @@ class Parcels:
 
         base_logger = logging.getLogger(__name__)
         self.logger = IndentAdapter(base_logger, log_indent)
+        self.indent = log_indent
 
         # self.parcels_df : pd.DataFrame= None
 
     def copy(self) -> "Parcels":
         """for deep copy"""
 
-        return Parcels.from_dataframe(self.original_parcels_df, self.data_year, self.filename, self.subarea_df)
+        return Parcels.from_dataframe(self.original_parcels_df, self.data_year, self.filename, self.subarea_df, self.indent)
 
     @classmethod
     def from_dataframe(cls, df: pd.DataFrame, data_year: int, filename: str, subarea_df: pd.DataFrame, lookup_df: pd.DataFrame, log_indent = 0) -> "Parcels":

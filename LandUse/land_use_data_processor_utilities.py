@@ -280,8 +280,8 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
         for rule in self.process_rules:
             ret = op.generate_employment_data_for_jurisiction(rule)
 
-        self.final_parcel = Parcels.from_dataframe(ret['data_frame'], self.horizon_year, os.path.join(self.output_dir, fn), self.project_settings['subarea_df'], self.project_settings['lookup_df'], indent + 1)
-        op.export_updated_parcels()
+        # self.final_parcel = Parcels.from_dataframe(ret['data_frame'], self.horizon_year, os.path.join(self.output_dir, fn), self.project_settings['subarea_df'], self.project_settings['lookup_df'], indent + 1)
+        self.final_parcel = op.export_updated_parcels()
         return ret
 
     def _on_process_thread_finished(self, btns, ret):
