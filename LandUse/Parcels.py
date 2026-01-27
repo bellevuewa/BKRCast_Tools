@@ -72,7 +72,7 @@ class Parcels:
 
         juris_name = 'parel_summary_by_jurisdiction.csv'
         taz_name = 'parcel_summary_by_taz.csv'
-        subarea_name = 'parcel_summary_by_subarea'
+        subarea_name = 'parcel_summary_by_subarea.csv'
 
         if output_fn_prefix != '': 
             juris_name = output_fn_prefix + '_' + juris_name

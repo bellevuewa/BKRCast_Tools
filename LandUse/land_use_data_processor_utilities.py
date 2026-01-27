@@ -53,7 +53,7 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
             {"Jurisdiction": "Redmond", 
              "File": r"Z:\Modeling Group\BKRCast\LandUse\2044_long_term_planning\2044_Redmond_estimated_jobs_by_BKRTMTAZ.csv",
              "Data_Format": "BKR_Trip_Model_TAZ_Forma",
-             "Scale_Method": "Scale_by_Job_Category"}
+             "Scale_Method": "Scale_by_Total_Jobs_by_TAZ"}
             ]
         
         self.preload_rules()
