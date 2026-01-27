@@ -222,7 +222,7 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
         QMessageBox.critical(self, "Error", message)
 
     def summarize_parcel_data(self):
-        summary_dict = self.final_parcel.summarize_parcel_data(self.output_dir)
+        summary_dict = self.final_parcel.summarize_parcel_data(self.output_dir, 'final')
         summary_dialog = ValidationAndSummary(self, "Processed Parcel File Summary", summary_dict)
         summary_dialog.exec()         
        
@@ -579,7 +579,7 @@ class BaseDataGenerator(QDialog, Shared_GUI_Widgets):
         QMessageBox.critical(self, "Error", message)
 
     def summarize_btn_clicked(self):
-        summary_dict = self.base_parcel.summarize_parcel_data(self.parent().output_dir)
+        summary_dict = self.base_parcel.summarize_parcel_data(self.parent().output_dir, 'base')
         summary_dialog = ValidationAndSummary(self, "Base Parcel File Summary", summary_dict)
         summary_dialog.exec()    
 

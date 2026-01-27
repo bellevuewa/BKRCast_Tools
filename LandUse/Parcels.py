@@ -59,7 +59,7 @@ class Parcels:
         return obj
 
 
-    def summarize_parcel_data(self, output_dir) -> dict:
+    def summarize_parcel_data(self, output_dir, output_fn_prefix = '') -> dict:
         parcel_df = self.original_parcels_df.merge(self.subarea_df[['BKRCastTAZ', 'Jurisdiction', 'Subarea']], left_on="TAZ_P", right_on = "BKRCastTAZ", how="left")
         summary_jurisdictions = parcel_df.groupby('Jurisdiction')[Summary_Categories].sum().reset_index()
         summary_taz = parcel_df.groupby('TAZ_P')[Summary_Categories].sum().reset_index()
@@ -69,14 +69,22 @@ class Parcels:
         if output_dir is None:
             output_dir = os.getcwd()
 
-        # the exported files could overwrite other parcel summary files. need to think about better naming convention later.
-        summary_jurisdictions.to_csv(os.path.join(output_dir, 'parcel_summary_by_jurisdiction.csv'), index=False)
-        summary_taz.to_csv(os.path.join(output_dir, 'parcel_summary_by_taz.csv'), index=False)
-        summary_subarea.to_csv(os.path.join(output_dir, 'parcel_summary_by_subarea.csv'), index=False)
+        juris_name = 'parel_summary_by_jurisdiction.csv'
+        taz_name = 'parcel_summary_by_taz.csv'
+        subarea_name = 'parcel_summary_by_subarea'
 
-        self.logger.info(f'Parcel summary by jurisdiction exported to: {os.path.join(output_dir, "parcel_summary_by_jurisdiction.csv")}')
-        self.logger.info(f'Parcel summary by TAZ exported to: {os.path.join(output_dir, "parcel_summary_by_taz.csv")}')
-        self.logger.info(f'Parcel summary by subarea exported to: {os.path.join(output_dir, "parcel_summary_by_subarea.csv")}')
+        if output_fn_prefix != '': 
+            juris_name = output_fn_prefix + '_' + juris_name
+            taz_name = output_fn_prefix + '_' + taz_name
+            subarea_name = output_fn_prefix + '_' + subarea_name
+        # the exported files could overwrite other parcel summary files. need to think about better naming convention later.
+        summary_jurisdictions.to_csv(os.path.join(output_dir, juris_name), index=False)
+        summary_taz.to_csv(os.path.join(output_dir, taz_name), index=False)
+        summary_subarea.to_csv(os.path.join(output_dir, subarea_name), index=False)
+
+        self.logger.info(f'Parcel summary by jurisdiction exported to: {juris_name}')
+        self.logger.info(f'Parcel summary by TAZ exported to: {taz_name}')
+        self.logger.info(f'Parcel summary by subarea exported to: {subarea_name}')
 
         summary_dict = {
             "Jurisdiction": summary_jurisdictions,
