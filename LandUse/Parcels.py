@@ -18,31 +18,21 @@ class Parcels:
     def __init__(self, subarea_file, lookup_file, filename, data_year, log_indent = 0):
         """
         Initialize the class with data.
-        :param data: Dictionary containing land use data.
         """
         self.data_year = data_year # year of the parcel data
         self.filename = filename # original parcel data filename
 
-        #####
-        # Step 1
-        #####
         self.lookup_df = pd.read_csv(lookup_file, sep = ',', low_memory = False)
         self.subarea_df = pd.read_csv(subarea_file, sep = ',', low_memory = False)
 
-        #####
-        # Step 2
-        #####
         self.original_parcels_df = pd.read_csv(filename, sep = ' ', low_memory = False)
 
         base_logger = logging.getLogger(__name__)
         self.logger = IndentAdapter(base_logger, log_indent)
         self.indent = log_indent
 
-        # self.parcels_df : pd.DataFrame= None
-
     def copy(self) -> "Parcels":
         """for deep copy"""
-
         return Parcels.from_dataframe(self.original_parcels_df, self.data_year, self.filename, self.subarea_df, self.indent)
 
     @classmethod
@@ -56,7 +46,6 @@ class Parcels:
         obj.subarea_df = subarea_df.copy()
         base_logger = logging.getLogger(__name__)
         obj.logger = IndentAdapter(base_logger, log_indent)
-        # obj.parcels_df = None
         return obj
 
 
@@ -99,45 +88,6 @@ class Parcels:
         import debugpy
         debugpy.breakpoint()
 
-        validation_dict = {}  
-        output_list = []
-        header = ["Column", "Data Type", "Unique Values", "Missing Values", "Duplicated", "Min", "Max", "Mean"]
+        validation_dict = validate_dataframe_file(self.original_parcels_df)
 
-        for col in self.original_parcels_df.columns:
-            series = self.original_parcels_df[col]
-            unique_non_null = series.nunique(dropna = True)
-            missing = series.isna().sum()
-            duplicates = len(series) - unique_non_null - missing
-            is_numeric = pd.api.types.is_numeric_dtype(series)
-            min = series.min() if is_numeric else ""
-            max = series.max() if is_numeric else ""
-            mean = series.mean() if is_numeric else ""
-
-            outputs = {
-                "Column": col,
-                "Data Type": str(series.dtype),
-                "Unique Values": unique_non_null,
-                "Missing Values": missing,
-                "Duplicated": duplicates,
-                "Min": min,
-                "Max": max,
-                "Mean": mean
-            }
-
-            output_list.append(outputs)
-
-        # df: validation of data_df
-        df = pd.DataFrame(output_list, columns = header)
-
-        # df2: data_df shape
-        df2 = pd.DataFrame([{"Rows": self.original_parcels_df.shape[0], "Columns": self.original_parcels_df.shape[1]}])
-
-        df3 = self.original_parcels_df.head(100)   
-        
-        validation_dict = {
-            "Validation": df,
-            "Summary": df2,
-            "Raw Data Samples": df3
-        }
-        
         return validation_dict

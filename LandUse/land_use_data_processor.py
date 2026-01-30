@@ -15,6 +15,7 @@ from parcel_data_processor import ParcelProcessor
 from land_use_data_preprocessor import LUPreprocessUserInterface
 import land_use_data_processor_utilities as LU_utility
 from GUI_support_utilities import (Shared_GUI_Widgets)
+from SynPopDataUserInterface import SynPopDataUserInterface
 
 from utility import setup_logger_file, _LOGGING_CONFIGURED
 
@@ -164,7 +165,7 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
 
     def browse_output_file(self):
         path = QFileDialog.getExistingDirectory(
-            self, "Select Output Folder", os.getcwd(),
+            self, "Select Parcel Output Folder", os.getcwd(),
         )
         if path:
             self.output_label.setText(path)
@@ -182,6 +183,9 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         parcel_processor.show()
 
     def popsim_button_clicked(self):
+        self.load_settings()
+        processor = SynPopDataUserInterface(self.project_settings, self)
+        processor.show()
         return
     
     def new_parcels_btn_clicked(self):

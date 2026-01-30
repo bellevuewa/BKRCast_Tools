@@ -184,3 +184,49 @@ def controlled_rounding(data_df, attr_name, control_total, index_attr_name):
     
     return new_data_df
  
+def validate_dataframe_file(dataframe: pd.DataFrame) -> dict:
+    import debugpy
+    debugpy.breakpoint()
+
+    validation_dict = {}  
+    output_list = []
+    header = ["Column", "Data Type", "Unique Values", "Missing Values", "Duplicated", "Min", "Max", "Mean"]
+
+    for col in dataframe.columns:
+        series = dataframe[col]
+        unique_non_null = series.nunique(dropna = True)
+        missing = series.isna().sum()
+        duplicates = len(series) - unique_non_null - missing
+        is_numeric = pd.api.types.is_numeric_dtype(series)
+        min = series.min() if is_numeric else ""
+        max = series.max() if is_numeric else ""
+        mean = series.mean() if is_numeric else ""
+
+        outputs = {
+            "Column": col,
+            "Data Type": str(series.dtype),
+            "Unique Values": unique_non_null,
+            "Missing Values": missing,
+            "Duplicated": duplicates,
+            "Min": min,
+            "Max": max,
+            "Mean": mean
+        }
+
+        output_list.append(outputs)
+
+    # df: validation of data_df
+    df = pd.DataFrame(output_list, columns = header)
+
+    # df2: data_df shape
+    df2 = pd.DataFrame([{"Rows": dataframe.shape[0], "Columns": dataframe.shape[1]}])
+
+    df3 = dataframe.head(100)   
+
+    validation_dict = {
+        "Validation": df,
+        "Summary": df2,
+        "Raw Data Samples": df3
+    }
+
+    return validation_dict
