@@ -5,11 +5,11 @@ import traceback
 
 import pandas as pd
 from PyQt6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QLabel, QPushButton,
+    QApplication, QMainWindow, QWidget, QLabel, QPushButton, QDoubleSpinBox,
     QFileDialog, QVBoxLayout, QHBoxLayout, QLineEdit, QMessageBox, QSizePolicy, QSplitter,
-    QTableWidget, QTableWidgetItem, QMainWindow, QTabWidget, QListWidget, QDialog, QHeaderView
+    QTableWidget, QTableWidgetItem, QMainWindow, QTabWidget, QListWidget, QDialog, QHeaderView, QAbstractSpinBox
 )
-
+from PyQt6.QtGui import QDoubleValidator
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from enum import Enum
 from GUI_support_utilities import (Shared_GUI_Widgets, NumericTableWidgetItem)
@@ -18,8 +18,9 @@ from parcel_data_functions import Parcel_Data_Format, Data_Scale_Method
 from synpop_interpolation import LinearSynPopInterpolator
 from Parcels import Parcels
 from ParcelDataOperations import ParcelDataOperations
-from utility import IndentAdapter, dialog_level
+from utility import IndentAdapter, dialog_level, SynPopAssumptions
 from synthetic_population import SyntheticPopulation
+from SynPopDataOperations import SynPopDataOperations
 
 class SynPopDataUserInterface(QDialog, Shared_GUI_Widgets):
     def __init__(self, project_setting, parent = None):
@@ -38,6 +39,24 @@ class SynPopDataUserInterface(QDialog, Shared_GUI_Widgets):
         indent = dialog_level(self)
         self.logger = IndentAdapter(base_logger, indent)
         self.logger.info("Popsim Data UI initialized.")
+
+        self.popsim_control_template_file = ''
+        
+        self.process_rules = [
+            {"Jurisdiction": "Bellevue", 
+                "File": r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\test_2044_long_range_planning\2044_long_range_planning_cob_housingunits.csv",
+                "Data_Format": "Processed_Parcel_Data",
+                "Scale_Method": "Keep_the_Data_from_the_Partner_City"},
+            {"Jurisdiction": "Kirkland", 
+                "File": r"Z:\Modeling Group\BKRCast\LandUse\Kirkland_Complan_Support\2019LU\2019_Kirkland_jobs_by_old_BKRTMTAZ.csv",
+                "Data_Format": "BKR_Trip_Model_TAZ_Forma",
+                "Scale_Method": "Scale_by_Total_Jobs_by_TAZ"},
+            {"Jurisdiction": "Redmond", 
+                "File": r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\test_2044_long_range_planning\2044_Redmond_DU.csv",
+                "Data_Format": "BKR_Trip_Model_TAZ_Forma",
+                "Scale_Method": "Scale_by_Total_Jobs_by_TAZ"}
+            ]
+        self.preload_rules()
 
     def __init_ui__(self):
         self.setWindowTitle("Synthetic Population Data Processor")
@@ -63,7 +82,109 @@ class SynPopDataUserInterface(QDialog, Shared_GUI_Widgets):
         base_button.clicked.connect(self.select_base_popsim_file)
         hbox.addWidget(self.base_file_label)  
         self.main_layout.addLayout(hbox)
-        pass
+
+        hbox = QHBoxLayout()
+        popsim_button = QPushButton("Select PopSim control file template")
+        popsim_button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
+        self.popsim_label = QLabel("No template selected")
+        popsim_button.clicked.connect(self.browse_output_file)
+        hbox.addWidget(popsim_button)
+        hbox.addWidget(self.popsim_label)
+        self.main_layout.addLayout(hbox)    
+
+        vbox = QVBoxLayout()
+        label = QLabel('Household Size and Occupancy Rate')
+        vbox.addWidget(label)
+        cities = ['Bellevue', 'Kirkland', 'Redmond']
+        fields = ['sfhhsize', 'mfhhsize', 'sfhh_occ', 'mfhh_occ']
+        self.table = QTableWidget(len(fields), len(cities))
+        self.table.setHorizontalHeaderLabels(cities)
+        self.table.setVerticalHeaderLabels(fields)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        # load default values hhsize and occ rate
+        for row, field in enumerate(fields):
+            for col, city in enumerate(cities):
+                box = QLineEdit()
+                box.setValidator(QDoubleValidator(0.0,5.0, 3))
+                self.table.setCellWidget(row, col, box)
+                self.table.cellWidget(row, col).setText(str(SynPopAssumptions[city][field]))
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        vbox.addWidget(self.table)
+        self.main_layout.addLayout(vbox)
+
+        #### create controls for input data
+        groupbox_container = QWidget()
+        groupbox_layout = QVBoxLayout(groupbox_container)
+        groupbox_layout.setContentsMargins(0, 0, 0, 0)
+        splitter = QSplitter(Qt.Orientation.Horizontal)
+        partner_container, self.jurisdiction_list_box = self.make_list_panel("Partner Cities", ["Bellevue", "Kirkland", "Redmond"])
+        splitter.addWidget(partner_container)
+
+        # Data Format
+        format_container, self.method_list_box = self.make_list_panel(
+            "Data Format",
+            [item.name for item in Parcel_Data_Format]
+        )
+        splitter.addWidget(format_container)
+
+        # Scale By
+        scaleby_container, self.scaleby_list_box = self.make_list_panel(
+            "Scale By",
+            [item.name for item in Data_Scale_Method],
+            v_policy=QSizePolicy.Policy.Minimum
+        )
+        splitter.addWidget(scaleby_container)
+
+        # Initial splitter sizes
+        splitter.setSizes([200, 300, 250])
+
+        groupbox_layout.addWidget(splitter)
+        self.main_layout.addWidget(groupbox_container)
+
+        add_rules_button = QPushButton("Add Rules")
+        add_rules_button.clicked.connect(self.add_rules)
+        self.main_layout.addWidget(add_rules_button)
+
+        vbox = QVBoxLayout()
+        vbox.addWidget(QLabel("Processing Rules"))
+        self.rule_table = QTableWidget()
+        self.rule_table.setColumnCount(4)
+        self.rule_table.horizontalHeader().setStretchLastSection(True)
+        self.rule_table.setHorizontalHeaderLabels(["Jurisdiction", "File", "Data Format", "Scale Method"])
+        self.rule_table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.rule_table.customContextMenuRequested.connect(lambda pos: self.create_context_menu(self.rule_table, pos))
+        vbox.addWidget(self.rule_table)
+
+        self.main_layout.addLayout(vbox)
+        
+        self.process_btn = QPushButton("Start Processing")
+        self.process_btn.clicked.connect(self.process_btn_clicked)
+        self.main_layout.addWidget(self.process_btn)
+
+    def preload_rules(self):
+        # self.rule_table.clear()
+        for rule in self.process_rules:
+            self.rule_table.insertRow(self.rule_table.rowCount())
+            row = self.rule_table.rowCount() - 1
+            for col, key in enumerate(rule.keys()):
+                item = QTableWidgetItem(str(rule[key]))
+                if key == "File":
+                    item.setToolTip(str(rule[key]))
+                self.rule_table.setItem(row, col, item)
+
+    def read_synpop_hhsize_occ(self)->dict:
+        import copy
+        ret_dict = copy.deepcopy(SynPopAssumptions)
+        cities = ['Bellevue', 'Kirkland', 'Redmond']
+        fields = ['sfhhsize', 'mfhhsize', 'sfhh_occ', 'mfhh_occ']      
+
+        for col, city in enumerate(cities):
+            for row, field in enumerate(fields):
+                box = self.table.cellWidget(row, col)
+                ret_dict[city][field] = float(box.text())
+
+        return ret_dict
 
     def select_base_popsim_file(self):
         base_dialog = BaseSynPopDataGenerator(self, "Base PopSim Data Processor")
@@ -71,6 +192,79 @@ class SynPopDataUserInterface(QDialog, Shared_GUI_Widgets):
             self.base_synpop = base_dialog.base_synpop
             self.base_file_label.setText(base_dialog.base_file)
         pass
+
+    def browse_output_file(self):
+        path, _ = QFileDialog.getOpenFileName(
+                    self, 'Select PopSim control template file', "",
+                    "csv (*.csv);;All Files(*.*)"
+                )
+        
+        if path:
+            self.popsim_label.setText(path)
+            self.popsim_control_template_file = path
+            self.status_sections[0].setText("template file selected.")
+
+    def process_btn_clicked(self):
+        rows = self.rule_table.rowCount()
+        if rows == 0:
+            QMessageBox.critical(self, "Error", "At least one rule is required.")
+            return
+        
+        self.status_sections[0].setText("Processing")
+        self.process_rules = self.table_to_list_of_dicts(self.rule_table)
+
+        btns = self.findChildren(QPushButton)
+        for btn in btns:
+            btn.setEnabled(False)
+        self.worker = ThreadWrapper(self.synpop_process)
+        self.worker.finished.connect(lambda ret: self._on_process_thread_finished(btns, self.status_sections[0], ret))
+        self.worker.error.connect(lambda message: self._on_process_thread_error(btns, self.status_sections[0], message))
+        self.worker.start()
+
+    def synpop_process(self) -> dict:
+        import debugpy
+        debugpy.breakpoint()
+
+        fn = f'ACS2016_{self.horizon_year}_{self.scenario_name}_popsim_control_file.csv'
+        indent = dialog_level(self)
+        hhs_assumptions = self.read_synpop_hhsize_occ()
+        op = SynPopDataOperations(self.base_synpop, self.scenario_name, self.output_dir, hhs_assumptions, indent + 1)
+
+        for rule in self.process_rules:
+            ret = op.generate_total_hhs_data_for_jurisdiction(rule)
+
+        # self.final_parcel = Parcels.from_dataframe(ret['data_frame'], self.horizon_year, os.path.join(self.output_dir, fn), self.project_settings['subarea_df'], self.project_settings['lookup_df'], indent + 1)
+        self.final_parcel = op.export_popsim_control_file(self.popsim_control_template_file, fn)
+        return ret
+
+    def add_rules(self):
+        if (not self.jurisdiction_list_box.selectedItems()) or (not self.method_list_box.selectedItems()) or (not self.scaleby_list_box.selectedItems()):
+            QMessageBox.information(self, "Warning", "You cannot leave these boxes blank")
+            return
+
+        city = self.jurisdiction_list_box.currentItem().text()
+        method = self.method_list_box.currentItem().text()
+        scale_method = self.scaleby_list_box.currentItem().text()
+
+        input_filename, _ = QFileDialog.getOpenFileName(self, f"Select input file from {city}", "", "Text Files (*.txt);;All Files (*)")
+        rule_dict = {
+            "Jurisdiction": city,
+            "File": input_filename,
+            "Data Format": method,
+            "Scale Method": scale_method    
+        }
+
+        # add to the rule table
+        self.rule_table.insertRow(self.rule_table.rowCount())
+        row = self.rule_table.rowCount() - 1
+
+        for col, key in enumerate(rule_dict.keys()):
+            item = QTableWidgetItem(str(rule_dict[key]))
+            if key == "File": # File
+                item.setToolTip(str(rule_dict[key]))
+            self.rule_table.setItem(row, col, item)
+        
+        self.status_sections[0].setText('new rule added.')
 
 class BaseSynPopDataGenerator(QDialog, Shared_GUI_Widgets):
     def __init__(self, parent = None, message = None):

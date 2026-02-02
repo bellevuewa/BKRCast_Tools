@@ -1,12 +1,49 @@
 from PyQt6.QtWidgets import (
-    QApplication, QMessageBox, QMenu, QStatusBar, QLabel, QTableWidget, QTableWidgetItem)
+    QApplication, QMessageBox, QMenu, QStatusBar, QLabel, QTableWidget, QTableWidgetItem,
+    QSizePolicy, QWidget, QVBoxLayout, QListWidget,
+    )
 
 from PyQt6.QtGui import QAction 
 
 import pandas as pd
 
 class Shared_GUI_Widgets:
-    
+    def _on_process_thread_error(self, btns, status_bar_section, e):
+        # called when the thread encounters an error
+        for btn in btns:
+            btn.setEnabled(True)
+        status_bar_section.setText("Error")
+        QMessageBox.critical(self, "Error", str(e))
+
+    def _on_process_thread_finished(self, btns, statusbar_section, ret):
+        # called when the thread is finished
+        for btn in btns:
+            btn.setEnabled(True)
+        
+        statusbar_section.setText("Done")        
+
+    def make_list_panel(self, title, items, v_policy=QSizePolicy.Policy.Expanding):
+        container = QWidget()
+        layout = QVBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(5)
+
+        label = QLabel(title)
+        listbox = QListWidget()
+        listbox.addItems(items)
+        listbox.setSizePolicy(QSizePolicy.Policy.Preferred, v_policy)
+        listbox.setStyleSheet("""
+            QListWidget::item:selected {
+                background: palette(highlight);
+                color: palette(highlighted-text);
+            }
+            """)
+
+        layout.addWidget(label)
+        layout.addWidget(listbox)
+
+        return container, listbox
+
     def create_context_menu(self, table, pos):
         menu = QMenu(table)
         copy_action = QAction("Copy All to Clipboard", table)

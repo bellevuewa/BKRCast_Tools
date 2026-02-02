@@ -115,12 +115,13 @@ class SyntheticPopulation:
         self.logger.info(f'Summary by subarea is saved to {fn_summary_by_subarea}')
         self.logger.info(f'Summary by geoid10 is saved to {fn_summary_by_geoid10}')
 
+        agg_dict = {'total_hhs': 'sum', 'total_persons': 'sum'}
+        summary_by_parcels = hh_taz.groupby('hhparcel').agg(agg_dict)
+        summary_by_parcels = summary_by_parcels.merge(parcel_df[['PSRC_ID', 'GEOID10', 'BKRCastTAZ', 'Jurisdiction']], how = 'right', left_on = 'hhparcel', right_on = 'PSRC_ID')
+        summary_by_parcels.fillna(0, inplace = True)
+        summary_by_parcels.rename(columns = {'total_hhs': 'total_hhs_by_parcel', 'total_persons': 'total_persons_by_parcel'}, inplace = True)
+        
         if export_parcel_level_summary == True:
-            agg_dict = {'total_hhs': 'sum', 'total_persons': 'sum'}
-            summary_by_parcels = hh_taz.groupby('hhparcel').agg(agg_dict)
-            summary_by_parcels = summary_by_parcels.merge(parcel_df[['PSRC_ID', 'GEOID10', 'BKRCastTAZ', 'Jurisdiction']], how = 'right', left_on = 'hhparcel', right_on = 'PSRC_ID')
-            summary_by_parcels.fillna(0, inplace = True)
-            summary_by_parcels.rename(columns = {'total_hhs': 'total_hhs_by_parcel', 'total_persons': 'total_persons_by_parcel'}, inplace = True)
             summary_by_parcels.to_csv(os.path.join(output_dir, fn_summary_by_parcel), index = False, header = True)
             self.logger.info(f'Summaru by parcel is saved to {fn_summary_by_parcel}')
 
@@ -134,7 +135,8 @@ class SyntheticPopulation:
             'summary_by_jurisdiction': summary_by_jurisdiction.reset_index(),
             'summary_by_subarea': summary_by_mma.reset_index(),
             'summary_by_taz': summary_by_taz.reset_index(),
-            'summary_by_geoid10': summary_by_geoid10.reset_index()
+            'summary_by_geoid10': summary_by_geoid10.reset_index(),
+            'summary_by_parcel': summary_by_parcels.reset_index()
         }   
 
         return summary_outputs
