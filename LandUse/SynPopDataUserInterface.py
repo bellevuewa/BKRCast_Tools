@@ -45,16 +45,16 @@ class SynPopDataUserInterface(QDialog, Shared_GUI_Widgets):
         self.process_rules = [
             {"Jurisdiction": "Bellevue", 
                 "File": r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\test_2044_long_range_planning\2044_long_range_planning_cob_housingunits.csv",
-                "Data_Format": "Processed_Parcel_Data",
-                "Scale_Method": "Keep_the_Data_from_the_Partner_City"},
+                "Data Format": "Processed_Parcel_Data",
+                "Scale Method": "Keep_the_Data_from_the_Partner_City"},
             {"Jurisdiction": "Kirkland", 
-                "File": r"Z:\Modeling Group\BKRCast\LandUse\Kirkland_Complan_Support\2019LU\2019_Kirkland_jobs_by_old_BKRTMTAZ.csv",
-                "Data_Format": "BKR_Trip_Model_TAZ_Forma",
-                "Scale_Method": "Scale_by_Total_Jobs_by_TAZ"},
+                "File": r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\test_2044_long_range_planning\parcel_fixed_Kirkland_Complan_2044_target_Landuse_by_BKRCastTAZ.csv",
+                "Data Format": "BKRCastTAZ_Format",
+                "Scale Method": "Scale_by_Total_Hhs_by_TAZ"},
             {"Jurisdiction": "Redmond", 
                 "File": r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\test_2044_long_range_planning\2044_Redmond_DU.csv",
-                "Data_Format": "BKR_Trip_Model_TAZ_Forma",
-                "Scale_Method": "Scale_by_Total_Jobs_by_TAZ"}
+                "Data Format": "BKR_Trip_Model_TAZ_Format",
+                "Scale Method": "Scale_by_Total_Hhs_by_TAZ"}
             ]
         self.preload_rules()
 
@@ -233,8 +233,12 @@ class SynPopDataUserInterface(QDialog, Shared_GUI_Widgets):
         for rule in self.process_rules:
             ret = op.generate_total_hhs_data_for_jurisdiction(rule)
 
-        # self.final_parcel = Parcels.from_dataframe(ret['data_frame'], self.horizon_year, os.path.join(self.output_dir, fn), self.project_settings['subarea_df'], self.project_settings['lookup_df'], indent + 1)
-        self.final_parcel = op.export_popsim_control_file(self.popsim_control_template_file, fn)
+        op.treatment_for_special_GEOID10()
+        op.controlled_rounding()
+        op.export_popsim_control_file(self.popsim_control_template_file, fn)
+
+        guide_filename = f'ACS2016_{self.horizon_year}_{self.scenario_name}_final_hhs_by_parcel.csv'
+        op.export_household_allocation_guide_file(guide_filename)
         return ret
 
     def add_rules(self):
