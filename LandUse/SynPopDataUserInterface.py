@@ -191,7 +191,7 @@ class SynPopDataUserInterface(QDialog, Shared_GUI_Widgets):
         if base_dialog.exec() == QDialog.DialogCode.Accepted:
             self.base_synpop = base_dialog.base_synpop
             self.base_file_label.setText(base_dialog.base_file)
-        pass
+        
 
     def browse_output_file(self):
         path, _ = QFileDialog.getOpenFileName(

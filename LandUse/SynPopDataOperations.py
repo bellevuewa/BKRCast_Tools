@@ -219,7 +219,6 @@ class SynPopDataOperations:
         adjusted_hhs_by_parcel_df = self.updated_hhs_by_parcels_df.copy()
         adj_persons_by_GEOID10 = adjusted_hhs_by_parcel_df[['GEOID10', 'adj_persons_by_parcel']].groupby('GEOID10').sum()
 
-
         # in ACS 2016 there is no hhs in Census block group 530619900020, but in PSRC's future hhs forecast there are. We need to relocate these households from parcels in this blockgroup to  
         # parcels in block group 530610521042 while staying in the same BKRCastTAZ. 
         special_parcels_flag = (adjusted_hhs_by_parcel_df['GEOID10'] == 530619900020) & (adjusted_hhs_by_parcel_df['adj_hhs_by_parcel'] > 0)
@@ -349,4 +348,3 @@ class SynPopDataOperations:
 
         self.updated_hhs_by_parcels_df[cols].rename(columns = {'adj_hhs_by_parcel':'total_hhs'}).to_csv(os.path.join(self.output_dir, fn), index = False)
 
-        

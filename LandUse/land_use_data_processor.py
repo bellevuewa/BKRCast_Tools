@@ -16,6 +16,7 @@ from land_use_data_preprocessor import LUPreprocessUserInterface
 import land_use_data_processor_utilities as LU_utility
 from GUI_support_utilities import (Shared_GUI_Widgets)
 from SynPopDataUserInterface import SynPopDataUserInterface
+from allocate_hhs_to_parcels import HouseholdAllocation
 
 from utility import setup_logger_file, _LOGGING_CONFIGURED
 
@@ -85,9 +86,14 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         hbox.addWidget(lookup_button)
         self.main_layout.addLayout(hbox)
 
-        popsim_button = QPushButton("Process Synthetic Population Data")
+        hbox = QHBoxLayout()
+        popsim_button = QPushButton("Generate Control File for PopSim")
         popsim_button.clicked.connect(self.popsim_button_clicked)
-        self.main_layout.addWidget(popsim_button)
+        hbox.addWidget(popsim_button)
+        allocate_parcel_button = QPushButton("Allocate Hhs to Parcel")
+        allocate_parcel_button.clicked.connect(self.allocate_parcel_button_clicked)
+        hbox.addWidget(allocate_parcel_button)
+        self.main_layout.addLayout(hbox)
 
         parcel_button = QPushButton("Assemble a New Parcel Data from Different Parcel Files")
         parcel_button.clicked.connect(self.parcel_btn_clicked)
@@ -203,6 +209,12 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
             self.logger.info("Land Use Data Process closed.")
             logging.shutdown()
         event.accept()  
+
+    def allocate_parcel_button_clicked(self):
+        self.load_settings()
+        dialog = HouseholdAllocation(self.project_settings, self)
+        dialog.show()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
