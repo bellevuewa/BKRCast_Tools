@@ -59,20 +59,19 @@ def df_to_h5(df, h5_store, group_name):
     # delete store store if exists   
     if group_name in h5_store:
         del h5_store[group_name]
-        my_group = h5_store.create_group(group_name)
-        print("Group Skims Exists. Group deleSted then created")
-        #If not there, create the group
-    else:
-        my_group = h5_store.create_group(group_name)
-        print("Group Skims Created")
+    
+    my_group = h5_store.create_group(group_name)
+
     for col in df.columns:
-        if col == 'block_group_id':
-            # int64 cannot be read into daysim appropriately through hdf5dotnet interface,because the read function will read it as int32 which will
-            # generate a memory access error. But it is fine to keep it in int64 in h5.
-            h5_store[group_name].create_dataset(col, data=df[col], dtype = 'int64', compression = 'gzip')
+        data = df[col].to_numpy()
+        if np.issubdtype(data.dtype, np.integer):
+            dtype = 'int32' if data.dtype.itemsize <= 4 else 'int64'
+        elif np.issubdtype(data.dtype, np.floating):
+            dtype = 'float32'
         else:
-            h5_store[group_name].create_dataset(col, data=df[col], dtype = 'int', compression = 'gzip')
-            
+            dtype = None # let h5py decide
+
+        my_group.create_dataset(col, data=data, dtype=dtype, compression = 'gzip')
 
 def backupScripts(source, dest):
     import os
