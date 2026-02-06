@@ -286,12 +286,16 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
             return
         
         self.status_sections[0].setText("Summarizing parcel file")
-        parcels = Parcels(self.project_settings['subarea_file'], self.project_settings['lookup_file'], file_name, self.project_settings['horizon_year'], self.indent + 1)
        
-        self.worker = ThreadWrapper(parcels.summarize_parcel_data, self.project_settings['output_dir'], '')
+        self.worker = ThreadWrapper(self.summarize_parcel_data, file_name)
         self.worker.finished.connect(lambda summary_dict: self._on_summary_thread_finished(summary_dict, "Parcel File Summary"))
         self.worker.error.connect(lambda message: self._on_process_thread_error(self.summarize_btn, self.status_sections[0], message))
-        self.worker.start()        
+        self.worker.start()       
+
+    def summarize_parcel_data(self, parcel_filename): 
+        parcels = Parcels(self.project_settings['subarea_file'], self.project_settings['lookup_file'], parcel_filename, self.project_settings['horizon_year'], self.indent + 1)
+        summary_dict = parcels.summarize_parcel_data(self.project_settings['output_dir'], '')
+        return summary_dict
 
     def wfh_btton_clicked(self):
         h5_file_name, _ = QFileDialog.getOpenFileName(self, "Select the Synthetic Population File", "", "h5 File (*.h5);;All Files (*)")
