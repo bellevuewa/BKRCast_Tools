@@ -91,3 +91,27 @@ class Parcels:
         validation_dict = validate_dataframe_file(self.original_parcels_df)
 
         return validation_dict
+
+    def sync_with_synthetic_population(self, popsim_filename) -> pd.DataFrame:
+        with h5py.File(popsim_filename, "r") as hdf_file:
+            hh_df = h5_to_df(hdf_file, 'Household')
+
+        output_dir = os.path.dirname(self.filename)
+        name, ext = os.path.splitext(os.path.basename(self.filename))
+        output_parcel_file = f'{name}_sync_with_synpop.{ext}'
+
+        hhs = hh_df.groupby('hhparcel')[['hhexpfac', 'hhsize']].sum().reset_index()
+        parcel_df = self.original_parcels_df.copy()
+        parcel_df = parcel_df.merge(hhs, how = 'left', left_on = 'PARCELID', right_on = 'hhparcel')
+
+        parcel_df['HH_P']  = 0
+        parcel_df['HH_P'] = parcel_df['hhexpfac']
+        parcel_df.fillna(0, inplace = True)
+        parcel_df.drop(['hhexpfac', 'hhsize', 'hhparcel'], axis = 1, inplace = True)
+        parcel_df['HH_P'] = parcel_df['HH_P'].round(0).astype(int)
+
+        parcel_df.to_csv(os.path.join(output_dir, output_parcel_file), sep = ' ', index = False) 
+        self.logger.info(f'Synthetic population file {popsim_filename} synced with the parcel file {self.filename}')
+        self.logger.info(f'The final parcel file is saved in {output_parcel_file}.')
+
+        return parcel_df

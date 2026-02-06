@@ -58,8 +58,8 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
         
         self.preload_rules()
         base_logger = logging.getLogger(__name__)
-        indent = dialog_level(self)
-        self.logger = IndentAdapter(base_logger, indent)
+        self.indent = dialog_level(self)
+        self.logger = IndentAdapter(base_logger, self.indent)
         self.logger.info("Parcel Data Processor initialized.")
 
     def _init_ui(self):
@@ -136,7 +136,11 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
         self.process_btn = QPushButton("Start Processing")
         self.process_btn.clicked.connect(self.process_btn_clicked)
         self.main_layout.addWidget(self.process_btn)
-        
+
+        self.sync_btn = QPushButton("Sync Synthetic Population")
+        self.sync_btn.clicked.connect(self.sync_btn_clicked)
+        self.main_layout.addWidget(self.sync_btn)
+
         hbox = QHBoxLayout()
         self.valid_btn = QPushButton("Validate")
         self.valid_btn.clicked.connect(self.validate_files)
@@ -147,7 +151,33 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
         self.summarize_btn.setEnabled(False)
         hbox.addWidget(self.summarize_btn)
         self.main_layout.addLayout(hbox)
+
+    def sync_btn_clicked(self):
+        if self.final_parcel == None:
+            # load file and create Parcel Object
+            parcel_name, _ = QFileDialog.getOpenFileName(self, "Select the Parcel File for Syncing", "", "txt Files (*.txt);;All Files (*)")
+            if parcel_name == '':
+                QMessageBox.criticla(self, "Error", "Please select the parcel file.")
+                return
+            
+            self.final_parcel = Parcels(self.project_settings['subarea_file'], self.project_settings['lookup_file'], parcel_name, self.horizon_year, self.indent + 1)
+        # otherwise use final_parcel
+        popsim_name, _ = QFileDialog.getOpenFileName(self, "Select Synthetic Population File", "", "H5 Files (*.h5);;All Files (*)")
+        if popsim_name == '':
+            QMessageBox.criticla(self, "Error", "Please select the synthetic population file.")
+            return          
         
+        self.status_sections[0].setText("synchronizing")
+        btns = self.findChildren(QPushButton)
+        for btn in btns:
+            btn.setEnabled(False)
+
+        self.worker = ThreadWrapper(self.final_parcel.sync_with_synthetic_population, popsim_name)
+        
+        self.worker.finished.connect(lambda: self._on_sync_thread_finished(btns)) # lambda is important
+        self.worker.error.connect(lambda message: self._on_valid_thread_error(btns, self.status_sections[0], message))
+        self.worker.start()
+
     def preload_rules(self):
         # self.rule_table.clear()
         for rule in self.process_rules:
@@ -204,6 +234,12 @@ class ParcelDataUserInterface(QDialog, Shared_GUI_Widgets):
         self.worker.error.connect(lambda message: self._on_valid_thread_error([self.valid_btn, self.summarize_btn], self.status_sections[0], message))
         self.worker.start()
         
+    def _on_sync_thread_finished(self, btns):
+        for btn in btns:
+            btn.setEnabled(True)
+        
+        self.status_sections[0].setText("Done")   
+
     def _on_valid_thread_finished(self, btns, validate_dict):
         # called when the thread is finished
         for btn in btns:

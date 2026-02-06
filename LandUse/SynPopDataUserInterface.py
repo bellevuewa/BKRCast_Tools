@@ -516,6 +516,6 @@ class BaseSynPopDataGenerator(QDialog, Shared_GUI_Widgets):
 
 
     def closeEvent(self, event):
-        self.logger.info("Base Parcel Data Generator is closed.")
+        self.logger.info("Synthetic Population User Interface is closed.")
         self.accept()
         event.accept()   

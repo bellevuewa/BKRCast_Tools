@@ -17,8 +17,12 @@ import land_use_data_processor_utilities as LU_utility
 from GUI_support_utilities import (Shared_GUI_Widgets)
 from SynPopDataUserInterface import SynPopDataUserInterface
 from allocate_hhs_to_parcels import HouseholdAllocation
+from land_use_data_processor_utilities import ThreadWrapper, ValidationAndSummary
+from synthetic_population import SyntheticPopulation
+from Parcels import Parcels
 
-from utility import setup_logger_file, _LOGGING_CONFIGURED
+
+from utility import setup_logger_file, dialog_level, _LOGGING_CONFIGURED
 
 
 class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
@@ -45,6 +49,7 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         self.scen_input_editbox.setText(self.project_settings['scenario_name'])
 
         self.logger = None
+        self.indent = 0
         
     def _init_ui(self):
         """Initialize the user interface."""
@@ -93,6 +98,15 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         allocate_parcel_button = QPushButton("Allocate Hhs to Parcel")
         allocate_parcel_button.clicked.connect(self.allocate_parcel_button_clicked)
         hbox.addWidget(allocate_parcel_button)
+        self.main_layout.addLayout(hbox)
+
+        hbox = QHBoxLayout()
+        self.sum_parcel_button = QPushButton("Summarize a Parcel File")
+        self.sum_parcel_button.clicked.connect(self.sum_parcel_button_clicked)
+        hbox.addWidget(self.sum_parcel_button)
+        self.sum_popsim_button = QPushButton("Summarize Synthetic Population")
+        self.sum_popsim_button.clicked.connect(self.sum_popsim_button_clicked)
+        hbox.addWidget(self.sum_popsim_button)
         self.main_layout.addLayout(hbox)
 
         parcel_button = QPushButton("Assemble a New Parcel Data from Different Parcel Files")
@@ -183,6 +197,8 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
             for btn in btns:
                 btn.setEnabled(True)
 
+            self.indent = dialog_level(self)
+
     def parcel_btn_clicked(self):
         self.load_settings()
         parcel_processor = ParcelProcessor()
@@ -215,6 +231,64 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         dialog = HouseholdAllocation(self.project_settings, self)
         dialog.show()
 
+    def sum_popsim_button_clicked(self):
+        if (self.project_settings['subarea_df'] is None):
+            QMessageBox.critical(self, "Error", "Select the subarea definition file.")
+            return
+        
+        if (self.project_settings['lookup_df'] is None):
+            QMessageBox.critical(self, "Error", "Select the lookup file.")
+            return
+        
+        file_name, _ = QFileDialog.getOpenFileName(self, "Select a PopSim h5 File", "", "H5 Files (*.h5);;All Files (*)")
+        import h5py
+        if file_name == '':
+            QMessageBox.critical(self, "Error", "Select a h5 file.")
+            return
+        
+        self.status_sections[0].setText("Summarizing Popsim")
+        synpop = SyntheticPopulation(self.project_settings['subarea_file'], self.project_settings['lookup_file'],
+                                     file_name, self.project_settings['horizon_year'], self.indent + 1)
+
+        btns = self.findChildren(QPushButton)
+        for btn in btns:
+            btn.setEnabled(False)
+
+        self.worker = ThreadWrapper(synpop.summarize_synpop, self.project_settings['output_dir'], '', False, True)
+        self.worker.finished.connect(lambda summary_dict: self._on_summary_thread_finished(summary_dict, "Synthetic Population Summary"))
+        self.worker.error.connect(lambda message: self._on_process_thread_error(self.summarize_btn, self.status_sections[0], message))
+        self.worker.start()        
+
+    def _on_summary_thread_finished(self, data_dict, message):
+        self.status_sections[0].setText("Done")
+        btns = self.findChildren(QPushButton)
+        for btn in btns:
+            btn.setEnabled(True)
+
+        summary_dialog = ValidationAndSummary(self, message, data_dict)
+        summary_dialog.exec()            
+
+    def sum_parcel_button_clicked(self):
+        if (self.project_settings['subarea_df'] is None):
+            QMessageBox.critical(self, "Error", "Select the subarea definition file.")
+            return
+        
+        if (self.project_settings['lookup_df'] is None):
+            QMessageBox.critical(self, "Error", "Select the lookup file.")
+            return
+        
+        file_name, _ = QFileDialog.getOpenFileName(self, "Select a Parcel File", "", "txt File (*.txt);;All Files (*)")
+        if file_name == '':
+            QMessageBox.critical(self, "Error", "Select the parcel file.")
+            return
+        
+        self.status_sections[0].setText("Summarizing parcel file")
+        parcels = Parcels(self.project_settings['subarea_file'], self.project_settings['lookup_file'], file_name, self.project_settings['horizon_year'], self.indent + 1)
+       
+        self.worker = ThreadWrapper(parcels.summarize_parcel_data, self.project_settings['output_dir'], '')
+        self.worker.finished.connect(lambda summary_dict: self._on_summary_thread_finished(summary_dict, "Parcel File Summary"))
+        self.worker.error.connect(lambda message: self._on_process_thread_error(self.summarize_btn, self.status_sections[0], message))
+        self.worker.start()        
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
