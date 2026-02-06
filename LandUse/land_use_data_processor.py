@@ -98,6 +98,9 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         allocate_parcel_button = QPushButton("Allocate Hhs to Parcel")
         allocate_parcel_button.clicked.connect(self.allocate_parcel_button_clicked)
         hbox.addWidget(allocate_parcel_button)
+        wfh_btton = QPushButton('WFH COB Method')
+        wfh_btton.clicked.connect(self.wfh_btton_clicked)
+        hbox.addWidget(wfh_btton)
         self.main_layout.addLayout(hbox)
 
         hbox = QHBoxLayout()
@@ -289,6 +292,38 @@ class LandUseDataUserInterface(QMainWindow, Shared_GUI_Widgets):
         self.worker.finished.connect(lambda summary_dict: self._on_summary_thread_finished(summary_dict, "Parcel File Summary"))
         self.worker.error.connect(lambda message: self._on_process_thread_error(self.summarize_btn, self.status_sections[0], message))
         self.worker.start()        
+
+    def wfh_btton_clicked(self):
+        h5_file_name, _ = QFileDialog.getOpenFileName(self, "Select the Synthetic Population File", "", "h5 File (*.h5);;All Files (*)")
+        if h5_file_name == '':
+            QMessageBox.critical(self, "Error", "Select the Synthetic Population File.")
+            return    
+
+        wfh_rate_file_name, _ = QFileDialog.getOpenFileName(self, "Select the WFH Rate File", "", "csv File (*.csv);;All Files (*)")
+        if wfh_rate_file_name == '':
+            QMessageBox.critical(self, "Error", "Select the Synthetic Population File.")
+            return           
+
+        out_put_h5_file, _ = QFileDialog.getSaveFileName(self, 'Save Synthetic Population', self.project_settings['output_dir'], "H5 Files (*.h5);;All Files (*)")
+        if out_put_h5_file:
+            self.status_sections[0].setText("Generating")
+            btns = self.findChildren(QPushButton)
+            for btn in btns:
+                btn.setEnabled(False)
+
+            self.worker = ThreadWrapper(self.wfh_generating, wfh_rate_file_name, out_put_h5_file, h5_file_name)
+            self.worker.finished.connect(lambda: self._on_process_thread_finished(btns, self.status_sections[0], ''))
+            self.worker.error.connect(lambda message: self._on_process_thread_error(btns, self.status_sections[0], message))
+            self.worker.start()  
+        
+
+    def wfh_generating(self, wfh_rate_file_name, output_h5_file, input_popsim_file):
+        import debugpy
+        debugpy.breakpoint()
+
+        synpop = SyntheticPopulation(self.project_settings['subarea_file'], self.project_settings['lookup_file'],
+                                     input_popsim_file, self.project_settings['horizon_year'], self.indent + 1)   
+        synpop.adjust_worker_status_for_WFH(wfh_rate_file_name, output_h5_file)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

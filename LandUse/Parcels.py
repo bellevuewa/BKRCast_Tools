@@ -98,7 +98,7 @@ class Parcels:
 
         output_dir = os.path.dirname(self.filename)
         name, ext = os.path.splitext(os.path.basename(self.filename))
-        output_parcel_file = f'{name}_sync_with_synpop.{ext}'
+        output_parcel_file = f'{name}_sync_with_synpop{ext}'
 
         hhs = hh_df.groupby('hhparcel')[['hhexpfac', 'hhsize']].sum().reset_index()
         parcel_df = self.original_parcels_df.copy()

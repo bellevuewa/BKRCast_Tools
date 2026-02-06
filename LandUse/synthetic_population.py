@@ -141,3 +141,60 @@ class SyntheticPopulation:
 
         return summary_outputs
             
+    def adjust_worker_status_for_WFH(self, wfh_rate_file, output_h5_file):
+        '''
+        create a new popsim h5 for WFH modeling in COB method, by converting an assumed % of workers to non-worker status
+        
+        :param wfh_rate_file: % WFH rate for each TAZ
+        :param output_h5_file: output file name for the new popsim h5
+        '''
+        self.logger.info(f'COB WFH methodology. Convert workers from worker status to non-worker status.')
+        self.logger.info(f'WFH rate: {wfh_rate_file}')
+
+        output_dir = os.path.dirname(self.filename)
+
+        person_df = self.persons_df.copy()
+        hhs_df = self.hhs_df.copy()
+
+
+        person_df = person_df.merge(hhs_df[['hhno', 'hhtaz', 'hhparcel']], on='hhno', how='left')
+        rate_df = pd.read_csv(wfh_rate_file)
+        rate_df = rate_df.rename(columns={'BKRCastTAZ': 'hhtaz', 'WorkerAdjFactor': 'rate'})
+
+        # attach rate to every person
+        person_df = person_df.merge(rate_df[['hhtaz', 'rate']], on='hhtaz', how='left')
+        person_df['rate'] = person_df['rate'].fillna(0)
+
+        # -------------------------------------------------
+        # Vectorized selection
+        # -------------------------------------------------
+        rng = np.random.default_rng(1) # generate random number 0..1 for every person
+        workers_mask = person_df['pwtyp'] > 0
+        rand = rng.random(len(person_df))
+        convert_mask = workers_mask & (rand < person_df['rate'])
+        total_adjusted = convert_mask.sum()
+
+        # adjust workers status based on selection
+        person_df.loc[convert_mask, 'pwtyp'] = 0
+        person_df.loc[convert_mask & person_df['pptyp'].isin([1, 2]),'pptyp'] = 0
+
+        total_workers_before = (person_df['pwtyp'] > 0).sum() + total_adjusted
+        total_workers_after = (person_df['pwtyp'] > 0).sum()
+
+        self.logger.info(f'{total_workers_before} workers before the change.')
+        self.logger.info(f'{total_workers_after} workers after the change.')
+        self.logger.info(f'{total_adjusted} workers changed.')
+
+        # Save converted list
+        converted_file = 'converted_non_workers.csv'
+        converted_df = person_df.loc[convert_mask,['hhno', 'pno', 'hhtaz', 'hhparcel']]
+        converted_df.to_csv(os.path.join(output_dir, converted_file), index=False)
+        self.logger.info(f'workers converted to non-worker status are saved in {converted_file}')
+
+        person_df.drop(columns=['rate', 'hhtaz', 'hhparcel'], inplace=True)
+
+        with h5py.File(os.path.join(output_dir, output_h5_file), 'w') as f:
+            df_to_h5(hhs_df, f, 'Household')
+            df_to_h5(person_df, f, 'Person')
+
+        self.logger.info(f'updated synthetic population for WFH is saved in {output_h5_file} ')
