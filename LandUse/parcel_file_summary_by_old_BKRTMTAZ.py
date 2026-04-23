@@ -10,22 +10,22 @@ import utility
 # upgrade to python 3.7
 
 ### Configuration
-Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\2019baseyear-new_hhs_alloc_approach"
-Original_ESD_Parcel_File_Name = r"parcels_urbansim.txt"
+Original_Parcel_Folder = r"Z:\Modeling Group\BKRCast\LandUse\2044_long_term_planning"
+Original_ESD_Parcel_File_Name = r"2044_Bellevue_complan_parcels_urbansim.txt"
 lookup_File_Name = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv"
 ###
 
 Output_Field = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P', 'EMPTOT_P', 'STUGRD_P', 'STUHGH_P', 'STUUNI_P', 'HH_P']
 
 print("Loading input files ...")
-parcels_df = pd.read_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = ' ')
+parcels_df = pd.read_csv(os.path.join(Original_Parcel_Folder, Original_ESD_Parcel_File_Name), sep = ' ')S
 lookup_df = pd.read_csv(os.path.join(Original_Parcel_Folder, lookup_File_Name), sep = ',')
 parcels_df = parcels_df.merge(lookup_df[['PSRC_ID', 'BKRTMTAZ', 'Jurisdiction']], how = 'left',  left_on = 'PARCELID', right_on = 'PSRC_ID')
-kirkland_parcels_df = parcels_df.loc[parcels_df['Jurisdiction'] == 'KIRKLAND']
+kirkland_parcels_df = parcels_df.loc[parcels_df['Jurisdiction'] == 'REDMOND']
 
 summary_by_taz = kirkland_parcels_df.groupby('BKRTMTAZ')[Output_Field].sum()
 print("Exporting \"summary_by_TAZ.csv\"")
-summary_by_taz.to_csv(os.path.join(Original_Parcel_Folder, 'for_Kirkland_Compan_Support', "2019_Kirkland_jobs_by_old_BKRTMTAZ.csv")) 
+summary_by_taz.to_csv(os.path.join(Original_Parcel_Folder, "2044_PSRC_jobs_for_Redmond_by_BKRTMTAZ.csv")) 
 
 # copy source file
 utility.backupScripts(__file__, os.path.join(Original_Parcel_Folder, os.path.basename(__file__)))

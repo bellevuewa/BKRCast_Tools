@@ -7,37 +7,30 @@ import utility
 
 
 '''
-This program will descide how many households each parcel should have.
-It takes COB dwelling units forecast (cob_du_file), and Kirkland/Redmond's hhs forecast by trip model TAZ (hhs_control_total_by_TAZ) as local estimate
-to replace parcel data in (hhs_by_parcel) in relevant jurisdictions. It will round number of hhs and persons from decimals to whole integer while keeping
-hhs and person intact by BKRCastTAZ level. If no local estimate from Kirkland/Redmond is provided, set hhs_control_total_by_TAZ = ''.
-
-This program can be used in producing base year or future year household inputs for populatitonsim and parcelizationV2.py.
-
-# in ACS 2016 there is no hhs in Census block group 530619900020, but in PSRC's future hhs forecast there are. We need to relocate these households from parcels in 
-# this blockgroup to parcels in block group 530610521042 while staying in the same BKRCastTAZ. 
-
-Number of hhs per parcel in whole number is exported to external file. This file is used as guidance to allocate synthetic popualtion to parcel using parcelizationV2.py.
-A control file for populationsim is generated as well. 
+Edits originally started from Prepare_Hhs_for_base_or_future_using_KR_oldTAZ_COB_parcel_forecast.py, only used to
+create popsim control file for 2044 long term model, which includes local estimates from Redmond, Kirkland and Bellevue.
+Redmond provided their local forecast for 2044 in the old trip model TAZ system.
+Kirkland land use is from their complan preferred alternative.
+COB is from from its Complan 2044 forecast.
 '''
 ### configuration #####
 ### input files
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2030_DevReview_156thCorridor_Study' 
+working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2044_long_term_plan' 
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-hhs_by_parcel = '2030_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
-cob_du_file = '2030_COB_housingunits.csv'
+hhs_by_parcel = '2044_COB_COK_PSRC_hh_summary_by_parcel.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
+cob_du_file = ''
 popsim_control_file = 'acecon0403.csv'
 
 # TAZ level control total (households) from Kirkland and Redmond. (can be any TAZ)
 # if there is no local estimate from Redmond/Kirkland, set it to ''. 
-hhs_control_total_by_TAZ = ''
+hhs_control_total_by_TAZ = '2044_Redmond_DU.csv'
 
 # output files
-hhs_by_taz_comparison_file = '' # only used when hhs_control_total_by_TAZ is provided.
-adjusted_hhs_by_parcel_file = '2030_final_hhs_by_parcel.csv'
-popsim_control_output_file = r'ACS2016_controls_2030_DevReview.csv'
-parcels_for_allocation_filename = '2030_DevReview_parcels_for_allocation_local_estimate.csv'
-summary_by_jurisdiction_filename = '2030_DevReview_summary_by_jurisdiction.csv'
+hhs_by_taz_comparison_file = 'hhs_by_taz_comparison.csv' # only used when hhs_control_total_by_TAZ is provided.
+adjusted_hhs_by_parcel_file = '2044_long_term_model_final_hhs_by_parcel.csv'
+popsim_control_output_file = r'ACS2016_controls_2044_long_term.csv'
+parcels_for_allocation_filename = '2044_long_term_parcels_for_allocation_local_estimate.csv'
+summary_by_jurisdiction_filename = '2044_long_term_summary_by_jurisdiction.csv'
 #maybe we do not need this file. we can use an output file from prepare_land_use_step_1.py
 
 ####
@@ -68,7 +61,7 @@ avg_persons_per_mfhh =  2.03 # from Gwen
 
 lookup_df = pd.read_csv(lookup_file, low_memory = False)
 hhs_by_parcel_df = pd.read_csv(os.path.join(working_folder, hhs_by_parcel))
-cob_du_df = pd.read_csv(os.path.join(working_folder, cob_du_file))
+
 
 # make a deep copy of hhs_by_parcel_df
 adjusted_hhs_by_parcel_df = hhs_by_parcel_df.copy()
@@ -134,29 +127,31 @@ if hhs_control_total_by_TAZ != '':
 else:
     print('No household estimate is provided by Redmond and Kirkland. ')
 
-# Replace hhs estimate with COB's forecast
-# if some parcels are missing from the cob_du_df, export them for further investigation.
-cob_total_parcels_df = hhs_by_parcel_df.loc[hhs_by_parcel_df['Jurisdiction'] == 'BELLEVUE']
-cob_parcels_provided = cob_du_df.shape[0]
-if cob_total_parcels_df.shape[0] != cob_parcels_provided:
-    print('COB forecast does not cover all parcels. Please cehck the missing parcel files for further investigation.')
-    cob_missing_parcels_df = cob_total_parcels_df.loc[~cob_total_parcels_df['PSRC_ID'].isin(cob_du_df['PSRC_ID'])]
-    cob_missing_parcels_df.to_csv(os.path.join(working_folder, 'cob_missing_parcels.csv'), index = False)
-    print(f'{cob_missing_parcels_df.shape[0]} parcels are missing in {cob_du_file}.')
+if cob_du_file != '':
+    # Replace hhs estimate with COB's forecast
+    # if some parcels are missing from the cob_du_df, export them for further investigation.
+    cob_du_df = pd.read_csv(os.path.join(working_folder, cob_du_file))
+    cob_total_parcels_df = hhs_by_parcel_df.loc[hhs_by_parcel_df['Jurisdiction'] == 'BELLEVUE']
+    cob_parcels_provided = cob_du_df.shape[0]
+    if cob_total_parcels_df.shape[0] != cob_parcels_provided:
+        print('COB forecast does not cover all parcels. Please cehck the missing parcel files for further investigation.')
+        cob_missing_parcels_df = cob_total_parcels_df.loc[~cob_total_parcels_df['PSRC_ID'].isin(cob_du_df['PSRC_ID'])]
+        cob_missing_parcels_df.to_csv(os.path.join(working_folder, 'cob_missing_parcels.csv'), index = False)
+        print(f'{cob_missing_parcels_df.shape[0]} parcels are missing in {cob_du_file}.')
 
-cob_du_df['sfhhs'] = cob_du_df['SFUnits'] * sf_occupancy_rate 
-cob_du_df['mfhhs'] = cob_du_df['MFUnits'] * mf_occupancy_rate
-cob_du_df['sfpersons'] = cob_du_df['sfhhs'] * avg_persons_per_sfhh
-cob_du_df['mfpersons'] = cob_du_df['mfhhs'] * avg_persons_per_mfhh
-cob_du_df['cobflag'] = 'cob'
+    cob_du_df['sfhhs'] = cob_du_df['SFUnits'] * sf_occupancy_rate 
+    cob_du_df['mfhhs'] = cob_du_df['MFUnits'] * mf_occupancy_rate
+    cob_du_df['sfpersons'] = cob_du_df['sfhhs'] * avg_persons_per_sfhh
+    cob_du_df['mfpersons'] = cob_du_df['mfhhs'] * avg_persons_per_mfhh
+    cob_du_df['cobflag'] = 'cob'
 
-adjusted_hhs_by_parcel_df = adjusted_hhs_by_parcel_df.merge(cob_du_df[['PSRC_ID', 'cobflag', 'sfhhs', 'mfhhs', 'sfpersons', 'mfpersons']], on = 'PSRC_ID', how = 'left')
-# reset hhs and persons in all COB parcels to zero. Only use local forecast.
-adjusted_hhs_by_parcel_df.loc[adjusted_hhs_by_parcel_df['Jurisdiction'] == 'BELLEVUE', ['adj_hhs_by_parcel', 'adj_persons_by_parcel']] = 0
+    adjusted_hhs_by_parcel_df = adjusted_hhs_by_parcel_df.merge(cob_du_df[['PSRC_ID', 'cobflag', 'sfhhs', 'mfhhs', 'sfpersons', 'mfpersons']], on = 'PSRC_ID', how = 'left')
+    # reset hhs and persons in all COB parcels to zero. Only use local forecast.
+    adjusted_hhs_by_parcel_df.loc[adjusted_hhs_by_parcel_df['Jurisdiction'] == 'BELLEVUE', ['adj_hhs_by_parcel', 'adj_persons_by_parcel']] = 0
 
-# it is importand to use cobflag rather than Jurisdiction, because (hhs and persons in) parcels flagged by cobflag are provided by COB staff.
-adjusted_hhs_by_parcel_df.loc[adjusted_hhs_by_parcel_df['cobflag'] == 'cob', 'adj_hhs_by_parcel'] = adjusted_hhs_by_parcel_df['sfhhs'] + adjusted_hhs_by_parcel_df['mfhhs']
-adjusted_hhs_by_parcel_df.loc[adjusted_hhs_by_parcel_df['cobflag'] == 'cob', 'adj_persons_by_parcel'] = adjusted_hhs_by_parcel_df['sfpersons'] + adjusted_hhs_by_parcel_df['mfpersons']
+    # it is importand to use cobflag rather than Jurisdiction, because (hhs and persons in) parcels flagged by cobflag are provided by COB staff.
+    adjusted_hhs_by_parcel_df.loc[adjusted_hhs_by_parcel_df['cobflag'] == 'cob', 'adj_hhs_by_parcel'] = adjusted_hhs_by_parcel_df['sfhhs'] + adjusted_hhs_by_parcel_df['mfhhs']
+    adjusted_hhs_by_parcel_df.loc[adjusted_hhs_by_parcel_df['cobflag'] == 'cob', 'adj_persons_by_parcel'] = adjusted_hhs_by_parcel_df['sfpersons'] + adjusted_hhs_by_parcel_df['mfpersons']
 
 ### hhs should not be fractions, so round the hhs to integer, controlled by BKRCastTAZ
 ### we will use the rounded hhs by parcel as guidance to allocate synthetic households. So controlled rounding is very important here, otherwise we will have more or less 
@@ -298,12 +293,13 @@ total_hhs = popsim_control_df['hh_bg_weight'].sum()
 total_persons = popsim_control_df['pers_bg_weight'].sum()
 print(f'{total_hhs} households, {total_persons} persons are in the control file.')
 
-### generate other support files for parcelization
-bel_parcels_du_df = cob_total_parcels_df[['PSRC_ID']].merge(cob_du_df[['PSRC_ID', 'SFUnits', 'MFUnits']], on = 'PSRC_ID', how = 'left').fillna(0)
+if cob_du_file != '':
+    ### generate other support files for parcelization
+    bel_parcels_du_df = cob_total_parcels_df[['PSRC_ID']].merge(cob_du_df[['PSRC_ID', 'SFUnits', 'MFUnits']], on = 'PSRC_ID', how = 'left').fillna(0)
 
-bel_parcels_hhs_df = adjusted_hhs_by_parcel_df.loc[adjusted_hhs_by_parcel_df['Jurisdiction'] == 'BELLEVUE', ['PSRC_ID', 'adj_hhs_by_parcel', 'sfhhs', 'mfhhs', 'adj_persons_by_parcel', 'Jurisdiction', 'GEOID10']]
-bel_parcels_hhs_df.rename(columns = {'adj_hhs_by_parcel':'total_hhs', 'adj_persons_by_parcel':'total_persons'}, inplace = True)
-bel_parcels_hhs_df.to_csv(os.path.join(working_folder, parcels_for_allocation_filename), index = False)
+    bel_parcels_hhs_df = adjusted_hhs_by_parcel_df.loc[adjusted_hhs_by_parcel_df['Jurisdiction'] == 'BELLEVUE', ['PSRC_ID', 'adj_hhs_by_parcel', 'sfhhs', 'mfhhs', 'adj_persons_by_parcel', 'Jurisdiction', 'GEOID10']]
+    bel_parcels_hhs_df.rename(columns = {'adj_hhs_by_parcel':'total_hhs', 'adj_persons_by_parcel':'total_persons'}, inplace = True)
+    bel_parcels_hhs_df.to_csv(os.path.join(working_folder, parcels_for_allocation_filename), index = False)
 
 utility.backupScripts(__file__, os.path.join(working_folder, os.path.basename(__file__)))
 

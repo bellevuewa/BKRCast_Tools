@@ -2,7 +2,8 @@ import pandas as pd
 import h5py
 import numpy as np
 import random 
-import os
+import os, sys
+sys.path.append(os.getcwd())
 import utility
 
 ###
@@ -19,18 +20,18 @@ import utility
 
 ###################### configuration
 ### inputs ###
-working_folder = r"Z:\Modeling Group\BKRCast\LandUse\2023baseyear"
-new_Bellevue_parcel_data_file_name = r"2023_COB_Jobs_new_method.csv"
-new_Redmond_parcel_data_file_name = r'2023_redmond_jobs_reformatted.csv'
+working_folder = r"Z:\Modeling Group\BKRCast\LandUse\2030_DevReview_156th_corridor_Study"
+New_parcel_data_file_name = r"2030_COB_Jobs.csv"
+new_Redmond_parcel_data_file_name = r''
 new_Kirkland_parcel_data_file_name = ''
-Original_parcel_file_name = r"interpolated_parcel_file_2023_from_PSRC_2014_2050.txt"
+Original_parcel_file_name = r"interpolated_parcel_file_2030_from_PSRC_2014_2050.txt"
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 
 Set_Jobs_to_Zeros_All_Bel_Parcels_Not_in_New_Parcel_Data_File = True
 Set_Jobs_to_Zeros_All_Redmond_Parcels_Not_in_New_Parcel_Data_File = True
 Set_Jobs_to_Zeros_All_Kirrkland_Parcels_Not_in_New_Parcel_Data_File = True
 ### output files ###
-Updated_parcel_file_name =  r"2023_baseyear_parcels_urbansim.txt"
+Updated_parcel_file_name =  r"2030_devreview_156thCorridorStudy_parcels_urbansim.txt"
 Old_Subset_parcel_file_name = r"Old_parcels_subset.txt"
 
 Columns_List = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPRET_P', 'EMPRSC_P', 'EMPSVC_P', 'EMPOTH_P', 'EMPTOT_P']

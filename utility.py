@@ -1,10 +1,44 @@
 import h5py
+import sys, os
 import numpy as np
 import pandas as pd
+from enum import Enum
+import logging
+from datetime import datetime
 
 #2/3/2022
 # upgrade to python 3.7
 
+_LOGGING_CONFIGURED = False
+
+SynPopAssumptions = {
+    "Bellevue":  {"sfhhsize": 2.82, "mfhhsize": 2.03, "sfhh_occ": 0.952, "mfhh_occ": 0.895},
+    "Kirkland":  {"sfhhsize": 2.82, "mfhhsize": 2.03, "sfhh_occ": 0.952, "mfhh_occ": 0.895},
+    "Redmond":   {"sfhhsize": 2.82, "mfhhsize": 2.03, "sfhh_occ": 0.952, "mfhh_occ": 0.895},
+}
+
+Job_Categories = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPRSC_P', 'EMPSVC_P']
+Summary_Categories = ['EMPEDU_P', 'EMPFOO_P', 'EMPGOV_P', 'EMPIND_P', 'EMPMED_P', 'EMPOFC_P', 'EMPOTH_P', 'EMPRET_P', 'EMPSVC_P', 'EMPTOT_P', 'STUGRD_P', 'STUHGH_P', 'STUUNI_P', 'HH_P']
+
+job_rename_dict = {'JOBS_EDU':'EMPEDU_P', 'JOBS_FOOD':'EMPFOO_P', 'JOBS_GOV':'EMPGOV_P', 'JOBS_IND':'EMPIND_P',
+    'JOBS_MED':'EMPMED_P', 'JOBS_OFF':'EMPOFC_P', 'JOBS_RET':'EMPRET_P', 'JOBS_RSV':'EMPRSC_P', 'JOBS_SERV':'EMPSVC_P', 'JOBS_OTH':'EMPOTH_P',
+    'JOBS_TOTAL':'EMPTOT_P'}
+sqft_rename_dict = {'SQFT_EDU':'SQFT_EDU', 'SQFT_FOOD':'SQFT_FOO','SQFT_GOV':'SQFT_GOV','SQFT_IND':'SQFT_IND','SQFT_MED':'SQFT_MED', 'SQFT_OFF':'SQFT_OFC',
+    'SQFT_RET':'SQFT_RET', 'SQFT_RSV':'SQFT_RSV', 'SQFT_SERV':'SQFT_SVC', 'SQFT_OTH': 'SQFT_OTH', 'SQFT_NONE':'SQFT_NON', 
+    'SQFT_TOTAL':'SQFT_TOT'}
+du_rename_dict = {'UNITS_SF':'SFUnits', 'UNITS_MF':'MFUnits'}
+
+class Parcel_Data_Format(Enum):
+    Processed_Parcel_Data = "Processed_Parcel_Data"
+    BKRCastTAZ_Format = "BKRCastTAZ_Format"
+    BKR_Trip_Model_TAZ_Format = "BKR_Trip_Model_TAZ_Format"
+class Data_Scale_Method(Enum):
+    Keep_the_Data_from_the_Partner_City = "Keep_the_Data_from_the_Partner_City"
+    Scale_by_Job_Category = "Scale_by_Job_Category"
+    Scale_by_Total_Jobs_by_TAZ = "Scale_by_Total_Jobs_by_TAZ"
+class SynPop_Data_Scale_Method(Enum):
+    Keep_the_Data_from_the_Partner_City = "Keep_the_Data_from_the_Partner_City"
+    Scale_by_Total_Hhs_by_TAZ = "Scale_by_Total_Hhs_by_TAZ"
 
 def h5_to_df(h5_file, group_name):
     """
@@ -25,26 +59,82 @@ def df_to_h5(df, h5_store, group_name):
     # delete store store if exists   
     if group_name in h5_store:
         del h5_store[group_name]
-        my_group = h5_store.create_group(group_name)
-        print("Group Skims Exists. Group deleSted then created")
-        #If not there, create the group
-    else:
-        my_group = h5_store.create_group(group_name)
-        print("Group Skims Created")
+    
+    my_group = h5_store.create_group(group_name)
+
     for col in df.columns:
-        if col == 'block_group_id':
-            # int64 cannot be read into daysim appropriately through hdf5dotnet interface,because the read function will read it as int32 which will
-            # generate a memory access error. But it is fine to keep it in int64 in h5.
-            h5_store[group_name].create_dataset(col, data=df[col], dtype = 'int64', compression = 'gzip')
+        data = df[col].to_numpy()
+        if np.issubdtype(data.dtype, np.integer):
+            dtype = 'int32' if data.dtype.itemsize <= 4 else 'int64'
+        elif np.issubdtype(data.dtype, np.floating):
+            dtype = 'float32'
         else:
-            h5_store[group_name].create_dataset(col, data=df[col], dtype = 'int', compression = 'gzip')
-            
+            dtype = None # let h5py decide
+
+        my_group.create_dataset(col, data=data, dtype=dtype, compression = 'gzip')
 
 def backupScripts(source, dest):
     import os
     import shutil
     shutil.copyfile(source, dest)
-   
+
+def setup_logger_file(output_dir, log_name = "parcel_processing.log") -> logging.Logger:
+    global _LOGGING_CONFIGURED 
+    if _LOGGING_CONFIGURED:
+        base_logger = logging.getLogger(__name__)
+        logger = IndentAdapter(base_logger, indent = 0)
+        return logger
+
+    log_filename = os.path.join(output_dir, log_name)
+    formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    file_handler = logging.FileHandler(log_filename, mode = 'w')
+
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(formatter)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.INFO)
+    console_handler.setFormatter(formatter)
+
+    console_handler.setLevel(logging.ERROR)
+    console_handler.setFormatter(formatter)
+
+    root = logging.getLogger()
+    root.setLevel(logging.DEBUG)
+    root.addHandler(file_handler)
+    root.addHandler(console_handler)
+
+    _LOGGING_CONFIGURED = True
+
+    base_logger = logging.getLogger(__name__)
+    logger = IndentAdapter(base_logger)   
+    logger.info(
+        "Logging initialized at %s", log_filename
+    )  
+    return logger
+
+class IndentAdapter(logging.LoggerAdapter):
+    def __init__(self, logger, indent=0):
+        super().__init__(logger, {})
+        self.indent = indent
+
+    def process(self, msg, kwargs):
+        prefix = "   " * self.indent
+        return f"{prefix}{msg}", kwargs
+
+def get_logger() -> logging.Logger:
+    if not _LOGGING_CONFIGURED:
+        raise RuntimeError("Logger not configured. Please call setup_logger_file first.")
+    base_logger = logging.getLogger(__name__)
+    logger = IndentAdapter(base_logger)
+    return logging.getLogger(__name__)
+
+def dialog_level(widget):
+    level = 0
+    while widget.parentWidget():
+        widget = widget.parentWidget()
+        level += 1
+    return level
 
 def controlled_rounding(data_df, attr_name, control_total, index_attr_name):
     # find residential parcels within taz     
@@ -102,3 +192,49 @@ def controlled_rounding(data_df, attr_name, control_total, index_attr_name):
     
     return new_data_df
  
+def validate_dataframe_file(dataframe: pd.DataFrame) -> dict:
+    import debugpy
+    debugpy.breakpoint()
+
+    validation_dict = {}  
+    output_list = []
+    header = ["Column", "Data Type", "Unique Values", "Missing Values", "Duplicated", "Min", "Max", "Mean"]
+
+    for col in dataframe.columns:
+        series = dataframe[col]
+        unique_non_null = series.nunique(dropna = True)
+        missing = series.isna().sum()
+        duplicates = len(series) - unique_non_null - missing
+        is_numeric = pd.api.types.is_numeric_dtype(series)
+        min = series.min() if is_numeric else ""
+        max = series.max() if is_numeric else ""
+        mean = series.mean() if is_numeric else ""
+
+        outputs = {
+            "Column": col,
+            "Data Type": str(series.dtype),
+            "Unique Values": unique_non_null,
+            "Missing Values": missing,
+            "Duplicated": duplicates,
+            "Min": min,
+            "Max": max,
+            "Mean": mean
+        }
+
+        output_list.append(outputs)
+
+    # df: validation of data_df
+    df = pd.DataFrame(output_list, columns = header)
+
+    # df2: data_df shape
+    df2 = pd.DataFrame([{"Rows": dataframe.shape[0], "Columns": dataframe.shape[1]}])
+
+    df3 = dataframe.head(100)   
+
+    validation_dict = {
+        "Validation": df,
+        "Summary": df2,
+        "Raw Data Samples": df3
+    }
+
+    return validation_dict
