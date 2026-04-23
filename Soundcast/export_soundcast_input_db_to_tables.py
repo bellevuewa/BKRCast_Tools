@@ -33,20 +33,21 @@ from sqlalchemy import create_engine
 
 '''
 
-input_db_file = r"D:\Soundcast\SC2050_input_only\soundcast_inputs_01262024.db"
+input_db_file = r"D:\Soundcast\v4.0_2026_2050_RTP\v4.0_2026_2050_RTP\db\soundcast_inputs_2023.db"
 parcel_lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 tazSharesFileName = r"I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\psrc_to_bkr.txt"
 
-output_folder = r'D:\Soundcast\SC_input_db_export_01262024'
-to_export_tables  = True
+output_folder = r'D:\Soundcast\SC_2023baseyear_input_db_export_04232026'
+to_export_tables  = False
 
 
 def export_tables_from_SC_input_db(db_file, output_folder):
     '''
        export all tables from db_file to output_folder. exported files are named as table_name + '.csv' 
     '''
+    from sqlalchemy import inspect
     conn = create_engine('sqlite:///' + db_file)
-    table_name_list = conn.table_names()
+    table_name_list = inspect(conn).get_table_names()
     num = 0
     for name in table_name_list:
         query = f'SELECT * FROM {name}'
@@ -145,7 +146,10 @@ def convert_group_quarters_to_bkr(folder, filename):
     group_quarters_df = pd.read_csv(os.path.join(folder, filename))
     tazshare_df = pd.read_table(tazSharesFileName)
     group_quarters_df = pd.merge(group_quarters_df, tazshare_df, left_on = 'taz', right_on = 'psrc_zone_id', how = 'left')
-    group_quarters_df['group_quarters'] = group_quarters_df['group_quarters'] * group_quarters_df['percent']
+    group_quarters_df['dorms'] = group_quarters_df['dorms'] * group_quarters_df['percent']
+    group_quarters_df['military'] = group_quarters_df['military'] * group_quarters_df['percent']
+    group_quarters_df['other'] = group_quarters_df['other'] * group_quarters_df['percent']
+    group_quarters_df['group_quarters'] = group_quarters_df['dorms'] + group_quarters_df['military'] + group_quarters_df['other']
     group_quarters_df.drop(['percent', 'psrc_zone_id', 'taz'], axis = 1, inplace = True)
     group_quarters_df.rename(columns={'bkr_zone_id':'BKRCastTAZ'}, inplace = True)
     fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'
@@ -253,12 +257,12 @@ def convert_truck_tod_to_bkr(output_folder, filename):
 def shorten_running_emission_rates_by_veh_type(output_folder, filename):
     df = pd.read_csv(os.path.join(output_folder, filename))
     df_kingc = df.loc[df['county'] == 'king']    
-    df_kingc.drop(columns = ['field1'], inplace = True)    
+    df_kingc.drop(columns = ['Unnamed: 0'], inplace = True)    
     fn = os.path.basename(filename).split('.')[0] + '_bkr.csv'    
     df_kingc.to_csv(os.path.join(output_folder, fn), index = False)        
 
 def main():
-
+    os.makedirs(output_folder, exist_ok = True)
     if to_export_tables == True:
         export_tables_from_SC_input_db(input_db_file, output_folder)
 
