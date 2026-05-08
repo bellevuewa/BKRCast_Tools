@@ -16,12 +16,15 @@ sys.path.append(os.getcwd())
 import utility
 
 ### inputs
-hh_person_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\Complan\complan2044\NewPopSim\2044'                                       
-hh_person_file = 'final_combined_2044_Complan_hh_and_persons.h5'
+hh_person_folder = r'I:\Modeling and Analysis Group\09_IndividualFolders\Hu Dong\2025SynPop'                                       
+hh_person_file = '2025_baseyear_hh_and_persons.h5'
 TAZ_Subarea_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv'
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 export_parcel_level_dataset = False
 export_parcel_level_summary = True
+
+income_bins = [0, 25000, 50000, 75000, 100000, 150000, np.inf]
+labels = ['0-25k', '25k-50k', '50k-75k', '75k-100k', '100k-150k', '150k+']
 
 print('Loading hh and person file...')
 hdf_file = h5py.File(os.path.join(hh_person_folder, hh_person_file), "r")
@@ -52,6 +55,9 @@ subarea_def.set_index('Subarea', inplace = True)
 summary_by_mma = summary_by_mma.join(subarea_def)
 summary_by_taz = hh_taz.groupby('hhtaz')[['total_hhs', 'total_persons',  'ft_w', 'pt_w']].sum()
 
+hh_taz['income_bin'] = pd.cut(hh_taz['hhincome'], bins = income_bins, labels = labels, right = False)
+summary_by_income_bin = hh_taz.groupby(["Jurisdiction", "income_bin"])[['total_hhs', 'total_persons', 'ft_w', 'pt_w']].sum()
+
 
 print('exporting summary by Jurisdiction ... ')
 summary_by_jurisdiction.to_csv(os.path.join(hh_person_folder, "hh_summary_by_jurisdiction.csv"), header = True)
@@ -59,6 +65,8 @@ print('exporting summary by mma... ')
 summary_by_mma.to_csv(os.path.join(hh_person_folder, "hh_summary_by_mma.csv"), header = True)
 print('exporting summary by taz... ')
 summary_by_taz.to_csv(os.path.join(hh_person_folder, "hh_summary_by_taz.csv"), header = True)
+print('exporting summary by income bin... ')
+summary_by_income_bin.to_csv(os.path.join(hh_person_folder, "hh_summary_by_income_bin.csv"), header = True)
 
 parcel_df = pd.read_csv(parcel_filename, low_memory=False) 
 hh_taz = hh_taz.merge(parcel_df, how = 'left', left_on = 'hhparcel', right_on = 'PSRC_ID')
