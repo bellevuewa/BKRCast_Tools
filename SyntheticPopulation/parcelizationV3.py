@@ -22,17 +22,17 @@ upgrade to python 3.7
 
 
 ###############Start of configuration
-working_folder = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2030_DevReview_156thCorridor_Study'
-synthetic_households_file_name = '2030_synthetic_households.csv'
-synthetic_population_file_name = '2030_synthetic_persons.csv'
+working_folder = r'I:\Modeling and Analysis Group\09_IndividualFolders\Hu Dong\2025SynPop'
+synthetic_households_file_name = 'synthetic_households.csv'
+synthetic_population_file_name = 'synthetic_persons.csv'
 
 # number of hhs per parcel
-parcels_for_allocation_filename = r"2030_final_hhs_by_parcel.csv"
+parcels_for_allocation_filename = r"2024_final_hhs_by_parcel.csv"
 
 ## output
-updated_hhs_file_name = 'updated_2030_synthetic_households.csv'
-updated_persons_file_name = 'updated_2030_synthetic_persons.csv'
-h5_file_name = '2030_hh_and_persons.h5'
+updated_hhs_file_name = 'updated_2025_baseyear_synthetic_households.csv'
+updated_persons_file_name = 'updated_2025_baseyear_synthetic_persons.csv'
+h5_file_name = '2025_baseyear_hh_and_persons.h5'
 
 ############## End of configuration
    
@@ -40,6 +40,8 @@ h5_file_name = '2030_hh_and_persons.h5'
 print('Loading....')
 hhs_df = pd.read_csv(os.path.join(working_folder, synthetic_households_file_name))
 hhs_df['hhparcel'] = 0
+if 'VEH' in hhs_df.columns:
+    hhs_df.rename(columns = {'VEH': 'hhvehs'}, inplace = True)
 hhs_by_GEOID10 = hhs_df[['block_group_id', 'hhexpfac']].groupby('block_group_id').sum()
 
 parcels_for_allocation_df = pd.read_csv(os.path.join(working_folder, parcels_for_allocation_filename))

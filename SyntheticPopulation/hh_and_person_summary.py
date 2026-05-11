@@ -13,15 +13,15 @@ import h5py
 import sys
 import numpy as np
 sys.path.append(os.getcwd())
-import utility
+import utility  
 
 ### inputs
-hh_person_folder = r'I:\Modeling and Analysis Group\09_IndividualFolders\Hu Dong\2025SynPop'                                       
-hh_person_file = '2025_baseyear_hh_and_persons.h5'
+hh_person_folder = r'F:\projects\2025baseyear\BKR4-25-v6\inputs\popsim'                                       
+hh_person_file = 'hh_and_persons.h5'
 TAZ_Subarea_File_Name = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\TAZ_subarea.csv'
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 export_parcel_level_dataset = False
-export_parcel_level_summary = True
+export_parcel_level_summary = False
 
 income_bins = [0, 25000, 50000, 75000, 100000, 150000, np.inf]
 labels = ['0-25k', '25k-50k', '50k-75k', '75k-100k', '100k-150k', '150k+']
@@ -37,6 +37,7 @@ workers_df.loc[workers_df['pwtyp'] == 2, 'pt_w'] = 1
 workers_by_hhs_df = workers_df.groupby('hhno').sum().reset_index()
 
 hh_df = utility.h5_to_df(hdf_file, 'Household')
+
 hdf_file.close()
 hh_df = hh_df.merge(workers_by_hhs_df, on = 'hhno', how = 'left')
 taz_subarea = pd.read_csv(TAZ_Subarea_File_Name, sep = ",", index_col = "BKRCastTAZ")
@@ -45,18 +46,24 @@ hh_taz = hh_df.join(taz_subarea, on = 'hhtaz')
 hh_taz['total_persons'] = hh_taz['hhexpfac'] * hh_taz['hhsize']
 hh_taz['total_hhs'] = hh_taz['hhexpfac']
 
-summary_by_jurisdiction = hh_taz.groupby('Jurisdiction')[['total_hhs', 'total_persons', 'ft_w', 'pt_w']].sum()   
-summary_by_mma = hh_taz.groupby('Subarea')[['total_hhs', 'total_persons',  'ft_w', 'pt_w']].sum()
+
+if 'hhvehs' in hh_taz.columns:
+    attr_list = ['total_hhs', 'total_persons', 'hhvehs','ft_w', 'pt_w']
+else:
+    attr_list = ['total_hhs', 'total_persons', 'ft_w', 'pt_w']
+
+summary_by_jurisdiction = hh_taz.groupby('Jurisdiction')[attr_list].sum()  
+summary_by_mma = hh_taz.groupby('Subarea')[attr_list].sum()
 
 taz_subarea.reset_index()
 subarea_def = taz_subarea[['Subarea', 'SubareaName']]
 subarea_def = subarea_def.drop_duplicates(keep = 'first')
 subarea_def.set_index('Subarea', inplace = True)
 summary_by_mma = summary_by_mma.join(subarea_def)
-summary_by_taz = hh_taz.groupby('hhtaz')[['total_hhs', 'total_persons',  'ft_w', 'pt_w']].sum()
+summary_by_taz = hh_taz.groupby('hhtaz')[attr_list].sum()
 
 hh_taz['income_bin'] = pd.cut(hh_taz['hhincome'], bins = income_bins, labels = labels, right = False)
-summary_by_income_bin = hh_taz.groupby(["Jurisdiction", "income_bin"])[['total_hhs', 'total_persons', 'ft_w', 'pt_w']].sum()
+summary_by_income_bin = hh_taz.groupby(["Jurisdiction", "income_bin"])[attr_list].sum()
 
 
 print('exporting summary by Jurisdiction ... ')
