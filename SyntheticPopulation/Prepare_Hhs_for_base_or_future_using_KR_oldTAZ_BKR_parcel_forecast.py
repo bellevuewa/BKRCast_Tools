@@ -24,7 +24,7 @@ A control file for populationsim is generated as well.
 ### input files
 working_folder = r'I:\Modeling and Analysis Group\09_IndividualFolders\Hu Dong\2025SynPop' 
 lookup_file = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
-hhs_by_parcel = '2024_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
+hhs_by_parcel = '2025_hhs_by_parcels_from_PSRC_2014_2050.csv' # output file from interpolate_hhs_and_persons_by_GEOID_btw_two_horizon_years.py
 bkr_du_file = '2025_BK+Redmond_approved_housingunits.csv'
 popsim_control_file = 'acecon0403.csv'
 
@@ -34,10 +34,10 @@ hhs_control_total_by_TAZ = ''
 
 # output files
 hhs_by_taz_comparison_file = '' # only used when hhs_control_total_by_TAZ is provided.
-adjusted_hhs_by_parcel_file = '2024_final_hhs_by_parcel.csv'
-popsim_control_output_file = r'ACS2016_controls_2024_Baseyear_test.csv'
-parcels_for_allocation_filename = '2024_Baseyear_test_parcels_for_allocation_local_estimate.csv'
-summary_by_jurisdiction_filename = '2024_Baseyear_test_summary_by_jurisdiction.csv'
+adjusted_hhs_by_parcel_file = '2025_final_hhs_by_parcel.csv'
+popsim_control_output_file = r'ACS2016_controls_2025_Baseyear_test.csv'
+parcels_for_allocation_filename = '2025_Baseyear_test_parcels_for_allocation_local_estimate.csv'
+summary_by_jurisdiction_filename = '2025_Baseyear_test_summary_by_jurisdiction.csv'
 #maybe we do not need this file. we can use an output file from prepare_land_use_step_1.py
 
 ####
@@ -46,22 +46,22 @@ summary_by_jurisdiction_filename = '2024_Baseyear_test_summary_by_jurisdiction.c
 # avg_person_per_hh_Kirkland = 2.2576
 
 avg_persons_per_sfhh_Kirkland =  2.82 
-avg_persons_per_mfhh_Kirkland =  2.03
+avg_persons_per_mfhh_Kirkland =  2.08
 
 avg_persons_per_sfhh_Redmond =  2.82 
-avg_persons_per_mfhh_Redmond =  2.03
+avg_persons_per_mfhh_Redmond =  2.08
 
 sf_occupancy_rate_Kirkland = 0.952
-mf_occupancy_rate_Kirkland = 0.895
+mf_occupancy_rate_Kirkland = 0.92
 
 sf_occupancy_rate_Redmond = 0.952
-mf_occupancy_rate_Redmond = 0.895
+mf_occupancy_rate_Redmond = 0.92
 
 sf_occupancy_rate = 0.952  # from Gwen
-mf_occupancy_rate = 0.895  # from Gwen
+mf_occupancy_rate = 0.92  # from bryce
 
 avg_persons_per_sfhh =  2.82 # from Gwen
-avg_persons_per_mfhh =  2.03 # from Gwen
+avg_persons_per_mfhh =  2.08 # from bryce
 
 ###
 
