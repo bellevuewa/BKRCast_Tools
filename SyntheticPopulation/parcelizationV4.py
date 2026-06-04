@@ -158,6 +158,7 @@ print('processing person types...')
 pop_df['WKW'] = pop_df['WKW'].fillna(-1)
 pop_df['pstyp'] = pop_df['pstyp'].fillna(-1)
 ages = pop_df['pagey']
+# full time and part time workers: WKW from PUMS data
 fullworkers=[1, 2]
 partworkers=[3, 4, 5, 6]
 nonworkers=[-1]
@@ -174,10 +175,12 @@ pop_df.loc[pop_df['WKW'].isin(fullworkers), 'pwtyp'] = 1
 pop_df.loc[pop_df['WKW'].isin(partworkers), 'pwtyp'] = 2
 pop_df.loc[pop_df['pstyp'].isin(nonstudents), 'pstyp'] = 0
 pop_df.loc[pop_df['pstyp'].isin(fullstudents), 'pstyp'] = 1
-pop_df.loc[pop_df['WKW'].isin(partworkers) & pop_df['pstyp'] == 1, 'pptyp'] = 2
+pop_df.loc[pop_df['WKW'].isin(partworkers) & pop_df['pstyp'] == 1, 'pstyp'] = 2
 pop_df['pptyp'] = 4
 mask_nonworkers = pop_df['WKW'].isin(nonworkers) 
 pop_df.loc[mask_nonworkers & (ages >= 65), 'pptyp'] = 3
+pop_df.loc[mask_nonworkers & (ages.between(16, 64)), 'pptyp'] = 4 # inclusive on both ends
+pop_df.loc[mask_nonworkers & (ages.between(5, 15)), 'pptyp'] = 7
 pop_df.loc[mask_nonworkers & (ages < 5), 'pptyp'] = 8
 pop_df.loc[pop_df['WKW'].isin(fullworkers), 'pptyp'] = 1
 pop_df.loc[pop_df['WKW'].isin(partworkers), 'pptyp'] = 2
