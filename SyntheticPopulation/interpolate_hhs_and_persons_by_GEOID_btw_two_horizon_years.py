@@ -2,6 +2,7 @@ from numpy.core.numeric import True_
 import pandas as pd
 import h5py
 import os, sys
+import numpy as np
 sys.path.append(os.getcwd())
 import utility
 
@@ -22,14 +23,14 @@ future_year_synpop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\
 base_year_synpop_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\PSRC\2014_psrc_hh_and_persons.h5"
 parcel_filename = r'I:\Modeling and Analysis Group\07_ModelDevelopment&Upgrade\NextgenerationModel\BasicData\parcel_TAZ_2014_lookup.csv'
 ofm_estimate_template_file = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\OFM_estimate_template.csv"
-target_year = 2030
+target_year = 2025
 future_year =2050
 base_year = 2014
 
 ## Output files
-interploated_ofm_estimate_by_GEOID = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2030_DevReview_156thCorridor_Study\2030_ofm_estimate_from_PSRC_2014_2050.csv"
-hhs_by_parcel_filename = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2030_DevReview_156thCorridor_Study\2030_hhs_by_parcels_from_PSRC_2014_2050.csv'
-final_output_pop_file = r'I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2030_DevReview_156thCorridor_Study\2030_interpolated_synthetic_population_from_SC.h5'
+interploated_ofm_estimate_by_GEOID = r"I:\Modeling and Analysis Group\09_IndividualFolders\Hu Dong\2025SynPop-debug\console scripts\2025_ofm_estimate_from_PSRC_2014_2050.csv"
+hhs_by_parcel_filename = r'I:\Modeling and Analysis Group\09_IndividualFolders\Hu Dong\2025SynPop-debug\console scripts\2025_hhs_by_parcels_from_PSRC_2014_2050.csv'
+final_output_pop_file = r'I:\Modeling and Analysis Group\09_IndividualFolders\Hu Dong\2025SynPop-debug\console scripts\2025_interpolated_synthetic_population_from_SC.h5'
 
 ### end of configuration
 print('Loading synthetic populations...')
@@ -82,6 +83,9 @@ target_hhs_by_parcel = pd.merge(base_hhs_by_parcel, future_hhs_by_parcel, on = '
 target_hhs_by_parcel.fillna(0, inplace = True)
 target_hhs_by_parcel['total_hhs_by_parcel'] = target_hhs_by_parcel['base_total_hhs'] + (target_hhs_by_parcel['future_total_hhs'] - target_hhs_by_parcel['base_total_hhs']) * ratio
 target_hhs_by_parcel['total_persons_by_parcel'] = target_hhs_by_parcel['base_total_persons'] + (target_hhs_by_parcel['future_total_persons'] - target_hhs_by_parcel['base_total_persons']) * ratio
+# target_hhs_by_parcel['total_hhs_by_parcel'] = target_hhs_by_parcel['total_hhs_by_parcel'].clip(lower = 0)
+# target_hhs_by_parcel['total_persons_by_parcel'] = target_hhs_by_parcel['total_persons_by_parcel'].clip(lower = 0)
+
 target_hhs_by_parcel.drop(['base_total_hhs', 'base_total_persons', 'future_total_hhs', 'future_total_persons'], axis = 1, inplace = True)
 target_hhs_by_parcel.reset_index(inplace = True)
 target_hhs_by_parcel = parcel_df[['PSRC_ID', 'Jurisdiction', 'BKRCastTAZ', 'GEOID10']].merge(target_hhs_by_parcel[['PSRC_ID', 'total_hhs_by_parcel', 'total_persons_by_parcel']], on = 'PSRC_ID', how = 'left')
@@ -98,6 +102,7 @@ target_hhs_by_taz = target_hhs_by_taz.loc[target_hhs_by_taz['total_hhs_by_parcel
 future_hh_df.drop(['PSRC_ID', 'future_total_persons', 'future_total_hhs', 'GEOID10', 'BKRCastTAZ'], axis = 1, inplace=True)
 target_hhs_df = pd.DataFrame()
 
+np.random.seed(1)
 for taz in target_hhs_by_taz['BKRCastTAZ'].tolist():
     hhs_in_taz = future_hh_df.loc[future_hh_df['hhtaz'] == taz]
     num_hhs_popsim = hhs_in_taz['hhexpfac'].sum()
