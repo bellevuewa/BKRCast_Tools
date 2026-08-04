@@ -8,8 +8,8 @@ import utility
 
 ############# confiuration ###############
 ## input files
-hh_person_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\KirklandSupport\Kirkland2044Complan\WFH\target2044_30%_WFH_by_baseline_worker_conversion_file"
-hh_person_file = '2044_kirk_complan_target_hh_and_persons_reallocated_from_baseline_forWFH_30%.h5'
+hh_person_folder = r"I:\Modeling and Analysis Group\01_BKRCast\BKRPopSim\PopulationSim_BaseData\2025baseyear\30%WFH"
+hh_person_file = '2025_baseyear_hh_and_persons_forWFH_25%.h5'
 
 ## output files
 error_hhs_file = 'hhs.f'
@@ -49,4 +49,13 @@ if neg_hhtaz_df.shape[0] > 0:
 else:
     print('No negative hhtaz is found.')
 
+if hh_df['hhsize'].sum() == person_df.shape[0]:
+    print('hhsize is consistent with the number of persons.')
+else:
+    print('hhsize is NOT consistent with the number of persons. Check out hhsize_check.csv for details.')
+    hhsize_check_df = hh_df[['hhno', 'hhsize']].copy()
+    person_by_hhno = person_df[['hhno', 'psexpfac']].groupby('hhno').sum()
+    person_by_hhno.rename(columns = {'psexpfac': 'num_persons'}, inplace = True)
+    hhsize_check_df = hhsize_check_df.merge(person_by_hhno, on = 'hhno', how = 'left')
+    hhsize_check_df.loc[hhsize_check_df['hhsize'] != hhsize_check_df['num_persons']].to_csv(os.path.join(hh_person_folder, 'hhsize_check.csv'), index = False)
 print('Done')
